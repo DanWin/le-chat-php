@@ -21,7 +21,7 @@
 //Language: English
 $I=array(
 	'nodb' => 'No Connection to Database!',
-	'nodsetupb' => 'No Connection to Database, please create a database and edit the script to use the correct database with given username and password!',
+	'nodbsetup' => 'No Connection to Database, please create a database and edit the script to use the correct database with given username and password!',
 	'changelang' => 'Change language:',
 	'expire' => 'Invalid/expired session',
 	'kicked' => 'Kicked!',

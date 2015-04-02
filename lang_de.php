@@ -20,7 +20,7 @@
 
 $I=array(
 	'nodb' => 'Keine Verbindung zur Datenbank!',
-	'nodsetupb' => 'Keine Verbindung zur Datenbank, bitte erstelle eine Datenbank und bearbeite das Skript, um die korrekte Datenbank mit angegebenem Benutzernamen und Passwort zu benutzen.',
+	'nodbsetup' => 'Keine Verbindung zur Datenbank, bitte erstelle eine Datenbank und bearbeite das Skript, um die korrekte Datenbank mit angegebenem Benutzernamen und Passwort zu benutzen.',
 	'changelang' => 'Sprache ändern:',
 	'expire' => 'Ungültige/abgelaufene Sitzung',
 	'kicked' => 'Rausgeschmissen!',

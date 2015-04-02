@@ -892,7 +892,11 @@ function send_login(){
 	print_start();
 	echo "<center><h1>$C[chatname]</h1><$H[form] target=\"_parent\">".hidden('action', 'login');
 	if($C['enablecaptcha']){
-		$code=rand(0, 99999);
+		$length=strlen($C['captchachars']);
+		$code='';
+		for($i=0;$i<5;$i++) {
+			$code .= $C['captchachars'][rand(0, $length-1)];
+		}
 		$randid=rand(0, 99999999);
 		$enc=base64_encode(openssl_encrypt("$code, $randid", 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
 		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `captcha` (`id`, `time`) VALUES (?, \''.time().'\')');
@@ -908,9 +912,13 @@ function send_login(){
 		echo send_captcha($code);
 		echo '</td><td align="right"><input type="text" name="captcha" size="15" autocomplete="off"></td></tr>';
 	}
-	echo "<tr><td colspan=\"2\" align=\"center\">$I[choosecol]<br><select style=\"text-align:center;\" name=\"colour\"><option value=\"\">* $I[randomcol] *</option>";
-	print_colours();
-	echo '</select></td></tr>';
+	if(get_setting('guestaccess')>0){
+		echo "<tr><td colspan=\"2\" align=\"center\">$I[choosecol]<br><select style=\"text-align:center;\" name=\"colour\"><option value=\"\">* $I[randomcol] *</option>";
+		print_colours();
+		echo '</select></td></tr>';
+	}else{
+		echo "<tr><td colspan=\"2\" align=\"center\">$I[noguests]</td></tr>";
+	}
 	$nowchatting=get_nowchatting();
 	echo '<tr><td colspan="2" align="center">'.submit($I['enter'])."</td></tr></table></form>$nowchatting";
 	echo "<h2>$I[rules]</h2><b>$C[rulestxt]</b><br><br><p>$I[changelang]";
@@ -2079,7 +2087,7 @@ function check_db(){
 	$mysqli=mysqli_connect($C['dbhost'], $C['dbuser'], $C['dbpass'], $C['dbname']);
 	if(mysqli_connect_errno($mysqli)){
 		if($_REQUEST['action']=='setup'){
-			die($I['nosetupdb']);
+			die($I['nodbsetup']);
 		}else{
 			die($I['nodb']);
 		}
@@ -2107,7 +2115,7 @@ function load_config(){
 	$C=array(
 		'version'	=>'1.1', // Script version
 		'dbversion'	=>2, // Database version
-		'showcredits'	=>true, // Allow showing credits
+		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour
 		'collnk'	=>'0000FF', // Link colour
@@ -2134,6 +2142,7 @@ function load_config(){
 		'dbpass'	=>'YOUR_DB_PASS', // Database password
 		'dbname'	=>'public_chat', // Database
 		'captchapass'	=>'YOUR_PASS', // Password used for captcha encryption
+		'captchachars'	=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // Characters used for captcha generation
 		'enablecaptcha'	=>true, // Enable captcha? ture/false
 		'dismemcaptcha'	=>false, // Disable captcha for members? ture/false
 		'embed'		=>true, // Default for displaying embedded imgs/vids or turn them into links true/false
