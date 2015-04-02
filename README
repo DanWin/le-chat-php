@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 GENERAL INFORMATION:
 
-This is a PHP Chat based on LE CHAT v.1.14 . An up-to-date copy of this script can be downloaded at http://github.com/DanWin/le-chat-php
+This is a PHP Chat based on LE CHAT v.1.14 . An up-to-date copy of this script can be downloaded at https://github.com/DanWin/le-chat-php
 The original perl LE CHAT script by Lucky Eddie can be downloaded at http://4fvfamdpoulu2nms.onion/lechat/ or via a tor2web proxy like https://4fvfamdpoulu2nms.tor2web.blutmagie.de/lechat/ if you don't have TOR installed.
 If you add your own cool features or have a feature request, please tell me and I will add them, if I like them.
 Please also let me know about any bugs you find in the code, so I can fix them.
@@ -70,6 +70,19 @@ When you are done, you have to edit the chat script, to include your translation
 		'lang_code'	=>'Language name',
 to the $L array in the load_lang() function at the bottom, similar to what I did for the German translation.
 Please share your translation with me, so I can add it to the official version.
+
+REGEX:
+
+Yes, the chat supports regular expression filtering of messages. As regex tends to be difficult for most people, I decided to give it an extra section here.
+Regex is very powerfull and can be used to filter messages that contain certain expressions and replace them with something else.
+It can be used e.g. to turn BB Code into html, so it is possible to use BB Code in the chat to format messages.
+To do this, use this Regex-Match '\[(u|b)\](.*?)\[\/\1\]' and this Regex-Replace '<$1>$2</$1>' and your text will be '[b]bold[/b]' or '[u]underlined[/u]'.
+You can also use smileys by using this Regex-Match '(?-i::(cry|eek|lol|sad|smile|surprised|wink):)' and this Regex-Replace '<img src="/pictures/$1.gif" alt=":$1:">'
+And now if you enter ':smile:' an image with the smiley will be loaded from your server at '/pictures/smile.gif'.
+The following should be escaped by putting '\' in front of it, if you are trying to match one of these characters '/ \ ^ . $ | ( ) [ ] * + ? { } ,'.
+I used '/' as delimiter, so you will have to escape that, too. The only options I used is 'i' to make the regex case insensitive.
+If you want to test your regex, before applying you can use this site and enter your Regex and Replacement there and click on preg_replace: http://www.phpliveregex.com/
+If you never used regex before, check out this starting guide to begin with regular expressions: http://docs.activestate.com/komodo/4.4/regex-intro.html
 
 LIVE DEMO:
 

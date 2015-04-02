@@ -153,14 +153,13 @@ if(!isSet($_REQUEST['action'])){
 		if(in_array($tmp[0],$tables)) $num_tables++;
 	}
 	if($num_tables<7) send_init();
+	update_db();
 	if(!valid_admin()) send_alogin();
 	if(!isSet($_REQUEST['do'])){
 	}elseif($_REQUEST['do']=='guestaccess'){
 		if(isSet($_REQUEST['set']) && preg_match('/^[0123]$/', $_REQUEST['set'])){
 			update_setting('guestaccess', $_REQUEST['set']);
 		}
-	}elseif($_REQUEST['do']=='dbupdate'){
-		update_db();
 	}elseif($_REQUEST['do']=='messages'){
 		update_messages();
 	}
@@ -278,10 +277,6 @@ function send_setup(){
 	if($ga==0) echo " checked";
 	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td align=\"right\">".submit($I['change'])."</td></tr></table></form></td></tr></table></td></tr>";
 	thr();
-	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[dbupdate]</b></td><td align=\"right\">";
-	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'dbupdate').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass'])."<table cellspacing=\"0\">";
-	echo '<tr><td>&nbsp;</td><td>'.submit($I['update']).'</td></tr></table></form></td></tr></table></td></tr>';
-	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[sysmessages]</b></td><td align=\"right\">";
 	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'messages').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass'])."<table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;$I[msgenter]</td><td>&nbsp;<input type=\"text\" name=\"msgenter\" value=\"".get_setting('msgenter').'"></td></tr>';
@@ -309,6 +304,14 @@ function send_init(){
 	echo "<tr><td>$I[suconfirm]</td><td><input type=\"password\" name=\"supassc\" size=\"15\"></td></tr>";
 	echo "</table><br><br></td></tr><tr><td align=\"left\"><br><br><br></td></tr><tr><td align=\"center\">";
 	echo "</td></tr><tr><td align=\"center\"><tr><td align=\"center\"><br>".submit($I['initbtn']).'</td></tr></table></form>';
+	print_credits();
+	print_end();
+}
+
+function send_update(){
+	global $H, $I;
+	print_start();
+	echo "<center><h2>$I[dbupdate]</h2><br><$H[form]>".hidden('action', 'setup').submit($I['initgosetup']).'</form><br>';
 	print_credits();
 	print_end();
 }
@@ -495,8 +498,8 @@ function send_filter($arg=''){
 			if($filter['regex']==0) $filter['match']=preg_replace('/(\\\\(.))/', "$2", $filter['match']);
 			echo '<tr><td>'.frmadm('filter').hidden('id', $filter['id']);
 			echo "<table cellspacing=\"0\" width=\"100%\"><tr><td style=\"width:8em\"><b>$I[filter] $filter[id]:</b></td>";
-			echo "<td style=\"width:12em\"><input type=\"text\" name=\"match\" value=\"".htmlspecialchars($filter['match'])."\" size=\"20\" style=\"background-color:#$U[bgcolour];$U[style]\"></td>";
-			echo "<td style=\"width:12em\"><input type=\"text\" name=\"replace\" value=\"".htmlspecialchars($filter['replace'])."\" size=\"20\" style=\"background-color:#$U[bgcolour];$U[style]\"></td>";
+			echo "<td style=\"width:12em\"><input type=\"text\" name=\"match\" value=\"".htmlspecialchars($filter['match'])."\" size=\"20\" style=\"$U[style]\"></td>";
+			echo "<td style=\"width:12em\"><input type=\"text\" name=\"replace\" value=\"".htmlspecialchars($filter['replace'])."\" size=\"20\" style=\"$U[style]\"></td>";
 			echo "<td style=\"width:9em\"><input type=\"checkbox\" name=\"allowinpm\" id=\"allowinpm-$filter[id]\" value=\"1\"$check><label for=\"allowinpm-$filter[id]\">$I[allowpm]</label></td>";
 			echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"regex\" id=\"regex-$filter[id]\" value=\"1\"$checked><label for=\"regex-$filter[id]\">$I[regex]</label></td>";
 			echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"kick\" id=\"kick-$filter[id]\" value=\"1\"$checkedk><label for=\"kick-$filter[id]\">$I[kick]</label></td>";
@@ -505,8 +508,8 @@ function send_filter($arg=''){
 	}
 	echo '<tr><td>'.frmadm('filter').hidden('id', '+');
 	echo "<table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\" style=\"width:8em\"><b>$I[newfilter]</b></td>";
-	echo "<td style=\"width:12em\"><input type=\"text\" name=\"match\" value=\"\" size=\"20\" style=\"background-color:#$U[bgcolour];$U[style]\"></td>";
-	echo "<td style=\"width:12em\"><input type=\"text\" name=\"replace\" value=\"\" size=\"20\" style=\"background-color:#$U[bgcolour];$U[style]\"></td>";
+	echo "<td style=\"width:12em\"><input type=\"text\" name=\"match\" value=\"\" size=\"20\" style=\"$U[style]\"></td>";
+	echo "<td style=\"width:12em\"><input type=\"text\" name=\"replace\" value=\"\" size=\"20\" style=\"$U[style]\"></td>";
 	echo "<td style=\"width:9em\"><input type=\"checkbox\" name=\"allowinpm\" id=\"allowinpm\" value=\"1\"><label for=\"allowinpm\">$I[allowpm]</label></td>";
 	echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"regex\" id=\"regex\" value=\"1\"><label for=\"regex\">$I[regex]</label></td>";
 	echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"1\"><label for=\"kick\">$I[kick]</label></td>";
@@ -592,7 +595,7 @@ function send_approve_waiting(){
 	}else{
 		echo "$I[waitempty]<br><br>";
 	}
-	print "$H[backtochat]</center>";
+	echo "$H[backtochat]</center>";
 	print_end();
 }
 
@@ -666,11 +669,11 @@ function send_post(){
 	echo "<table cellspacing=\"0\"><tr><td valign=\"top\">$U[displayname]</td><td valign=\"top\">:</td>";
 	if(!isSet($U['rejected'])) $U['rejected']='';
 	if(isSet($_REQUEST['multi']) && $_REQUEST['multi']=="on"){
-		echo "<td valign=\"top\"><textarea name=\"message\" wrap=\"virtual\" rows=\"$U[boxheight]\" cols=\"$U[boxwidth]\" style=\"background-color:#$U[bgcolour];$U[style]\">$U[rejected]</textarea></td>";
+		echo "<td valign=\"top\"><textarea name=\"message\" wrap=\"virtual\" rows=\"$U[boxheight]\" cols=\"$U[boxwidth]\" style=\"$U[style]\">$U[rejected]</textarea></td>";
 	}else{
-		echo "<td valign=\"top\"><input type=\"text\" name=\"message\" value=\"$U[rejected]\" size=\"$U[boxwidth]\" maxlength=\"$C[maxmessage]\" style=\"background-color:#$U[bgcolour];$U[style]\"></td>";
+		echo "<td valign=\"top\"><input type=\"text\" name=\"message\" value=\"$U[rejected]\" size=\"$U[boxwidth]\" maxlength=\"$C[maxmessage]\" style=\"$U[style]\"></td>";
 	}
-	echo '<td valign="top">'.submit($I['talkto'])."</td><td valign=\"top\"><select name=\"sendto\" size=\"1\" style=\"background-color:#$C[colbg];color:#$C[coltxt]\">";
+	echo '<td valign="top">'.submit($I['talkto'])."</td><td valign=\"top\"><select name=\"sendto\" size=\"1\">";
 	echo '<option '; if(isSet($_REQUEST['sendto']) && $_REQUEST['sendto']=='*') echo 'selected '; echo "value=\"*\">-$I[toall]-</option>";
 	if($U['status']>=3){
 		echo '<option ';
@@ -859,7 +862,7 @@ function send_login(){
 		echo send_captcha($code);
 		echo '</td><td align="right"><input type="text" name="captcha" size="15" autocomplete="off"></td></tr>';
 	}
-	echo "<tr><td colspan=\"2\" align=\"center\">$I[choosecol]<br><select style=\"text-align:center;color:#$C[coltxt];background-color:#$C[colbg];\" name=\"colour\"><option value=\"\">* $I[randomcol] *</option>";
+	echo "<tr><td colspan=\"2\" align=\"center\">$I[choosecol]<br><select style=\"text-align:center;\" name=\"colour\"><option value=\"\">* $I[randomcol] *</option>";
 	print_colours();
 	echo '</select></td></tr>';
 	$nowchatting=get_nowchatting();
@@ -1407,65 +1410,29 @@ function amend_profile(){
 
 function save_profile(){
 	global $U, $C, $I, $mysqli;
-	if(isSet($_REQUEST['oldpass']) && $_REQUEST['oldpass']=='' && ($_REQUEST['newpass']!=='' || $_REQUEST['confirmpass']!=='')){
-		send_profile($I['wrongpass']);
-	}elseif(isSet($_REQUEST['newpass']) && $_REQUEST['newpass']!==$_REQUEST['confirmpass']){
+	if(!isSet($_REQUEST['oldpass'])) $_REQUEST['oldpass']='';
+	if(!isSet($_REQUEST['newpass'])) $_REQUEST['newpass']='';
+	if(!isSet($_REQUEST['confirmpass'])) $_REQUEST['confirmpass']='';
+	if($_REQUEST['newpass']!==$_REQUEST['confirmpass']){
 		send_profile($I['noconfirm']);
-	}
-	// check and rewrite session
-	if(isSet($_REQUEST['oldpass']) && $_REQUEST['oldpass']!==''){
+	}elseif($_REQUEST['newpass']!==''){
 		$U['oldhash']=md5(sha1(md5($U['nickname'].$_REQUEST['oldpass'])));
-	}else{
-		$U['oldhash']=$U['passhash'];
-	}
-	if(isSet($_REQUEST['newpass']) && $_REQUEST['newpass']!==''){
 		$U['newhash']=md5(sha1(md5($U['nickname'].$_REQUEST['newpass'])));
 	}else{
-		$U['newhash']=$U['passhash'];
+		$U['oldhash']=$U['newhash']=$U['passhash'];
 	}
-	$U['orihash']=$U['passhash'];
-	$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `sessions` WHERE `session`=? AND `passhash`=?');
-	mysqli_stmt_bind_param($stmt, 'ss', $U['session'], $U['oldhash']);
+	if($U['passhash']!==$U['oldhash']) send_profile($I['wrongpass']);
+	$U['passhash']=$U['newhash'];
+	amend_profile();
+	$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `refresh`=?, `displayname`=?, `fontinfo`=?, `style`=?, `passhash`=?, `boxwidth`=?, `boxheight`=?, `bgcolour`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=? WHERE `session`=?');
+	mysqli_stmt_bind_param($stmt, 'dssssddsdddds', $U['refresh'], $U['displayname'], $U['fontinfo'], $U['style'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['session']);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_store_result($stmt);
-	if(mysqli_stmt_num_rows($stmt)>0){
-		mysqli_stmt_free_result($stmt);
-		mysqli_stmt_close($stmt);
-		amend_profile();
-		$U['passhash']=$U['newhash'];
-		$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `refresh`=?, `displayname`=?, `fontinfo`=?, `style`=?, `passhash`=?, `boxwidth`=?, `boxheight`=?, `bgcolour`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=? WHERE `session`=?');
-		mysqli_stmt_bind_param($stmt, 'dssssddsdddds', $U['refresh'], $U['displayname'], $U['fontinfo'], $U['style'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['session']);
-		mysqli_stmt_execute($stmt);
-		mysqli_stmt_close($stmt);
-	}else{
-		mysqli_stmt_free_result($stmt);
-		mysqli_stmt_close($stmt);
-	}
-	if($U['orihash']!==$U['oldhash']) send_profile($I['wrongpass']);
-	// rewrite member file
+	mysqli_stmt_close($stmt);
 	if($U['status']>=2){
-		$err='';
-		$stmt=mysqli_prepare($mysqli, 'SELECT `passhash`, `status` FROM `members` WHERE `nickname`=?');
-		mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
+		$stmt=mysqli_prepare($mysqli, 'UPDATE `members` SET `passhash`=?, `refresh`=?, `colour`=?, `bgcolour`=?, `fontface`=?, `fonttags`=?, `boxwidth`=?, `boxheight`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=? WHERE `nickname`=?');
+		mysqli_stmt_bind_param($stmt, 'sdssssdddddds', $U['passhash'], $U['refresh'], $U['colour'], $U['bgcolour'], $U['fontface'], $U['fonttags'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
-		mysqli_stmt_bind_result($stmt, $temp['passhash'], $temp['status']);
-		if(mysqli_stmt_fetch($stmt)){
-			mysqli_stmt_close($stmt);
-			$U['sessionstatus']=$U['status'];
-			$U['status']=$temp['status'];
-			if($temp['passhash']!==$U['orihash']){
-				$err=$I['wrongpass'];
-			}else{
-				$stmt=mysqli_prepare($mysqli, 'UPDATE `members` SET `passhash`=?, `refresh`=?, `colour`=?, `bgcolour`=?, `fontface`=?, `fonttags`=?, `boxwidth`=?, `boxheight`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=? WHERE `nickname`=?');
-				mysqli_stmt_bind_param($stmt, 'sdssssdddddds', $U['passhash'], $U['refresh'], $U['colour'], $U['bgcolour'], $U['fontface'], $U['fonttags'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['nickname']);
-				mysqli_stmt_execute($stmt);
-				mysqli_stmt_close($stmt);
-			}
-			$U['status']=$U['sessionstatus'];
-		}else{
-			mysqli_stmt_close($stmt);
-		}
-		if($err!=='') send_profile($err);
+		mysqli_stmt_close($stmt);
 	}
 	send_profile($I['succprofile']);
 }
@@ -1554,6 +1521,7 @@ function validate_input(){
 			if($_REQUEST['sendto']==$chatter[0]){
 				$U['recipient']=$chatter[0];
 				$U['displayrecp']=style_this($chatter[0], $chatter[2]);
+				break;
 			}
 		}
 		if($U['recipient']!==''){
@@ -1872,7 +1840,7 @@ function init_chat(){
 	while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
 		if(in_array($tmp[0],$tables)) $num_tables++;
 	}
-	if($num_tables==7){
+	if($num_tables>=7){
 		$suwrite=$I['initdbexist'];
 		$result=mysqli_query($mysqli, 'SELECT * FROM `members` WHERE `status`=\'8\'');
 		if(mysqli_num_rows($result)>0){
@@ -1935,8 +1903,8 @@ function init_chat(){
 		$suwrite=$I['susuccess'];
 	}
 	print_start();
-	print "<center><h2>$I[init]</h2><br><h3>$I[sulogin]</h3>$suwrite<br><br><br>";
-	print "<$H[form]>".hidden('action', 'setup').hidden('nick', $_REQUEST['sunick']).hidden('pass', $_REQUEST['supass']).submit($I['initgosetup']).'</form>';
+	echo "<center><h2>$I[init]</h2><br><h3>$I[sulogin]</h3>$suwrite<br><br><br>";
+	echo "<$H[form]>".hidden('action', 'setup').hidden('nick', $_REQUEST['sunick']).hidden('pass', $_REQUEST['supass']).submit($I['initgosetup']).'</form>';
 	print_credits();
 	print_end();
 }
@@ -1946,6 +1914,7 @@ function update_db(){
 	$dbversion=get_setting('dbversion');
 	if($dbversion<$C['dbversion']){
 		update_setting('dbversion', $C['dbversion']);
+		send_update();
 	}
 }
 
