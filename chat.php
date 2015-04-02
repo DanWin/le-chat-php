@@ -162,6 +162,11 @@ if(!isSet($_REQUEST['action'])){
 		}
 	}elseif($_REQUEST['do']=='messages'){
 		update_messages();
+	}elseif($_REQUEST['do']=='rules'){
+		$_REQUEST['rulestxt']=preg_replace("/\r\n/", '<br>', $_REQUEST['rulestxt']);
+		$_REQUEST['rulestxt']=preg_replace("/\n/", '<br>', $_REQUEST['rulestxt']);
+		$_REQUEST['rulestxt']=preg_replace("/\r/", '<br>', $_REQUEST['rulestxt']);
+		update_setting('rulestxt', $_REQUEST['rulestxt']);
 	}
 	send_setup();
 }elseif($_REQUEST['action']=='init'){
@@ -263,22 +268,22 @@ function send_setup(){
 	echo "<center><h2>$I[setup]</h2><table cellspacing=\"0\">";
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[guestacc]</b></td><td align=\"right\">";
-	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'guestaccess').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass'])."<table cellspacing=\"0\">";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set1\" value=\"1\"";
-	if($ga==1) echo " checked";
+	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'guestaccess').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass']).'<table cellspacing="0">';
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set1" value="1"';
+	if($ga==1) echo ' checked';
 	echo "><label for=\"set1\">&nbsp;$I[guestallow]</label></td><td>&nbsp;</td><tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set2\" value=\"2\"";
-	if($ga==2) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set2" value="2"';
+	if($ga==2) echo ' checked';
 	echo "><label for=\"set2\">&nbsp;$I[guestwait]</label></td><td>&nbsp;</td><tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set3\" value=\"3\"";
-	if($ga==3) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set3" value="3"';
+	if($ga==3) echo ' checked';
 	echo "><label for=\"set3\">&nbsp;$I[adminallow]</label></td><td>&nbsp;</td><tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set0\" value=\"0\"";
-	if($ga==0) echo " checked";
-	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td align=\"right\">".submit($I['change'])."</td></tr></table></form></td></tr></table></td></tr>";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set0" value="0"';
+	if($ga==0) echo ' checked';
+	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td align=\"right\">".submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[sysmessages]</b></td><td align=\"right\">";
-	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'messages').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass'])."<table cellspacing=\"0\">";
+	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'messages').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass']).'<table cellspacing="0">';
 	echo "<tr><td>&nbsp;$I[msgenter]</td><td>&nbsp;<input type=\"text\" name=\"msgenter\" value=\"".get_setting('msgenter').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgexit]</td><td>&nbsp;<input type=\"text\" name=\"msgexit\" value=\"".get_setting('msgexit').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgmemreg]</td><td>&nbsp;<input type=\"text\" name=\"msgmemreg\" value=\"".get_setting('msgmemreg').'"></td></tr>';
@@ -287,6 +292,11 @@ function send_setup(){
 	echo "<tr><td>&nbsp;$I[msgmultikick]</td><td>&nbsp;<input type=\"text\" name=\"msgmultikick\" value=\"".get_setting('msgmultikick').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgallkick]</td><td>&nbsp;<input type=\"text\" name=\"msgallkick\" value=\"".get_setting('msgallkick').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgclean]</td><td>&nbsp;<input type=\"text\" name=\"msgclean\" value=\"".get_setting('msgclean').'"></td></tr>';
+	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+	thr();
+	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[rules]</b></td><td align=\"right\">";
+	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'rules').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass']).'<table cellspacing="0">';
+	echo '<tr><td colspan=2><textarea name="rulestxt" rows="4" cols="60">'.htmlspecialchars(get_setting('rulestxt')).'</textarea></td></tr>';
 	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "</table><$H[form]>".hidden('action', 'setup').submit($I['logout']).'</form>';
@@ -647,7 +657,7 @@ function send_waiting_room(){
 			echo "</head>$H[begin_body]<center><h2>$I[waitingroom]</h2><p>".sprintf($I['admwaittext'], $U['displayname']).'</p><br><p>'.sprintf($I['waitreload'], $C['defaultrefresh']).'</p><br><br>';
 		}
 		echo "<hr><form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\">".hidden('action', 'wait').hidden('session', $U['session']).submit($I['reload']).'</form><br>';
-		echo "<h2>$I[rules]</h2><b>$C[rulestxt]</b></center>";
+		echo "<h2>$I[rules]</h2><b>".get_setting('rulestxt').'</b></center>';
 		print_end();
 	}
 }
@@ -729,7 +739,7 @@ function send_post(){
 function send_help(){
 	global $U, $C, $H, $I;
 	print_start();
-	echo "<h2>$I[rules]</h2>$C[rulestxt]<br><br><hr><h2>$I[help]</h2>$I[helpguest]";
+	echo "<h2>$I[rules]</h2>".get_setting('rulestxt')."<br><br><hr><h2>$I[help]</h2>$I[helpguest]";
 	if($C['imgembed'] || $C['vidembed']) echo "<br>$I[helpembed]";
 	if($U['status']>=3){
 		echo "<br>$I[helpmem]<br>";
@@ -921,7 +931,7 @@ function send_login(){
 	}
 	$nowchatting=get_nowchatting();
 	echo '<tr><td colspan="2" align="center">'.submit($I['enter'])."</td></tr></table></form>$nowchatting";
-	echo "<h2>$I[rules]</h2><b>$C[rulestxt]</b><br><br><p>$I[changelang]";
+	echo "<h2>$I[rules]</h2><b>".get_setting('rulestxt')."</b><br><br><p>$I[changelang]";
 	foreach($L as $lang=>$name){
 		echo " <a href=\"$_SERVER[SCRIPT_NAME]?lang=$lang\">$name</a>";
 	}
@@ -2011,6 +2021,9 @@ function update_db(){
 			mysqli_query($mysqli, 'ALTER TABLE `ignored` ADD PRIMARY KEY (`id`)');
 			mysqli_query($mysqli, 'ALTER TABLE `ignored` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT');
 		}
+		if($dbversion<3){
+			mysqli_query($mysqli, 'INSERT INTO `settings` (`setting`, `value`) VALUES (\'rulestxt\', \'1. YOUR_RULS<br>2. YOUR_RULES\')');
+		}
 		update_setting('dbversion', $C['dbversion']);
 		send_update();
 	}
@@ -2113,8 +2126,8 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.1', // Script version
-		'dbversion'	=>2, // Database version
+		'version'	=>'1.2', // Script version
+		'dbversion'	=>3, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour
@@ -2158,8 +2171,7 @@ function load_config(){
 		'mailsender'	=>'www-data <www-data@localhost>', // Send mail using this e-Mail address
 		'mailreceiver'	=>'Webmaster <webmaster@localhost>', // Send mail to this e-Mail address
 		'redirect'	=>"$_SERVER[SCRIPT_NAME]?action=redirect&url=", // Redirect script default: "$_SERVER[SCRIPT_NAME]?action=redirect&url="
-		'lang'		=>'en', // Default language
-		'rulestxt'	=>'1. YOUR_RULS<br>2. YOUR_RULES' // Rules - divide multiple rules by <br> to make them appear in a new line
+		'lang'		=>'en' // Default language
 	);
 }
 ?>

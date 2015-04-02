@@ -1,3 +1,7 @@
+Version 1.2 - Apr. 2, 2015
+Include letters when generating captchas not only numbers
+Moved rules to database to make changes more easily in the setup
+
 Version 1.1 - Apr. 2, 2015
 Some simplifications
 Added ignore feature
