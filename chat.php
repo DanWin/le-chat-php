@@ -146,7 +146,7 @@ if(!isSet($_REQUEST['action'])){
 	}
 	send_admin();
 }elseif($_REQUEST['action']=='setup'){
-	$tables=array('captcha', 'filter', 'members', 'messages', 'notes', 'sessions', 'settings');
+	$tables=array('captcha', 'filter', 'ignored', 'members', 'messages', 'notes', 'sessions', 'settings');
 	$num_tables=0;
 	$result=mysqli_query($mysqli, 'SHOW TABLES');
 	while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
@@ -662,7 +662,7 @@ function send_choose_messages(){
 }
 
 function send_post(){
-	global $U, $C, $P, $I, $countmods;
+	global $U, $C, $P, $I, $countmods, $mysqli;
 	$U['postid']=substr(time(), -6);
 	print_start();
 	echo "<center><table cellspacing=\"0\"><tr><td align=\"center\">".frmpst('post').hidden('postid', $U['postid']).@hidden('multi', $_REQUEST['multi']);
@@ -690,9 +690,18 @@ function send_post(){
 		if(isSet($_REQUEST['sendto']) && $_REQUEST['sendto']=='&') echo 'selected ';
 		echo "value=\"&\">-$I[toadmin]-</option>";
 	}
+	$ignored=array();
+	$stmt=mysqli_prepare($mysqli, '(SELECT `by` FROM `ignored` WHERE `ignored`=? OR `by`=?) UNION (SELECT `ignored` FROM `ignored` WHERE `ignored`=? OR `by`=?)');
+	mysqli_stmt_bind_param($stmt, 'ssss', $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname']);
+	mysqli_stmt_execute($stmt);
+	mysqli_stmt_bind_result($stmt, $ign);
+	while(mysqli_stmt_fetch($stmt)){
+		$ignored[]=$ign;
+	}
+	mysqli_stmt_close($stmt);
 	array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
 	foreach($P as $user){
-		if($U['nickname']!==$user[0]){
+		if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
 			echo '<option ';
 			if(isSet($_REQUEST['sendto']) && $_REQUEST['sendto']==$user[0]) echo 'selected ';
 			echo "value=\"$user[0]\" style=\"$user[2]\">$user[0]</option>";
@@ -735,10 +744,47 @@ function send_help(){
 }
 
 function send_profile($arg=''){
-	global $U, $F, $H, $I;
+	global $U, $F, $H, $I, $P, $C, $mysqli;
 	print_start();
 	echo "<center><$H[form]>".hidden('action', 'profile').hidden('do', 'save').hidden('session', $U['session'])."<h2>$I[profile]</h2><i>$arg</i><table cellspacing=\"0\">";
 	thr();
+	array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
+	$ignored=array();
+	$stmt=mysqli_prepare($mysqli, 'SELECT `ignored` FROM `ignored` WHERE `by`=?');
+	mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
+	mysqli_stmt_execute($stmt);
+	mysqli_stmt_store_result($stmt);
+	if(mysqli_stmt_num_rows($stmt)>0){
+		mysqli_stmt_bind_result($stmt, $ign);
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[unignore]</b></td><td align=\"right\"><table cellspacing=\"0\">";
+		echo "<tr><td>&nbsp;</td><td><select name=\"unignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
+		while(mysqli_stmt_fetch($stmt)){
+			$ignored[]=$ign;
+			$style='';
+			foreach($P as $user){
+				if($ign==$user[0]){
+					$style=" style=\"$user[2]\"";
+					break;
+				}
+			}
+			echo "<option value=\"$ign\"$style>$ign</option>";
+		}
+		echo '</select></td></tr></table></td></tr></table></td></tr>';
+		thr();
+	}
+	mysqli_stmt_free_result($stmt);
+	mysqli_stmt_close($stmt);
+	if(count($P)-count($ignored)>1){
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[ignore]</b></td><td align=\"right\"><table cellspacing=\"0\">";
+		echo "<tr><td>&nbsp;</td><td><select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
+		foreach($P as $user){
+			if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
+				echo "<option value=\"$user[0]\" style=\"$user[2]\">$user[0]</option>";
+			}
+		}
+		echo '</select></td></tr></table></td></tr></table></td></tr>';
+		thr();
+	}
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[refreshrate]</b></td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td><input type=\"text\" name=\"refresh\" size=\"3\" maxlength=\"3\" value=\"$U[refresh]\"></td></tr></table></td></tr></table></td></tr>";
 	thr();
@@ -1075,6 +1121,10 @@ function kill_session(){
 		mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
+		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `ignored` WHERE `ignored`=? OR `by`=?');
+		mysqli_stmt_bind_param($stmt, 'ss', $U['nickname'], $U['nickname']);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
 	}
 	elseif($C['msglogout'] && $U['status']>=3) add_system_message(sprintf(get_setting('msgexit'), $U['displayname']));
 }
@@ -1121,6 +1171,7 @@ function logout_chatter($names){
 	$stmt=mysqli_prepare($mysqli, 'DELETE FROM `sessions` WHERE `session`=? AND `status`<? AND `status`!=\'0\'');
 	$stmt1=mysqli_prepare($mysqli, 'UPDATE `messages` SET `poster`=\'\' WHERE `poster`=? AND `poststatus`=\'9\'');
 	$stmt2=mysqli_prepare($mysqli, 'UPDATE `messages` SET `recipient`=\'\' WHERE `recipient`=? AND `poststatus`=\'9\'');
+	$stmt3=mysqli_prepare($mysqli, 'DELETE FROM `ignored` WHERE `ignored`=? OR `by`=?');
 	if(isSet($lines)){
 		foreach($names as $name){
 			foreach($lines as $temp){
@@ -1130,8 +1181,10 @@ function logout_chatter($names){
 					if($temp['status']==1){
 						mysqli_stmt_bind_param($stmt1, 's', $temp['nickname']);
 						mysqli_stmt_bind_param($stmt2, 's', $temp['nickname']);
+						mysqli_stmt_bind_param($stmt3, 's', $temp['nickname'], $temp['nickname']);
 						mysqli_stmt_execute($stmt1);
 						mysqli_stmt_execute($stmt2);
+						mysqli_stmt_execute($stmt3);
 					}
 					unset($P[$name]);
 				}
@@ -1141,6 +1194,7 @@ function logout_chatter($names){
 	mysqli_stmt_close($stmt);
 	mysqli_stmt_close($stmt1);
 	mysqli_stmt_close($stmt2);
+	mysqli_stmt_close($stmt3);
 }
 
 function update_session(){
@@ -1186,19 +1240,23 @@ function parse_sessions(){
 		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `sessions` WHERE `nickname`=?');
 		$stmt1=mysqli_prepare($mysqli, 'UPDATE `messages` SET `poster`=\'\' WHERE `poster`=? AND `poststatus`=\'9\'');
 		$stmt2=mysqli_prepare($mysqli, 'UPDATE `messages` SET `recipient`=\'\' WHERE `recipient`=? AND `poststatus`=\'9\'');
+		$stmt3=mysqli_prepare($mysqli, 'DELETE FROM `ignored` WHERE `ignored`=? OR `by`=?');
 		while($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
 			mysqli_stmt_bind_param($stmt, 's', $temp['nickname']);
 			mysqli_stmt_execute($stmt);
 			if($temp['status']<=1){
 				mysqli_stmt_bind_param($stmt1, 's', $temp['nickname']);
 				mysqli_stmt_bind_param($stmt2, 's', $temp['nickname']);
+				mysqli_stmt_bind_param($stmt3, 'ss', $temp['nickname'], $temp['nickname']);
 				mysqli_stmt_execute($stmt1);
 				mysqli_stmt_execute($stmt2);
+				mysqli_stmt_execute($stmt3);
 			}
 		}
 		mysqli_stmt_close($stmt);
 		mysqli_stmt_close($stmt1);
 		mysqli_stmt_close($stmt2);
+		mysqli_stmt_close($stmt3);
 	}
 	$result=mysqli_query($mysqli, 'SELECT * FROM `sessions` WHERE `entry`=\'0\' ORDER BY `status` DESC, `lastpost` DESC');
 	if(mysqli_num_rows($result)>0){
@@ -1434,6 +1492,18 @@ function save_profile(){
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 	}
+	if(isSet($_REQUEST['unignore']) && $_REQUEST['unignore']!=''){
+		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `ignored` WHERE `ignored`=? AND `by`=?');
+		mysqli_stmt_bind_param($stmt, 'ss', $_REQUEST['unignore'], $U['nickname']);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+	}
+	if(isSet($_REQUEST['ignore']) && $_REQUEST['ignore']!=''){
+		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `ignored` (`ignored`,`by`) VALUES (?, ?)');
+		mysqli_stmt_bind_param($stmt, 'ss', $_REQUEST['ignore'], $U['nickname']);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+	}
 	send_profile($I['succprofile']);
 }
 
@@ -1474,7 +1544,7 @@ function add_user_defaults(){
 // message handling
 
 function validate_input(){
-	global $U, $P, $C;
+	global $U, $P, $C, $mysqli;
 	$U['message']=substr($_REQUEST['message'], 0, $C['maxmessage']);
 	if(!isSet($U['rejected'])) $U['rejected']=substr($_REQUEST['message'], $C['maxmessage']);
 	if(preg_match('/&[^;]{0,8}$/', $U['message']) && preg_match('/^([^;]{0,8};)/', $U['rejected'], $match)){
@@ -1517,18 +1587,26 @@ function validate_input(){
 		$U['poststatus']='6';
 		$U['displaysend']="[Admin] $U[displayname] - ";
 	}else{// known nick in room?
-		foreach($P as $chatter){
-			if($_REQUEST['sendto']==$chatter[0]){
-				$U['recipient']=$chatter[0];
-				$U['displayrecp']=style_this($chatter[0], $chatter[2]);
-				break;
+		$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `ignored` WHERE (`ignored`=? AND `by`=?) OR (`ignored`=? AND `by`=?)');
+		mysqli_stmt_bind_param($stmt, 'ssss', $U['nickname'], $_REQUEST['sendto'], $_REQUEST['sendto'], $U['nickname']);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_store_result($stmt);
+		if(mysqli_stmt_num_rows($stmt)==0){
+			foreach($P as $chatter){
+				if($_REQUEST['sendto']==$chatter[0]){
+					$U['recipient']=$chatter[0];
+					$U['displayrecp']=style_this($chatter[0], $chatter[2]);
+					break;
+				}
 			}
 		}
+		mysqli_stmt_free_result($stmt);
+		mysqli_stmt_close($stmt);
 		if($U['recipient']!==''){
 			$U['poststatus']='9';
 			$U['delstatus']='9';
 			$U['displaysend']="[$U[displayname] to $U[displayrecp]] - ";
-		}else{// nick left already
+		}else{// nick left already or ignores us
 			$U['message']='';
 			$U['rejected']='';
 		}
@@ -1680,8 +1758,12 @@ function del_last_message(){
 function print_messages($delstatus=''){
 	global $U, $C, $mysqli;
 	mysqli_query($mysqli, 'DELETE FROM `messages` WHERE `postdate`<=\''.(time()-60*$C['messageexpire'])."'");
-	$stmt=mysqli_prepare($mysqli, 'SELECT `postdate`, `postid`, `text`, `delstatus` FROM `messages` WHERE `id` IN (SELECT * FROM (SELECT `id` FROM `messages` WHERE `poststatus`=\'1\' ORDER BY `postdate` DESC LIMIT ?) AS t) OR (`poststatus`>\'1\' AND `poststatus`<=?) OR (`poststatus`=\'9\' AND (`poster`=? OR `recipient`=?)) ORDER BY `postdate` DESC');
-	mysqli_stmt_bind_param($stmt, 'ddss', $C['messagelimit'], $U['status'], $U['nickname'], $U['nickname']);
+	$stmt=mysqli_prepare($mysqli, 'SELECT `postdate`, `postid`, `text`, `delstatus` FROM `messages` WHERE ('.
+	'`id` IN (SELECT * FROM (SELECT `id` FROM `messages` WHERE `poststatus`=\'1\' ORDER BY `postdate` DESC LIMIT ?) AS t) '.
+	'OR (`poststatus`>\'1\' AND `poststatus`<=?) '.
+	'OR (`poststatus`=\'9\' AND ( (`poster`=? AND `recipient` NOT IN (SELECT * FROM (SELECT `ignored` FROM `ignored` WHERE `by`=?) AS t) ) OR `recipient`=?) )'.
+	') AND `poster` NOT IN (SELECT * FROM (SELECT `ignored` FROM `ignored` WHERE `by`=?) AS t) ORDER BY `postdate` DESC');
+	mysqli_stmt_bind_param($stmt, 'ddssss', $C['messagelimit'], $U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_bind_result($stmt, $message['postdate'], $message['postid'], $message['text'], $message['delstatus']);
 	while(mysqli_stmt_fetch($stmt)){
@@ -1834,7 +1916,7 @@ function style_this($text, $styleinfo){
 function init_chat(){
 	global $H, $C, $U, $I, $mysqli;
 	$suwrite='';
-	$tables=array('captcha', 'filter', 'members', 'messages', 'notes', 'sessions', 'settings');
+	$tables=array('captcha', 'filter', 'ignored', 'members', 'messages', 'notes', 'sessions', 'settings');
 	$num_tables=0;
 	$result=mysqli_query($mysqli, 'SHOW TABLES');
 	while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
@@ -1853,6 +1935,7 @@ function init_chat(){
 	}else{
 		mysqli_multi_query($mysqli, 	'CREATE TABLE IF NOT EXISTS `captcha` (`id` int(10) unsigned NOT NULL, `time` int(10) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `filter` (`id` tinyint(3) unsigned NOT NULL, `match` tinytext NOT NULL, `replace` text NOT NULL, `allowinpm` tinyint(1) unsigned NOT NULL, `regex` tinyint(1) unsigned NOT NULL, `kick` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
+						'CREATE TABLE IF NOT EXISTS `ignored` (`id` int(10) unsigned NOT NULL, `ignored` tinytext NOT NULL, `by` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `members` (`id` tinyint(3) unsigned NOT NULL, `nickname` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `passhash` tinytext NOT NULL, `status` tinyint(3) unsigned NOT NULL, `refresh` tinyint(3) unsigned NOT NULL, `colour` tinytext NOT NULL, `bgcolour` tinytext NOT NULL, `fontface` tinytext NOT NULL, `fonttags` tinytext NOT NULL, `boxwidth` tinyint(3) unsigned NOT NULL, `boxheight` tinyint(3) unsigned NOT NULL, `notesboxheight` tinyint(3) unsigned NOT NULL, `notesboxwidth` tinyint(3) unsigned NOT NULL, `regedby` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `lastlogin` int(10) unsigned NOT NULL, `timestamps` tinyint(1) unsigned NOT NULL, `embed` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `messages` (`id` int(10) unsigned NOT NULL, `postdate` int(10) unsigned NOT NULL, `postid` int(10) unsigned NOT NULL, `poststatus` tinyint(3) unsigned NOT NULL, `poster` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `recipient` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `text` text NOT NULL, `delstatus` tinyint(3) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `notes` (`id` int(10) unsigned NOT NULL, `type` tinytext NOT NULL, `lastedited` int(10) unsigned NOT NULL, `editedby` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `text` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
@@ -1860,12 +1943,14 @@ function init_chat(){
 						'CREATE TABLE IF NOT EXISTS `settings` (`id` tinyint(3) unsigned NOT NULL, `setting` tinytext NOT NULL, `value` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'ALTER TABLE `captcha` ADD UNIQUE KEY `id` (`id`); '.
 						'ALTER TABLE `filter` ADD PRIMARY KEY (`id`); '.
+						'ALTER TABLE `ignored` ADD PRIMARY KEY (`id`); '.
 						'ALTER TABLE `members` ADD PRIMARY KEY (`id`); '.
 						'ALTER TABLE `messages` ADD PRIMARY KEY (`id`); '.
 						'ALTER TABLE `notes` ADD PRIMARY KEY (`id`); '.
 						'ALTER TABLE `sessions` ADD PRIMARY KEY (`id`); '.
 						'ALTER TABLE `settings` ADD PRIMARY KEY (`id`); '.
 						'ALTER TABLE `filter` MODIFY `id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT; '.
+						'ALTER TABLE `ignored` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT; '.
 						'ALTER TABLE `members` MODIFY `id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT; '.
 						'ALTER TABLE `messages` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT; '.
 						'ALTER TABLE `notes` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT; '.
@@ -1913,6 +1998,11 @@ function update_db(){
 	global $C, $mysqli;
 	$dbversion=get_setting('dbversion');
 	if($dbversion<$C['dbversion']){
+		if($dbversion<2){
+			mysqli_query($mysqli, 'CREATE TABLE IF NOT EXISTS `ignored` (`id` int(10) unsigned NOT NULL, `ignored` tinytext NOT NULL, `by` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8');
+			mysqli_query($mysqli, 'ALTER TABLE `ignored` ADD PRIMARY KEY (`id`)');
+			mysqli_query($mysqli, 'ALTER TABLE `ignored` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT');
+		}
 		update_setting('dbversion', $C['dbversion']);
 		send_update();
 	}
@@ -2015,8 +2105,8 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.0', // Script version
-		'dbversion'	=>1, // Database version
+		'version'	=>'1.1', // Script version
+		'dbversion'	=>2, // Database version
 		'showcredits'	=>true, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour
@@ -2045,7 +2135,7 @@ function load_config(){
 		'dbname'	=>'public_chat', // Database
 		'captchapass'	=>'YOUR_PASS', // Password used for captcha encryption
 		'enablecaptcha'	=>true, // Enable captcha? ture/false
-		'dismemcaptcha'	=>true, // Disable captcha for members? ture/false
+		'dismemcaptcha'	=>false, // Disable captcha for members? ture/false
 		'embed'		=>true, // Default for displaying embedded imgs/vids or turn them into links true/false
 		'imgembed'	=>true, // Allow image embedding in chat using [img] tag? ture/false Warning: this might leak session data to the image hoster when cookies are disabled.
 		'vidembed'	=>true, // Allow video embedding in chat using [vid] tag? ture/false Warning: this might leak session data to the video hoster when cookies are disabled.

@@ -74,10 +74,10 @@ Please share your translation with me, so I can add it to the official version.
 REGEX:
 
 Yes, the chat supports regular expression filtering of messages. As regex tends to be difficult for most people, I decided to give it an extra section here.
-Regex is very powerfull and can be used to filter messages that contain certain expressions and replace them with something else.
+Regex is very powerful and can be used to filter messages that contain certain expressions and replace them with something else.
 It can be used e.g. to turn BB Code into html, so it is possible to use BB Code in the chat to format messages.
 To do this, use this Regex-Match '\[(u|b)\](.*?)\[\/\1\]' and this Regex-Replace '<$1>$2</$1>' and your text will be '[b]bold[/b]' or '[u]underlined[/u]'.
-You can also use smileys by using this Regex-Match '(?-i::(cry|eek|lol|sad|smile|surprised|wink):)' and this Regex-Replace '<img src="/pictures/$1.gif" alt=":$1:">'
+You can also use smilies by using this Regex-Match '(?-i::(cry|eek|lol|sad|smile|surprised|wink):)' and this Regex-Replace '<img src="/pictures/$1.gif" alt=":$1:">'
 And now if you enter ':smile:' an image with the smiley will be loaded from your server at '/pictures/smile.gif'.
 The following should be escaped by putting '\' in front of it, if you are trying to match one of these characters '/ \ ^ . $ | ( ) [ ] * + ? { } ,'.
 I used '/' as delimiter, so you will have to escape that, too. The only options I used is 'i' to make the regex case insensitive.
