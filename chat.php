@@ -55,9 +55,8 @@ if(!isSet($_REQUEST['action'])){
 }elseif($_REQUEST['action']=='post'){
 	check_session();
 	if(isSet($_REQUEST['kick']) && isSet($_REQUEST['sendto']) && valid_nick($_REQUEST['sendto'])){
-		if($U['status']>=5 || ($countmods==0 && $U['status']>=3)){
-			kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message']);
-			if(isSet($_REQUEST['what']) && $_REQUEST['what']=='purge') del_all_messages($_REQUEST['sendto']);
+		if($U['status']>=5 || ($C['memkick'] && $countmods==0 && $U['status']>=3)){
+			if(kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message']) && isSet($_REQUEST['what']) && $_REQUEST['what']=='purge') del_all_messages($_REQUEST['sendto']);
 		}
 	}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto']) && !preg_match('/^\s*$/',$_REQUEST['message'])){
 		validate_input();
@@ -108,8 +107,7 @@ if(!isSet($_REQUEST['action'])){
 		send_admin();
 	}elseif($_REQUEST['do']=='kick'){
 		if(!isSet($_REQUEST['name'])) send_admin();
-		kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage']);
-		if(isSet($_REQUEST['what']) && $_REQUEST['what']=='purge'){
+		if(kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage']) && isSet($_REQUEST['what']) && $_REQUEST['what']=='purge'){
 			foreach($_REQUEST['name'] as $name){
 				del_all_messages($name);
 			}
@@ -718,7 +716,7 @@ function send_post(){
 		}
 	}
 	echo '</select>';
-	if($U['status']>=5 || ($countmods==0 && $U['status']>=3)){
+	if($U['status']>=5 || ($C['memkick'] && $countmods==0 && $U['status']>=3)){
 		echo "<input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\"><label for=\"kick\">&nbsp;$I[kick]</label>";
 		echo "<input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked><label for=\"what\">&nbsp;$I[alsopurge]</label>";
 	}
@@ -1168,11 +1166,11 @@ function kick_chatter($names, $mes){
 	}
 	mysqli_stmt_close($stmt);
 	if($C['msgkick']){
-		if($names[0]=='&'){
-			add_system_message(get_setting('msgallkick'));
-		}else{
-			$lonick=preg_replace('/\,\s$/','',$lonick);
-			if($lonick!==''){
+		if($lonick!==''){
+			if($names[0]=='&'){
+				add_system_message(get_setting('msgallkick'));
+			}else{
+				$lonick=preg_replace('/\,\s$/','',$lonick);
 				if($i>1){
 					add_system_message(sprintf(get_setting('msgmultikick'), $lonick));
 				}else{
@@ -1181,6 +1179,8 @@ function kick_chatter($names, $mes){
 			}
 		}
 	}
+	if($lonick!=='') return true;
+	return false;
 }
 
 function logout_chatter($names){
@@ -1199,7 +1199,7 @@ function logout_chatter($names){
 					if($temp['status']==1){
 						mysqli_stmt_bind_param($stmt1, 's', $temp['nickname']);
 						mysqli_stmt_bind_param($stmt2, 's', $temp['nickname']);
-						mysqli_stmt_bind_param($stmt3, 's', $temp['nickname'], $temp['nickname']);
+						mysqli_stmt_bind_param($stmt3, 'ss', $temp['nickname'], $temp['nickname']);
 						mysqli_stmt_execute($stmt1);
 						mysqli_stmt_execute($stmt2);
 						mysqli_stmt_execute($stmt3);
@@ -2126,7 +2126,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.2', // Script version
+		'version'	=>'1.3', // Script version
 		'dbversion'	=>3, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
@@ -2167,6 +2167,7 @@ function load_config(){
 		'msglogout'	=>false, // Add a message on member logout
 		'msglogin'	=>true, // Add a message on member login
 		'msgkick'	=>true, // Add a message when kicking someone
+		'memkick'	=>true, // Let a member kick guests if no mod is present
 		'sendmail'	=>false, // Send mail on new message - only activate on low traffic chat or your inbox will fill up very fast!
 		'mailsender'	=>'www-data <www-data@localhost>', // Send mail using this e-Mail address
 		'mailreceiver'	=>'Webmaster <webmaster@localhost>', // Send mail to this e-Mail address
