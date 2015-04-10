@@ -56,7 +56,8 @@ if(!isSet($_REQUEST['action'])){
 	check_session();
 	if(isSet($_REQUEST['kick']) && isSet($_REQUEST['sendto']) && valid_nick($_REQUEST['sendto'])){
 		if($U['status']>=5 || ($C['memkick'] && $countmods==0 && $U['status']>=3)){
-			if(kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message']) && isSet($_REQUEST['what']) && $_REQUEST['what']=='purge') del_all_messages($_REQUEST['sendto']);
+			if(isSet($_REQUEST['what']) && $_REQUEST['what']=='purge') kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], true);
+			else kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], false);
 		}
 	}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto']) && !preg_match('/^\s*$/',$_REQUEST['message'])){
 		validate_input();
@@ -107,11 +108,8 @@ if(!isSet($_REQUEST['action'])){
 		send_admin();
 	}elseif($_REQUEST['do']=='kick'){
 		if(!isSet($_REQUEST['name'])) send_admin();
-		if(kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage']) && isSet($_REQUEST['what']) && $_REQUEST['what']=='purge'){
-			foreach($_REQUEST['name'] as $name){
-				del_all_messages($name);
-			}
-		}
+		if(isSet($_REQUEST['what']) && $_REQUEST['what']=='purge') kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], true);
+		else kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], false);
 		send_admin();
 	}elseif($_REQUEST['do']=='logout'){
 		if(!isSet($_REQUEST['name'])) send_admin();
@@ -246,17 +244,31 @@ function send_redirect(){
 	}
 }
 
-function send_captcha($code){
-	global $C;
+function send_captcha(){
+	global $C, $I, $mysqli;
+	$length=strlen($C['captchachars']);
+	$code='';
+	for($i=0;$i<5;$i++) {
+		$code .= $C['captchachars'][rand(0, $length-1)];
+	}
+	$randid=rand(0, 99999999);
+	$enc=base64_encode(openssl_encrypt("$code, $randid", 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
+	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `captcha` (`id`, `time`) VALUES (?, \''.time().'\')');
+	mysqli_stmt_bind_param($stmt, 'd', $randid);
+	mysqli_stmt_execute($stmt);
+	mysqli_stmt_close($stmt);
 	$im=imagecreatetruecolor(55, 24);
 	$bg=imagecolorallocate($im, 0, 0, 0);
 	$fg=imagecolorallocate($im, 255, 255, 255);
 	imagefill($im, 0, 0, $bg);
 	imagestring($im, 5, 5, 5, $code, $fg);
+	echo "<tr><td align=\"left\">$I[copy]";
+	echo '<img width="55" height="24" src="data:image/gif;base64,';
 	ob_start();
 	imagegif($im);
 	imagedestroy($im);
-	return '<img width="55" height="24" src="data:image/gif;base64,'.base64_encode(ob_get_clean()).'">';
+	echo base64_encode(ob_get_clean()).'">';
+	echo '</td><td align="right">'.hidden('challenge', $enc).'<input type="text" name="captcha" size="15" autocomplete="off"></td></tr>';
 }
 
 function send_setup(){
@@ -325,11 +337,12 @@ function send_update(){
 }
 
 function send_alogin(){
-	global $H, $I;
+	global $H, $I, $C;
 	print_start();
 	echo "<center><$H[form]>".hidden('action', 'setup').'<table>';
 	echo "<tr><td align=\"left\">$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\"></td></tr>";
 	echo "<tr><td align=\"left\">$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
+	if($C['enablecaptcha']) send_captcha();
 	echo "<tr><td colspan=\"2\" align=\"right\">".submit($I['login']).'</td></tr></table></form>';
 	print_credits();
 	print_end();
@@ -824,11 +837,13 @@ function send_profile($arg=''){
 	if($U['timestamps']) echo ' checked';
 	echo "></td><td><label for=\"timestamps\"><b>$I[timestamps]</b></label></td></tr></table></td></tr></table></td></tr>";
 	thr();
-	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[embed]</b></td><td align=\"right\"><table cellspacing=\"0\">";
-	echo "<tr><td>&nbsp;</td><td><input type=\"checkbox\" name=\"embed\" id=\"embed\" value=\"on\"";
-	if($U['embed']) echo ' checked';
-	echo "></td><td><label for=\"embed\"><b>$I[embed]</b></label></td></tr></table></td></tr></table></td></tr>";
-	thr();
+	if($C['imgembed'] || $C['vidembed']){
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[embed]</b></td><td align=\"right\"><table cellspacing=\"0\">";
+		echo "<tr><td>&nbsp;</td><td><input type=\"checkbox\" name=\"embed\" id=\"embed\" value=\"on\"";
+		if($U['embed']) echo ' checked';
+		echo "></td><td><label for=\"embed\"><b>$I[embed]</b></label></td></tr></table></td></tr></table></td></tr>";
+		thr();
+	}
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[pbsize]</b></td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td>$I[width]</td><td><input type=\"text\" name=\"boxwidth\" size=\"3\" maxlength=\"3\" value=\"$U[boxwidth]\"></td>";
 	echo "<td>&nbsp;</td><td>$I[height]</td><td><input type=\"text\" name=\"boxheight\" size=\"3\" maxlength=\"3\" value=\"$U[boxheight]\"></td>";
@@ -895,31 +910,13 @@ function send_colours(){
 }
 
 function send_login(){
-	global $C, $H, $I, $mysqli, $L;
+	global $C, $H, $I, $L;
 	setcookie('test', '1');
 	print_start();
 	echo "<center><h1>$C[chatname]</h1><$H[form] target=\"_parent\">".hidden('action', 'login');
-	if($C['enablecaptcha']){
-		$length=strlen($C['captchachars']);
-		$code='';
-		for($i=0;$i<5;$i++) {
-			$code .= $C['captchachars'][rand(0, $length-1)];
-		}
-		$randid=rand(0, 99999999);
-		$enc=base64_encode(openssl_encrypt("$code, $randid", 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
-		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `captcha` (`id`, `time`) VALUES (?, \''.time().'\')');
-		mysqli_stmt_bind_param($stmt, 'd', $randid);
-		mysqli_stmt_execute($stmt);
-		mysqli_stmt_close($stmt);
-		echo hidden('challenge', $enc);
-	}
 	echo "<table border=\"2\" width=\"1\" rules=\"none\"><tr><td align=\"left\">$I[nick]</td><td align=\"right\"><input type=\"text\" name=\"nick\" size=\"15\"></td></tr>";
 	echo "<tr><td align=\"left\">$I[pass]</td><td align=\"right\"><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
-	if($C['enablecaptcha']){
-		echo "<tr><td align=\"left\">$I[copy]";
-		echo send_captcha($code);
-		echo '</td><td align="right"><input type="text" name="captcha" size="15" autocomplete="off"></td></tr>';
-	}
+	if($C['enablecaptcha']) send_captcha();
 	if(get_setting('guestaccess')>0){
 		echo "<tr><td colspan=\"2\" align=\"center\">$I[choosecol]<br><select style=\"text-align:center;\" name=\"colour\"><option value=\"\">* $I[randomcol] *</option>";
 		print_colours();
@@ -927,8 +924,8 @@ function send_login(){
 	}else{
 		echo "<tr><td colspan=\"2\" align=\"center\">$I[noguests]</td></tr>";
 	}
-	$nowchatting=get_nowchatting();
-	echo '<tr><td colspan="2" align="center">'.submit($I['enter'])."</td></tr></table></form>$nowchatting";
+	echo '<tr><td colspan="2" align="center">'.submit($I['enter'])."</td></tr></table></form>";
+	get_nowchatting();
 	echo "<h2>$I[rules]</h2><b>".get_setting('rulestxt')."</b><br><br><p>$I[changelang]";
 	foreach($L as $lang=>$name){
 		echo " <a href=\"$_SERVER[SCRIPT_NAME]?lang=$lang\">$name</a>";
@@ -982,7 +979,6 @@ function create_session(){
 	$U['passhash']=md5(sha1(md5($U['nickname'].$_REQUEST['pass'])));
 	$U['colour']=$_REQUEST['colour'];
 	$U['status']=1;
-	if(!valid_nick($U['nickname'])) send_error(sprintf($I['invalnick'], $C['maxname']));
 	check_member();
 	add_user_defaults();
 	if($C['enablecaptcha'] && ($U['status']==1 || !$C['dismemcaptcha'])){
@@ -1001,7 +997,8 @@ function create_session(){
 		mysqli_stmt_close($stmt);
 	}
 	if($U['status']==1){
-		if(!allowed_nick($U['nickname'])) send_error(sprintf($I['invalnick'], $C['maxname']));
+		if(!valid_nick($U['nickname'])) send_error(sprintf($I['invalnick'], $C['maxname']));
+		if(!valid_pass($_REQUEST['pass'])) send_error(sprintf($I['invalpass'], $C['minpass']));
 		$ga=get_setting('guestaccess');
 		if($ga==0) send_error($I['noguests']);
 	}
@@ -1040,7 +1037,7 @@ function write_new_session(){
 		setcookie($C['cookiename'], $U['session']);
 		if($C['msglogin'] && $U['status']>=3) add_system_message(sprintf(get_setting('msgenter'), $U['displayname']));
 	}elseif($inuse){
-		send_error($I['invalpass']);
+		send_error($I['wrongpass']);
 	}elseif($U['status']==0){
 		setcookie($C['cookiename'], false);
 		send_error("$I[kicked]<br>$U[kickmessage]");
@@ -1145,7 +1142,7 @@ function kill_session(){
 	elseif($C['msglogout'] && $U['status']>=3) add_system_message(sprintf(get_setting('msgexit'), $U['displayname']));
 }
 
-function kick_chatter($names, $mes){
+function kick_chatter($names, $mes, $purge){
 	global $C, $U, $P, $mysqli;
 	$lonick='';
 	$lines=parse_sessions();
@@ -1157,6 +1154,7 @@ function kick_chatter($names, $mes){
 				if(($temp['nickname']==$U['nickname'] && $U['nickname']==$name) || ($U['status']>$temp['status'] && (($temp['nickname']==$name && $temp['status']>0) || ($name=='&' && $temp['status']==1)))){
 					mysqli_stmt_bind_param($stmt, 'ss', $mes, $temp['session']);
 					mysqli_stmt_execute($stmt);
+					if($purge) del_all_messages($temp['nickname']);
 					$lonick.="$temp[displayname], ";
 					$i++;
 					unset($P[$name]);
@@ -1248,7 +1246,7 @@ function check_session(){
 function get_nowchatting(){
 	global $M, $G, $P, $I;
 	parse_sessions();
-	return sprintf($I['curchat'], count($P)).'<br>'.implode(' &nbsp; ', $M).' &nbsp; '.implode(' &nbsp; ', $G);
+	echo sprintf($I['curchat'], count($P)).'<br>'.implode(' &nbsp; ', $M).' &nbsp; '.implode(' &nbsp; ', $G);
 }
 
 function parse_sessions(){
@@ -1323,7 +1321,7 @@ function check_member(){
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 		}else{
-			send_error($I['invalpass']);
+			send_error($I['wrongpass']);
 		}
 	}else{
 		mysqli_stmt_close($stmt);
@@ -1384,6 +1382,7 @@ function register_new(){
 	if($_REQUEST['name']=='') send_admin();
 	if(isSet($P[$_REQUEST['name']])) send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
 	if(!valid_nick($_REQUEST['name'])) send_admin(sprintf($I['invalnick'], $C['maxname']));
+	if(!valid_pass($_REQUEST['pass'])) send_admin(sprintf($I['invalpass'], $C['minpass']));
 	$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `members` WHERE `nickname`=?');
 	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
 	mysqli_stmt_execute($stmt);
@@ -1645,7 +1644,7 @@ function apply_filter($pm){
 			if(!$pm) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
 			elseif(!$filter['allowinpm']) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
 			if($count>0 && $filter['kick']){
-				kick_chatter(array($U['nickname']), '');
+				kick_chatter(array($U['nickname']), '', false);
 				send_error("$I[kicked]");
 			}
 		}
@@ -1806,8 +1805,23 @@ function print_messages($delstatus=''){
 // this and that
 
 function valid_admin(){
-	global $mysqli;
+	global $mysqli, $C;
 	if(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
+		if($C['enablecaptcha']){
+			$captcha=explode(',', openssl_decrypt(base64_decode($_REQUEST['challenge']), 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
+			if(current($captcha)!==$_REQUEST['captcha']) return false;
+			$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `captcha` WHERE `id`=?');
+			mysqli_stmt_bind_param($stmt, 'd', end($captcha));
+			mysqli_stmt_execute($stmt);
+			mysqli_stmt_store_result($stmt);
+			if(mysqli_stmt_num_rows($stmt)==0) return false;
+			mysqli_stmt_free_result($stmt);
+			mysqli_stmt_close($stmt);
+			$stmt=mysqli_prepare($mysqli, 'DELETE FROM `captcha` WHERE `id`=? OR `time`<\''.(time()-60*10)."'");
+			mysqli_stmt_bind_param($stmt, 'd', end($captcha));
+			mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+		}
 		$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `members` WHERE `nickname`=? AND `passhash`=? AND `status`>=\'7\'');
 		mysqli_stmt_bind_param($stmt, 'ss', $_REQUEST['nick'], $pass=md5(sha1(md5($_REQUEST['nick'].$_REQUEST['pass']))));
 		mysqli_stmt_execute($stmt);
@@ -1820,12 +1834,13 @@ function valid_admin(){
 }
 
 function valid_nick($nick){
-	return preg_match('/^[a-z0-9]*$/i', $nick);
+	global $C;
+	return preg_match("/^[a-z0-9]{1,$C[maxname]}$/i", $nick);
 }
 
-function allowed_nick($nick){
+function valid_pass($pass){
 	global $C;
-	return preg_match("/^.{1,$C[maxname]}$/", $nick);
+	return preg_match('/^.{'.$C['minpass'].',}$/', $pass);
 }
 
 function cleanup_nick($nick){
@@ -1946,8 +1961,10 @@ function init_chat(){
 		if(mysqli_num_rows($result)>0){
 			$suwrite=$I['initsuexist'];
 		}
-	}elseif(!valid_nick($_REQUEST['sunick']) || $_REQUEST['sunick']==''){
+	}elseif(!valid_nick($_REQUEST['sunick'])){
 		$suwrite=sprintf($I['invalnick'], $C['maxname']);
+	}elseif(!valid_pass($_REQUEST['supass'])){
+		$suwrite=sprintf($I['invalpass'], $C['minpass']);
 	}elseif($_REQUEST['supass']!==$_REQUEST['supassc']){
 		$suwrite=$I['noconfirm'];
 	}else{
@@ -2126,7 +2143,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.3', // Script version
+		'version'	=>'1.4', // Script version
 		'dbversion'	=>3, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
@@ -2146,6 +2163,7 @@ function load_config(){
 		'defaultrefresh'=>30, // Seconds to refresh the messages
 		'maxmessage'	=>2000, // Longest number of characters for a message
 		'maxname'	=>20, // Longest number of chatacters for a name
+		'minpass'	=>5, // Shortest number of chatacters for a password
 		'boxwidth'	=>40, // Default post box width
 		'boxheight'	=>3, // Default post box height
 		'notesboxwidth'	=>80, // Default notes box width
@@ -2160,7 +2178,7 @@ function load_config(){
 		'dismemcaptcha'	=>false, // Disable captcha for members? ture/false
 		'embed'		=>true, // Default for displaying embedded imgs/vids or turn them into links true/false
 		'imgembed'	=>true, // Allow image embedding in chat using [img] tag? ture/false Warning: this might leak session data to the image hoster when cookies are disabled.
-		'vidembed'	=>true, // Allow video embedding in chat using [vid] tag? ture/false Warning: this might leak session data to the video hoster when cookies are disabled.
+		'vidembed'	=>false, // Allow video embedding in chat using [vid] tag? ture/false Warning: this might leak session data to the video hoster when cookies are disabled.
 		'suguests'	=>false, // Adds option to add applicants. They will have a reserved nick protected with a password, but don't count as member true/false
 		'timestamps'	=>true, // Display timestamps in front of the messages by default true/false
 		'forceredirect'	=>false, // Force redirect script or only use when no cookies available? ture/false
