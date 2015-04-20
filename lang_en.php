@@ -144,6 +144,7 @@ $I=array(
 	'fontexample' => 'Example for your chosen font',
 	'timestamps' => 'Show Timestamps',
 	'embed' => 'Embed images/videos',
+	'incognito' => 'Incognito mode',
 	'pbsize' => 'Post box size',
 	'nbsize' => 'Notes box size',
 	'width' => 'Width:',

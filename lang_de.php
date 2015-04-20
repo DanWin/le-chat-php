@@ -143,6 +143,7 @@ $I=array(
 	'fontexample' => 'Beispiel für deine gewählte Schrift',
 	'timestamps' => 'Zeitstempel anzeigen',
 	'embed' => 'Bilder/Videos einbetten',
+	'incognito' => 'Inkognito Modus',
 	'pbsize' => 'Postboxgröße',
 	'nbsize' => 'Notizboxgröße',
 	'width' => 'Breite:',

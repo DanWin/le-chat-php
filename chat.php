@@ -272,13 +272,13 @@ function send_captcha(){
 }
 
 function send_setup(){
-	global $H, $I, $mysqli, $C;
+	global $H, $I, $mysqli, $C, $U;
 	$ga=get_setting('guestaccess');
 	print_start();
 	echo "<center><h2>$I[setup]</h2><table cellspacing=\"0\">";
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[guestacc]</b></td><td align=\"right\">";
-	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'guestaccess').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass']).'<table cellspacing="0">';
+	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'guestaccess').hidden('session', $U['session']).'<table cellspacing="0">';
 	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set1" value="1"';
 	if($ga==1) echo ' checked';
 	echo "><label for=\"set1\">&nbsp;$I[guestallow]</label></td><td>&nbsp;</td><tr>";
@@ -293,7 +293,7 @@ function send_setup(){
 	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td align=\"right\">".submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[sysmessages]</b></td><td align=\"right\">";
-	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'messages').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass']).'<table cellspacing="0">';
+	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'messages').hidden('session', $U['session']).'<table cellspacing="0">';
 	echo "<tr><td>&nbsp;$I[msgenter]</td><td>&nbsp;<input type=\"text\" name=\"msgenter\" value=\"".get_setting('msgenter').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgexit]</td><td>&nbsp;<input type=\"text\" name=\"msgexit\" value=\"".get_setting('msgexit').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgmemreg]</td><td>&nbsp;<input type=\"text\" name=\"msgmemreg\" value=\"".get_setting('msgmemreg').'"></td></tr>';
@@ -305,11 +305,11 @@ function send_setup(){
 	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[rules]</b></td><td align=\"right\">";
-	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'rules').hidden('nick', $_REQUEST['nick']).hidden('pass', $_REQUEST['pass']).'<table cellspacing="0">';
+	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'rules').hidden('session', $U['session']).'<table cellspacing="0">';
 	echo '<tr><td colspan=2><textarea name="rulestxt" rows="4" cols="60">'.htmlspecialchars(get_setting('rulestxt')).'</textarea></td></tr>';
 	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
-	echo "</table><$H[form]>".hidden('action', 'setup').submit($I['logout']).'</form>';
+	echo "</table><$H[form]>".hidden('action', 'logout').hidden('session', $U['session']).submit($I['logout']).'</form>';
 	print_credits();
 	print_end();
 }
@@ -629,10 +629,10 @@ function send_waiting_room(){
 		setcookie($C['cookiename'], false);
 		send_error($I['expire']);
 	}
-	$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `kickmessage`, `bgcolour`, `notesboxheight`, `notesboxwidth`, `entry`, `timestamps`, `embed` FROM `sessions` WHERE `session`=?');
+	$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `kickmessage`, `bgcolour`, `notesboxheight`, `notesboxwidth`, `entry`, `timestamps`, `embed`, `incognito` FROM `sessions` WHERE `session`=?');
 	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['session']);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['kickmessage'], $U['bgcolour'], $U['notesboxheight'], $U['notesboxwidth'], $U['entry'], $U['timestamps'], $U['embed']);
+	mysqli_stmt_bind_result($stmt, $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['kickmessage'], $U['bgcolour'], $U['notesboxheight'], $U['notesboxwidth'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
 	if(mysqli_stmt_fetch($stmt)) add_user_defaults();
 	mysqli_stmt_close($stmt);
 	if(!isSet($U['session'])){
@@ -844,6 +844,13 @@ function send_profile($arg=''){
 		echo "></td><td><label for=\"embed\"><b>$I[embed]</b></label></td></tr></table></td></tr></table></td></tr>";
 		thr();
 	}
+	if($U['status']>=5 && $C['incognito']){
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[incognito]</b></td><td align=\"right\"><table cellspacing=\"0\">";
+		echo "<tr><td>&nbsp;</td><td><input type=\"checkbox\" name=\"incognito\" id=\"incognito\" value=\"on\"";
+		if($U['incognito']) echo ' checked';
+		echo "></td><td><label for=\"incognito\"><b>$I[incognito]</b></label></td></tr></table></td></tr></table></td></tr>";
+		thr();
+	}
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[pbsize]</b></td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td>$I[width]</td><td><input type=\"text\" name=\"boxwidth\" size=\"3\" maxlength=\"3\" value=\"$U[boxwidth]\"></td>";
 	echo "<td>&nbsp;</td><td>$I[height]</td><td><input type=\"text\" name=\"boxheight\" size=\"3\" maxlength=\"3\" value=\"$U[boxheight]\"></td>";
@@ -973,15 +980,17 @@ function print_memberslist(){
 
 //  session management
 
-function create_session(){
+function create_session($setup){
 	global $U, $C, $I, $mysqli;
 	$U['nickname']=cleanup_nick($_REQUEST['nick']);
 	$U['passhash']=md5(sha1(md5($U['nickname'].$_REQUEST['pass'])));
-	$U['colour']=$_REQUEST['colour'];
+	if(!$setup) $U['colour']=$_REQUEST['colour'];
+	else $U['colour']=$C['coltxt'];
 	$U['status']=1;
 	check_member();
 	add_user_defaults();
-	if($C['enablecaptcha'] && ($U['status']==1 || !$C['dismemcaptcha'])){
+	if($setup) $U['incognito']=true;
+	if($C['enablecaptcha'] && ($U['status']==1 || (!$C['dismemcaptcha'] || $setup))){
 		$captcha=explode(',', openssl_decrypt(base64_decode($_REQUEST['challenge']), 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
 		if(current($captcha)!==$_REQUEST['captcha']) send_error($I['wrongcaptcha']);
 		$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `captcha` WHERE `id`=?');
@@ -1030,12 +1039,12 @@ function write_new_session(){
 		do{
 			$U['session']=md5(time().rand().$U['nickname']);
 		}while(isSet($sids[$U['session']]));// check for hash collision
-		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `sessions`(`session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `bgcolour`, `notesboxwidth`, `notesboxheight`, `entry`, `timestamps`, `embed`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-		mysqli_stmt_bind_param($stmt, 'sssddssdsdddssddddd', $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['entry'], $U['timestamps'], $U['embed']);
+		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `sessions`(`session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `bgcolour`, `notesboxwidth`, `notesboxheight`, `entry`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+		mysqli_stmt_bind_param($stmt, 'sssddssdsdddssdddddd', $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 		setcookie($C['cookiename'], $U['session']);
-		if($C['msglogin'] && $U['status']>=3) add_system_message(sprintf(get_setting('msgenter'), $U['displayname']));
+		if($C['msglogin'] && $U['status']>=3 && !$U['incognito']) add_system_message(sprintf(get_setting('msgenter'), $U['displayname']));
 	}elseif($inuse){
 		send_error($I['wrongpass']);
 	}elseif($U['status']==0){
@@ -1082,10 +1091,10 @@ function approve_session(){
 function check_login(){
 	global $mysqli, $C, $U, $I, $M;
 	if(isSet($_POST['session'])){
-		$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `kickmessage`, `bgcolour`, `notesboxheight`, `notesboxwidth`, `entry`, `timestamps`, `embed` FROM `sessions` WHERE `session`=?');
+		$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `kickmessage`, `bgcolour`, `notesboxheight`, `notesboxwidth`, `entry`, `timestamps`, `embed`, `incognito` FROM `sessions` WHERE `session`=?');
 		mysqli_stmt_bind_param($stmt, 's', $_POST['session']);
 		mysqli_stmt_execute($stmt);
-		mysqli_stmt_bind_result($stmt, $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['kickmessage'], $U['bgcolour'], $U['notesboxheight'], $U['notesboxwidth'], $U['entry'], $U['timestamps'], $U['embed']);
+		mysqli_stmt_bind_result($stmt, $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['kickmessage'], $U['bgcolour'], $U['notesboxheight'], $U['notesboxwidth'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
 		if(mysqli_stmt_fetch($stmt)){
 			if($U['status']==0){
 				setcookie($C['cookiename'], false);
@@ -1100,7 +1109,7 @@ function check_login(){
 		}
 		mysqli_stmt_close($stmt);
 	}else{
-		create_session();
+		create_session(false);
 	}
 	if($U['status']==1){
 		$ga=get_setting('guestaccess');
@@ -1139,7 +1148,7 @@ function kill_session(){
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 	}
-	elseif($C['msglogout'] && $U['status']>=3) add_system_message(sprintf(get_setting('msgexit'), $U['displayname']));
+	elseif($C['msglogout'] && $U['status']>=3 && !$U['incognito']) add_system_message(sprintf(get_setting('msgexit'), $U['displayname']));
 }
 
 function kick_chatter($names, $mes, $purge){
@@ -1294,8 +1303,10 @@ function parse_sessions(){
 				$P[$temp['nickname']]=[$temp['nickname'], $temp['status'], $temp['style']];
 				$G[]=$temp['displayname'];
 			}elseif($temp['status']>2){
-				$P[$temp['nickname']]=[$temp['nickname'], $temp['status'], $temp['style']];
-				$M[]=$temp['displayname'];
+				if(!$temp['incognito']){
+					$P[$temp['nickname']]=[$temp['nickname'], $temp['status'], $temp['style']];
+					$M[]=$temp['displayname'];
+				}
 				if($temp['status']>=5) $countmods++;
 			}
 		}
@@ -1308,10 +1319,10 @@ function parse_sessions(){
 
 function check_member(){
 	global $U, $I, $mysqli;
-	$stmt=mysqli_prepare($mysqli, 'SELECT `nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `fontface`, `fonttags`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `lastlogin`, `timestamps`, `embed` FROM `members` WHERE `nickname`=?');
+	$stmt=mysqli_prepare($mysqli, 'SELECT `nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `fontface`, `fonttags`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `lastlogin`, `timestamps`, `embed`, `incognito` FROM `members` WHERE `nickname`=?');
 	mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $temp['nickname'], $temp['passhash'], $temp['status'], $temp['refresh'], $temp['colour'], $temp['bgcolour'], $temp['fontface'], $temp['fonttags'], $temp['boxwidth'], $temp['boxheight'], $temp['notesboxwidth'], $temp['notesboxheight'], $temp['lastlogin'], $temp['timestamps'], $temp['embed']);
+	mysqli_stmt_bind_result($stmt, $temp['nickname'], $temp['passhash'], $temp['status'], $temp['refresh'], $temp['colour'], $temp['bgcolour'], $temp['fontface'], $temp['fonttags'], $temp['boxwidth'], $temp['boxheight'], $temp['notesboxwidth'], $temp['notesboxheight'], $temp['lastlogin'], $temp['timestamps'], $temp['embed'], $U['incognito']);
 	if(mysqli_stmt_fetch($stmt)){
 		mysqli_stmt_close($stmt);
 		if($temp['passhash']==$U['passhash']){
@@ -1344,10 +1355,10 @@ function register_guest($status){
 	global $P, $U, $C, $I, $mysqli;
 	if($_REQUEST['name']=='') send_admin();
 	if(!isSet($P[$_REQUEST['name']])) send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
-	$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `passhash`, `refresh`, `fontinfo`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed` FROM `sessions` WHERE `nickname`=? AND `status`=\'1\'');
+	$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `passhash`, `refresh`, `fontinfo`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`, `incognito` FROM `sessions` WHERE `nickname`=? AND `status`=\'1\'');
 	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $reg['session'], $reg['nickname'], $reg['displayname'], $reg['passhash'], $reg['refresh'], $reg['fontinfo'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed']);
+	mysqli_stmt_bind_result($stmt, $reg['session'], $reg['nickname'], $reg['displayname'], $reg['passhash'], $reg['refresh'], $reg['fontinfo'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
 	if(mysqli_stmt_fetch($stmt)){
 		mysqli_stmt_close($stmt);
 		$reg['status']=$status;
@@ -1368,8 +1379,8 @@ function register_guest($status){
 	if(mysqli_stmt_num_rows($stmt)>0) send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
 	mysqli_stmt_free_result($stmt);
 	mysqli_stmt_close($stmt);
-	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members`(`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-	mysqli_stmt_bind_param($stmt, 'ssddssddddsdd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $U['nickname'], $reg['timestamps'], $reg['embed']);
+	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members`(`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+	mysqli_stmt_bind_param($stmt, 'ssddssddddsddd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	if($reg['status']==3) add_system_message(sprintf(get_setting('msgmemreg'), $reg['displayname']));
@@ -1403,10 +1414,11 @@ function register_new(){
 		'notesboxheight'=>$C['notesboxheight'],
 		'regedby'	=>$U['nickname'],
 		'timestamps'	=>$C['timestamps'],
-		'embed'		=>$C['embed']
+		'embed'		=>$C['embed'],
+		'incognito'	=>false
 	);
-	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members`(`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`,`notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-	mysqli_stmt_bind_param($stmt, 'ssddssddddsdd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['regedby'], $reg['timestamps'], $reg['embed']);
+	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members`(`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`,`notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+	mysqli_stmt_bind_param($stmt, 'ssddssddddsddd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['regedby'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	send_admin(sprintf($I['successreg'], $reg['nickname']));
@@ -1477,6 +1489,8 @@ function amend_profile(){
 	else $U['timestamps']=false;
 	if(isSet($_REQUEST['embed'])) $U['embed']=true;
 	else $U['embed']=false;
+	if($U['status']>=5 && isSet($_REQUEST['incognito'])) $U['incognito']=true;
+	else $U['incognito']=false;
 	if($U['boxwidth']>=1000) $U['boxwidth']=40;
 	if($U['boxheight']>=1000) $U['boxheight']=3;
 	if($U['notesboxwidth']>=1000) $U['notesboxwidth']=80;
@@ -1499,13 +1513,13 @@ function save_profile(){
 	if($U['passhash']!==$U['oldhash']) send_profile($I['wrongpass']);
 	$U['passhash']=$U['newhash'];
 	amend_profile();
-	$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `refresh`=?, `displayname`=?, `fontinfo`=?, `style`=?, `passhash`=?, `boxwidth`=?, `boxheight`=?, `bgcolour`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=? WHERE `session`=?');
-	mysqli_stmt_bind_param($stmt, 'dssssddsdddds', $U['refresh'], $U['displayname'], $U['fontinfo'], $U['style'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['session']);
+	$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `refresh`=?, `displayname`=?, `fontinfo`=?, `style`=?, `passhash`=?, `boxwidth`=?, `boxheight`=?, `bgcolour`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=?, `incognito`=? WHERE `session`=?');
+	mysqli_stmt_bind_param($stmt, 'dssssddsddddds', $U['refresh'], $U['displayname'], $U['fontinfo'], $U['style'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['session']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	if($U['status']>=2){
-		$stmt=mysqli_prepare($mysqli, 'UPDATE `members` SET `passhash`=?, `refresh`=?, `colour`=?, `bgcolour`=?, `fontface`=?, `fonttags`=?, `boxwidth`=?, `boxheight`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=? WHERE `nickname`=?');
-		mysqli_stmt_bind_param($stmt, 'sdssssdddddds', $U['passhash'], $U['refresh'], $U['colour'], $U['bgcolour'], $U['fontface'], $U['fonttags'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['nickname']);
+		$stmt=mysqli_prepare($mysqli, 'UPDATE `members` SET `passhash`=?, `refresh`=?, `colour`=?, `bgcolour`=?, `fontface`=?, `fonttags`=?, `boxwidth`=?, `boxheight`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=?, `incognito`=? WHERE `nickname`=?');
+		mysqli_stmt_bind_param($stmt, 'sdssssddddddds', $U['passhash'], $U['refresh'], $U['colour'], $U['bgcolour'], $U['fontface'], $U['fonttags'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 	}
@@ -1552,6 +1566,7 @@ function add_user_defaults(){
 	if(!isSet($U['notesboxheight'])) $U['notesboxheight']=30;
 	if(!isSet($U['timestamps'])) $U['timestamps']=$C['timestamps'];
 	if(!isSet($U['embed'])) $U['embed']=$C['embed'];
+	if(!isSet($U['incognito'])) $U['incognito']=false;
 	if(!isSet($U['lastpost'])) $U['lastpost']=time();
 	if(!isSet($U['entry'])) $U['entry']=0;
 	if(!isSet($U['postid'])) $U['postid']='OOOOOO';
@@ -1805,30 +1820,13 @@ function print_messages($delstatus=''){
 // this and that
 
 function valid_admin(){
-	global $mysqli, $C;
-	if(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
-		if($C['enablecaptcha']){
-			$captcha=explode(',', openssl_decrypt(base64_decode($_REQUEST['challenge']), 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
-			if(current($captcha)!==$_REQUEST['captcha']) return false;
-			$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `captcha` WHERE `id`=?');
-			mysqli_stmt_bind_param($stmt, 'd', end($captcha));
-			mysqli_stmt_execute($stmt);
-			mysqli_stmt_store_result($stmt);
-			if(mysqli_stmt_num_rows($stmt)==0) return false;
-			mysqli_stmt_free_result($stmt);
-			mysqli_stmt_close($stmt);
-			$stmt=mysqli_prepare($mysqli, 'DELETE FROM `captcha` WHERE `id`=? OR `time`<\''.(time()-60*10)."'");
-			mysqli_stmt_bind_param($stmt, 'd', end($captcha));
-			mysqli_stmt_execute($stmt);
-			mysqli_stmt_close($stmt);
-		}
-		$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `members` WHERE `nickname`=? AND `passhash`=? AND `status`>=\'7\'');
-		mysqli_stmt_bind_param($stmt, 'ss', $_REQUEST['nick'], $pass=md5(sha1(md5($_REQUEST['nick'].$_REQUEST['pass']))));
-		mysqli_stmt_execute($stmt);
-		mysqli_stmt_store_result($stmt);
-		if(mysqli_stmt_num_rows($stmt)>0) return true;
-		mysqli_stmt_free_result($stmt);
-		mysqli_stmt_close($stmt);
+	if(isSet($_REQUEST['session'])){
+		check_session();
+		return true;
+	}
+	elseif(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
+		create_session(true);
+		return true;
 	}
 	return false;
 }
@@ -1971,10 +1969,10 @@ function init_chat(){
 		mysqli_multi_query($mysqli, 	'CREATE TABLE IF NOT EXISTS `captcha` (`id` int(10) unsigned NOT NULL, `time` int(10) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `filter` (`id` tinyint(3) unsigned NOT NULL, `match` tinytext NOT NULL, `replace` text NOT NULL, `allowinpm` tinyint(1) unsigned NOT NULL, `regex` tinyint(1) unsigned NOT NULL, `kick` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `ignored` (`id` int(10) unsigned NOT NULL, `ignored` tinytext NOT NULL, `by` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
-						'CREATE TABLE IF NOT EXISTS `members` (`id` tinyint(3) unsigned NOT NULL, `nickname` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `passhash` tinytext NOT NULL, `status` tinyint(3) unsigned NOT NULL, `refresh` tinyint(3) unsigned NOT NULL, `colour` tinytext NOT NULL, `bgcolour` tinytext NOT NULL, `fontface` tinytext NOT NULL, `fonttags` tinytext NOT NULL, `boxwidth` tinyint(3) unsigned NOT NULL, `boxheight` tinyint(3) unsigned NOT NULL, `notesboxheight` tinyint(3) unsigned NOT NULL, `notesboxwidth` tinyint(3) unsigned NOT NULL, `regedby` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `lastlogin` int(10) unsigned NOT NULL, `timestamps` tinyint(1) unsigned NOT NULL, `embed` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
+						'CREATE TABLE IF NOT EXISTS `members` (`id` tinyint(3) unsigned NOT NULL, `nickname` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `passhash` tinytext NOT NULL, `status` tinyint(3) unsigned NOT NULL, `refresh` tinyint(3) unsigned NOT NULL, `colour` tinytext NOT NULL, `bgcolour` tinytext NOT NULL, `fontface` tinytext NOT NULL, `fonttags` tinytext NOT NULL, `boxwidth` tinyint(3) unsigned NOT NULL, `boxheight` tinyint(3) unsigned NOT NULL, `notesboxheight` tinyint(3) unsigned NOT NULL, `notesboxwidth` tinyint(3) unsigned NOT NULL, `regedby` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `lastlogin` int(10) unsigned NOT NULL, `timestamps` tinyint(1) unsigned NOT NULL, `embed` tinyint(1) unsigned NOT NULL, `incognito` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `messages` (`id` int(10) unsigned NOT NULL, `postdate` int(10) unsigned NOT NULL, `postid` int(10) unsigned NOT NULL, `poststatus` tinyint(3) unsigned NOT NULL, `poster` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `recipient` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `text` text NOT NULL, `delstatus` tinyint(3) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `notes` (`id` int(10) unsigned NOT NULL, `type` tinytext NOT NULL, `lastedited` int(10) unsigned NOT NULL, `editedby` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `text` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
-						'CREATE TABLE IF NOT EXISTS `sessions` (`id` int(10) unsigned NOT NULL, `session` tinytext NOT NULL, `nickname` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `displayname` text NOT NULL, `status` tinyint(3) unsigned NOT NULL, `refresh` tinyint(3) unsigned NOT NULL, `fontinfo` tinytext NOT NULL, `style` text NOT NULL, `lastpost` int(10) unsigned NOT NULL, `passhash` tinytext NOT NULL, `postid` int(10) unsigned NOT NULL, `boxwidth` tinyint(3) unsigned NOT NULL, `boxheight` tinyint(3) unsigned NOT NULL, `useragent` text NOT NULL, `kickmessage` text NOT NULL, `bgcolour` tinytext NOT NULL, `notesboxheight` tinyint(3) unsigned NOT NULL, `notesboxwidth` tinyint(3) unsigned NOT NULL, `entry` int(10) unsigned NOT NULL, `timestamps` tinyint(1) unsigned NOT NULL, `embed` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
+						'CREATE TABLE IF NOT EXISTS `sessions` (`id` int(10) unsigned NOT NULL, `session` tinytext NOT NULL, `nickname` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `displayname` text NOT NULL, `status` tinyint(3) unsigned NOT NULL, `refresh` tinyint(3) unsigned NOT NULL, `fontinfo` tinytext NOT NULL, `style` text NOT NULL, `lastpost` int(10) unsigned NOT NULL, `passhash` tinytext NOT NULL, `postid` int(10) unsigned NOT NULL, `boxwidth` tinyint(3) unsigned NOT NULL, `boxheight` tinyint(3) unsigned NOT NULL, `useragent` text NOT NULL, `kickmessage` text NOT NULL, `bgcolour` tinytext NOT NULL, `notesboxheight` tinyint(3) unsigned NOT NULL, `notesboxwidth` tinyint(3) unsigned NOT NULL, `entry` int(10) unsigned NOT NULL, `timestamps` tinyint(1) unsigned NOT NULL, `embed` tinyint(1) unsigned NOT NULL, `incognito` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'CREATE TABLE IF NOT EXISTS `settings` (`id` tinyint(3) unsigned NOT NULL, `setting` tinytext NOT NULL, `value` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; '.
 						'ALTER TABLE `captcha` ADD UNIQUE KEY `id` (`id`); '.
 						'ALTER TABLE `filter` ADD PRIMARY KEY (`id`); '.
@@ -1992,6 +1990,7 @@ function init_chat(){
 						'ALTER TABLE `sessions` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT; '.
 						'ALTER TABLE `settings` MODIFY `id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT; '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'guestaccess\',\'0\'); '.
+						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'rulestxt\', \'1. YOUR_RULS<br>2. YOUR_RULES\'); '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'msgenter\',\'%s entered the chat.\'); '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'msgexit\',\'%s left the chat.\'); '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'msgmemreg\',\'%s is now a registered member.\'); '.
@@ -2014,17 +2013,18 @@ function init_chat(){
 			'notesboxwidth'	=>$C['notesboxwidth'],
 			'notesboxheight'=>$C['notesboxheight'],
 			'timestamps'	=>$C['timestamps'],
-			'embed'		=>$C['embed']
+			'embed'		=>$C['embed'],
+			'incognito'	=>false
 		);
-		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members` (`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-		mysqli_stmt_bind_param($stmt, 'ssddssdddddd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed']);
+		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members` (`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+		mysqli_stmt_bind_param($stmt, 'ssddssddddddd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 		$suwrite=$I['susuccess'];
 	}
 	print_start();
 	echo "<center><h2>$I[init]</h2><br><h3>$I[sulogin]</h3>$suwrite<br><br><br>";
-	echo "<$H[form]>".hidden('action', 'setup').hidden('nick', $_REQUEST['sunick']).hidden('pass', $_REQUEST['supass']).submit($I['initgosetup']).'</form>';
+	echo "<$H[form]>".hidden('action', 'setup').submit($I['initgosetup']).'</form>';
 	print_credits();
 	print_end();
 }
@@ -2040,6 +2040,10 @@ function update_db(){
 		}
 		if($dbversion<3){
 			mysqli_query($mysqli, 'INSERT INTO `settings` (`setting`, `value`) VALUES (\'rulestxt\', \'1. YOUR_RULS<br>2. YOUR_RULES\')');
+		}
+		if($dbversion<4){
+			mysqli_query($mysqli, 'ALTER TABLE `members` ADD `incognito` TINYINT(1) UNSIGNED NOT NULL');
+			mysqli_query($mysqli, 'ALTER TABLE `sessions` ADD `incognito` TINYINT(1) UNSIGNED NOT NULL');
 		}
 		update_setting('dbversion', $C['dbversion']);
 		send_update();
@@ -2143,8 +2147,8 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.4', // Script version
-		'dbversion'	=>3, // Database version
+		'version'	=>'1.5', // Script version
+		'dbversion'	=>4, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour
@@ -2181,6 +2185,7 @@ function load_config(){
 		'vidembed'	=>false, // Allow video embedding in chat using [vid] tag? ture/false Warning: this might leak session data to the video hoster when cookies are disabled.
 		'suguests'	=>false, // Adds option to add applicants. They will have a reserved nick protected with a password, but don't count as member true/false
 		'timestamps'	=>true, // Display timestamps in front of the messages by default true/false
+		'incognito'	=>true, // Allow mods and admins to be invisable true/false
 		'forceredirect'	=>false, // Force redirect script or only use when no cookies available? ture/false
 		'msglogout'	=>false, // Add a message on member logout
 		'msglogin'	=>true, // Add a message on member login
