@@ -133,12 +133,16 @@ if(!isSet($_REQUEST['action'])){
 		approve_session();
 		send_approve_waiting();
 	}elseif($_REQUEST['do']=='guestaccess'){
-		if(isSet($_REQUEST['set']) && preg_match('/^[0123]$/', $_REQUEST['set'])){
+		if(isSet($_REQUEST['set']) && preg_match('/^[01234]$/', $_REQUEST['set'])){
 			update_setting('guestaccess', $_REQUEST['set']);
 		}
 	}elseif($_REQUEST['do']=='filter'){
 		manage_filter();
 		send_filter();
+	}elseif($_REQUEST['do']=='globalpass'){
+		if(isSet($_REQUEST['globalpass'])){
+			update_setting('globalpass', $_REQUEST['globalpass']);
+		}
 	}
 	send_admin();
 }elseif($_REQUEST['action']=='setup'){
@@ -153,7 +157,7 @@ if(!isSet($_REQUEST['action'])){
 	if(!valid_admin()) send_alogin();
 	if(!isSet($_REQUEST['do'])){
 	}elseif($_REQUEST['do']=='guestaccess'){
-		if(isSet($_REQUEST['set']) && preg_match('/^[0123]$/', $_REQUEST['set'])){
+		if(isSet($_REQUEST['set']) && preg_match('/^[01234]$/', $_REQUEST['set'])){
 			update_setting('guestaccess', $_REQUEST['set']);
 		}
 	}elseif($_REQUEST['do']=='messages'){
@@ -163,6 +167,10 @@ if(!isSet($_REQUEST['action'])){
 		$_REQUEST['rulestxt']=preg_replace("/\n/", '<br>', $_REQUEST['rulestxt']);
 		$_REQUEST['rulestxt']=preg_replace("/\r/", '<br>', $_REQUEST['rulestxt']);
 		update_setting('rulestxt', $_REQUEST['rulestxt']);
+	}elseif($_REQUEST['do']=='globalpass'){
+		if(isSet($_REQUEST['globalpass'])){
+			update_setting('globalpass', $_REQUEST['globalpass']);
+		}
 	}
 	send_setup();
 }elseif($_REQUEST['action']=='init'){
@@ -288,10 +296,21 @@ function send_setup(){
 	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set3" value="3"';
 	if($ga==3) echo ' checked';
 	echo "><label for=\"set3\">&nbsp;$I[adminallow]</label></td><td>&nbsp;</td><tr>";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set4" value="4"';
+	if($ga==4) echo ' checked';
+	echo "><label for=\"set4\">&nbsp;$I[globalpass]</label></td><td>&nbsp;</td></tr>";
 	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set0" value="0"';
 	if($ga==0) echo ' checked';
-	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr><tr><td>&nbsp;</td><td align=\"right\">".submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr>";
+	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
+	if($ga==4){
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[globalloginpass]</b></td><td align=\"right\">";
+		echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'globalpass').hidden('session', $U['session']).'<table cellspacing="0">';
+		echo "<tr><td><input type=\"text\" name=\"globalpass\" value=\"".get_setting('globalpass').'"></td><td>&nbsp;</td>';
+		echo '<td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+		thr();
+	}
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[sysmessages]</b></td><td align=\"right\">";
 	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'messages').hidden('session', $U['session']).'<table cellspacing="0">';
 	echo "<tr><td>&nbsp;$I[msgenter]</td><td>&nbsp;<input type=\"text\" name=\"msgenter\" value=\"".get_setting('msgenter').'"></td></tr>';
@@ -393,11 +412,20 @@ function send_admin($arg=''){
 	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set3\" value=\"3\"";
 	if($ga==3) echo " checked";
 	echo "><label for=\"set3\">&nbsp;$I[adminallow]</label></td><td>&nbsp;</td><tr>";
+	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set4\" value=\"4\"";
+	if($ga==4) echo " checked";
+	echo "><label for=\"set4\">&nbsp;$I[globalpass]</label></td><td>&nbsp;</td></tr>";
 	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set0\" value=\"0\"";
 	if($ga==0) echo " checked";
 	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr>";
 	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
+	if($ga==4){
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[globalloginpass]</b></td><td align=\"right\">";
+		echo frmadm('globalpass').'<table cellspacing="0"><tr><td>&nbsp;</td><td><input type="text" name="globalpass" value="'.get_setting('globalpass').'"></td>';
+		echo '<td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+		thr();
+	}
 	if($C['suguests']){
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[addsuguest]</b></td><td align=\"right\">";
 		echo frmadm('superguest')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td valign=\"bottom\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
@@ -925,6 +953,7 @@ function send_login(){
 	echo "<tr><td align=\"left\">$I[pass]</td><td align=\"right\"><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 	if($C['enablecaptcha']) send_captcha();
 	if(get_setting('guestaccess')>0){
+		if(get_setting('guestaccess')==4) echo "<tr><td align=\"left\">$I[globalloginpass]</td><td align=\"right\"><input type=\"password\" name=\"globalpass\" size=\"15\"></td></tr>";
 		echo "<tr><td colspan=\"2\" align=\"center\">$I[choosecol]<br><select style=\"text-align:center;\" name=\"colour\"><option value=\"\">* $I[randomcol] *</option>";
 		print_colours();
 		echo '</select></td></tr>';
@@ -984,7 +1013,7 @@ function create_session($setup){
 	global $U, $C, $I, $mysqli;
 	$U['nickname']=cleanup_nick($_REQUEST['nick']);
 	$U['passhash']=md5(sha1(md5($U['nickname'].$_REQUEST['pass'])));
-	if(!$setup) $U['colour']=$_REQUEST['colour'];
+	if(isSet($_REQUEST['colour'])) $U['colour']=$_REQUEST['colour'];
 	else $U['colour']=$C['coltxt'];
 	$U['status']=1;
 	check_member();
@@ -1010,6 +1039,7 @@ function create_session($setup){
 		if(!valid_pass($_REQUEST['pass'])) send_error(sprintf($I['invalpass'], $C['minpass']));
 		$ga=get_setting('guestaccess');
 		if($ga==0) send_error($I['noguests']);
+		if($ga==4 && isSet($_REQUEST['globalpass']) && $_REQUEST['globalpass']!=get_setting('globalpass')) send_error($I['wrongpass']);
 	}
 	write_new_session();
 }
@@ -1820,15 +1850,15 @@ function print_messages($delstatus=''){
 // this and that
 
 function valid_admin(){
+	global $U;
 	if(isSet($_REQUEST['session'])){
 		check_session();
-		return true;
 	}
 	elseif(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
 		create_session(true);
-		return true;
 	}
-	return false;
+	if(isSet($U['status']) && $U['status']>=7) return true;
+	else return false;
 }
 
 function valid_nick($nick){
@@ -1990,6 +2020,7 @@ function init_chat(){
 						'ALTER TABLE `sessions` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT; '.
 						'ALTER TABLE `settings` MODIFY `id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT; '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'guestaccess\',\'0\'); '.
+						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'globalpass\',\'\'); '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'rulestxt\', \'1. YOUR_RULS<br>2. YOUR_RULES\'); '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'msgenter\',\'%s entered the chat.\'); '.
 						'INSERT INTO `settings` (`setting`,`value`) VALUES (\'msgexit\',\'%s left the chat.\'); '.
@@ -2044,6 +2075,9 @@ function update_db(){
 		if($dbversion<4){
 			mysqli_query($mysqli, 'ALTER TABLE `members` ADD `incognito` TINYINT(1) UNSIGNED NOT NULL');
 			mysqli_query($mysqli, 'ALTER TABLE `sessions` ADD `incognito` TINYINT(1) UNSIGNED NOT NULL');
+		}
+		if($dbversion<5){
+			mysqli_query($mysqli, 'INSERT INTO `settings` (`setting`, `value`) VALUES (\'globalpass\', \'\')');
 		}
 		update_setting('dbversion', $C['dbversion']);
 		send_update();
@@ -2147,8 +2181,8 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.5', // Script version
-		'dbversion'	=>4, // Database version
+		'version'	=>'1.6', // Script version
+		'dbversion'	=>5, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour
