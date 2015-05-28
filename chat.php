@@ -20,18 +20,19 @@
 
 if($_SERVER['REQUEST_METHOD']=='HEAD') exit; // ignore HEAD requests
 date_default_timezone_set('UTC');
-$U=array();// This user data
-$P=array();// All present users
 $A=array();// All registered members
-$M=array();// Members: display names
-$G=array();// Guests: display names
-$F=array();// Fonts
 $C=array();// Configuration
+$F=array();// Fonts
+$G=array();// Guests: display names
 $H=array();// HTML-stuff
 $I=array();// Translations
 $L=array();// Languages
+$M=array();// Members: display names
+$P=array();// All present users
+$U=array();// This user data
+$countmods=0;// Present moderators
+$memcached;// Memcached connection
 $mysqli;// MySQL database connection
-$countmods=0;
 load_fonts();
 load_config();
 load_lang();
@@ -49,7 +50,7 @@ if(!isSet($_REQUEST['action'])){
 }elseif($_REQUEST['action']=='view'){
 	check_session();
 	send_messages();
-}elseif($_REQUEST['action']=='redirect' && isSet($_GET['url']) && !$_GET['url']==''){
+}elseif($_REQUEST['action']=='redirect' && !empty($_GET['url'])){
 	send_redirect();
 }elseif($_REQUEST['action']=='wait'){
 	send_waiting_room();
@@ -60,7 +61,7 @@ if(!isSet($_REQUEST['action'])){
 			if(isSet($_REQUEST['what']) && $_REQUEST['what']=='purge') kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], true);
 			else kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], false);
 		}
-	}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto']) && !preg_match('/^\s*$/',$_REQUEST['message'])){
+	}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto'])){
 		validate_input();
 	}
 	send_post();
@@ -146,11 +147,14 @@ if(!isSet($_REQUEST['action'])){
 	}
 	send_admin();
 }elseif($_REQUEST['action']=='setup'){
-	$tables=array('captcha', 'filter', 'ignored', 'members', 'messages', 'notes', 'sessions', 'settings');
-	$num_tables=0;
-	$result=mysqli_query($mysqli, 'SHOW TABLES');
-	while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
-		if(in_array($tmp[0],$tables)) $num_tables++;
+	if(!$C['memcached'] || !$num_tables=$memcached->get("$C[dbname]-num-tables")){
+		$tables=array('captcha', 'filter', 'ignored', 'members', 'messages', 'notes', 'sessions', 'settings');
+		$num_tables=0;
+		$result=mysqli_query($mysqli, 'SHOW TABLES');
+		while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
+			if(in_array($tmp[0],$tables)) ++$num_tables;
+		}
+		if($C['memcached']) $memcached->set("$C[dbname]-num-tables", $num_tables);
 	}
 	if($num_tables<7) send_init();
 	update_db();
@@ -187,7 +191,7 @@ exit;
 //  html output subs
 
 function print_credits(){
-	global $I, $C;
+	global $C, $I;
 	echo '<small>';
 	if($C['showcredits']){
 		echo "<h2>$I[contributors]</h2>";
@@ -199,7 +203,7 @@ function print_credits(){
 }
 
 function print_stylesheet($arg1=''){
-	echo "\n<style type=\"text/css\">input,select,textarea{color:#FFFFFF;background-color:#000000;}a img{width:25%}a:hover img{width:35%}$arg1</style>";
+	echo "<style type=\"text/css\">input,select,textarea{color:#FFFFFF;background-color:#000000;}a img{width:25%}a:hover img{width:35%}$arg1</style>";
 }
 
 function print_end(){
@@ -208,16 +212,16 @@ function print_end(){
 }
 
 function frmpst($arg1='', $arg2=''){
-	global $U, $H;
+	global $H, $U;
 	$string="<$H[form]>".hidden('action', $arg1).hidden('session', $U['session']);
-	if($arg2!==''){
+	if(!empty($arg2)){
 		$string.=hidden('what', $arg2).@hidden('sendto', $_REQUEST['sendto']).@hidden('multi', $_REQUEST['multi']);
 	}
 	return $string;
 }
 
 function frmadm($arg1=''){
-	global $U, $H;
+	global $H, $U;
 	return "<$H[form]>".hidden('action', 'admin').hidden('do', $arg1).hidden('session', $U['session']);
 }
 
@@ -236,9 +240,9 @@ function thr(){
 function print_start($css='', $ref='', $url=''){
 	global $H;
 	header('Content-Type: text/html; charset=UTF-8'); header('Pragma: no-cache'); header('Expires: 0');
-	if($url!=='') header("Refresh: $ref; URL=$url");
+	if(!empty($url)) header("Refresh: $ref; URL=$url");
 	echo "<!DOCTYPE html><html><head>$H[meta_html]";
-	if($url!=='') echo "\n<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
+	if(!empty($url)) echo "<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
 	print_stylesheet($css);
 	echo "</head>$H[begin_body]";
 }
@@ -246,29 +250,33 @@ function print_start($css='', $ref='', $url=''){
 function send_redirect(){
 	if(preg_match('~^http(s)?://~', $_GET['url'])){
 		header("Refresh: 0; URL=$_GET[url]");
-		echo "<html><head><meta http-equiv=\"Refresh\" content=\"0; url=$_GET[url]\"></head><body><p>Redirecting to: <a href=\"$_GET[url]\">".htmlspecialchars($_GET['url'])."</a>.</p></body></html>";
+		echo "<html><head><meta http-equiv=\"Refresh\" content=\"0; url=$_GET[url]\"></head><body><p>Redirecting to: <a href=\"$_GET[url]\">".htmlspecialchars($_GET['url']).'</a>.</p></body></html>';
 	}else{
 		$url=preg_replace('~(.*)://~', 'http://', $_GET['url']);
 		echo '<html><head></head><body>';
-		echo "<p>Non-http link requested: <a href=\"$_GET[url]\">".htmlspecialchars($_GET['url'])."</a>.</p>";
-		echo "<p>If it's not working, try this one: <a href=\"$url\">".htmlspecialchars($url)."</a>.</p>";
+		echo "<p>Non-http link requested: <a href=\"$_GET[url]\">".htmlspecialchars($_GET['url']).'</a>.</p>';
+		echo "<p>If it's not working, try this one: <a href=\"$url\">".htmlspecialchars($url).'</a>.</p>';
 		echo '</body></html>';
 	}
 }
 
 function send_captcha(){
-	global $C, $I, $mysqli;
-	$length=strlen($C['captchachars']);
+	global $C, $I, $memcached, $mysqli;
+	$length=strlen($C['captchachars'])-1;
 	$code='';
-	for($i=0;$i<5;$i++) {
-		$code .= $C['captchachars'][rand(0, $length-1)];
+	for($i=0;$i<5;++$i) {
+		$code .= $C['captchachars'][rand(0, $length)];
 	}
 	$randid=rand(0, 99999999);
-	$enc=base64_encode(openssl_encrypt("$code, $randid", 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
-	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `captcha` (`id`, `time`) VALUES (?, \''.time().'\')');
-	mysqli_stmt_bind_param($stmt, 'd', $randid);
-	mysqli_stmt_execute($stmt);
-	mysqli_stmt_close($stmt);
+	$time=time();
+	if($C['memcached']){
+		$memcached->set("$C[dbname]-captcha-$randid", $code, $C['captchatime']);
+	}else{
+		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `captcha` (`id`, `time`, `code`) VALUES (?, ?, ?)');
+		mysqli_stmt_bind_param($stmt, 'iis', $randid, $time, $code);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_close($stmt);
+	}
 	$im=imagecreatetruecolor(55, 24);
 	$bg=imagecolorallocate($im, 0, 0, 0);
 	$fg=imagecolorallocate($im, 255, 255, 255);
@@ -280,11 +288,11 @@ function send_captcha(){
 	imagegif($im);
 	imagedestroy($im);
 	echo base64_encode(ob_get_clean()).'">';
-	echo '</td><td align="right">'.hidden('challenge', $enc).'<input type="text" name="captcha" size="15" autocomplete="off"></td></tr>';
+	echo '</td><td align="right">'.hidden('challenge', $randid).'<input type="text" name="captcha" size="15" autocomplete="off"></td></tr>';
 }
 
 function send_setup(){
-	global $H, $I, $mysqli, $C, $U;
+	global $C, $H, $I, $U;
 	$ga=get_setting('guestaccess');
 	print_start();
 	echo "<center><h2>$I[setup]</h2><table cellspacing=\"0\">";
@@ -337,7 +345,7 @@ function send_setup(){
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[dateformat]</b></td><td align=\"right\">";
 	echo "<$H[form]>".hidden('action', 'setup').hidden('do', 'dateformat').hidden('session', $U['session']).'<table cellspacing="0">';
-	echo "<tr><td><input type=\"text\" name=\"dateformat\" value=\"".htmlspecialchars(get_setting('dateformat')).'"></td><td>&nbsp;</td>';
+	echo '<tr><td><input type="text" name="dateformat" value="'.htmlspecialchars(get_setting('dateformat')).'"></td><td>&nbsp;</td>';
 	echo '<td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "</table><$H[form]>".hidden('action', 'logout').hidden('session', $U['session']).submit($I['logout']).'</form>';
@@ -353,8 +361,8 @@ function send_init(){
 	echo "<tr><td>$I[sunick]</td><td><input type=\"text\" name=\"sunick\" size=\"15\"></td></tr>";
 	echo "<tr><td>$I[supass]</td><td><input type=\"password\" name=\"supass\" size=\"15\"></td></tr>";
 	echo "<tr><td>$I[suconfirm]</td><td><input type=\"password\" name=\"supassc\" size=\"15\"></td></tr>";
-	echo "</table><br><br></td></tr><tr><td align=\"left\"><br><br><br></td></tr><tr><td align=\"center\">";
-	echo "</td></tr><tr><td align=\"center\"><tr><td align=\"center\"><br>".submit($I['initbtn']).'</td></tr></table></form>';
+	echo '</table><br><br></td></tr><tr><td align="left"><br><br><br></td></tr><tr><td align="center">';
+	echo '</td></tr><tr><td align="center"><tr><td align="center"><br>'.submit($I['initbtn']).'</td></tr></table></form>';
 	print_credits();
 	print_end();
 }
@@ -368,19 +376,19 @@ function send_update(){
 }
 
 function send_alogin(){
-	global $H, $I, $C;
+	global $C, $H, $I;
 	print_start();
 	echo "<center><$H[form]>".hidden('action', 'setup').'<table>';
 	echo "<tr><td align=\"left\">$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\"></td></tr>";
 	echo "<tr><td align=\"left\">$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 	if($C['enablecaptcha']) send_captcha();
-	echo "<tr><td colspan=\"2\" align=\"right\">".submit($I['login']).'</td></tr></table></form>';
+	echo '<tr><td colspan="2" align="right">'.submit($I['login']).'</td></tr></table></form>';
 	print_credits();
 	print_end();
 }
 
 function send_admin($arg=''){
-	global $U, $C, $P, $H, $I, $mysqli;
+	global $C, $H, $I, $P, $U;
 	$ga=get_setting('guestaccess');
 	print_start();
 	$chlist="<select name=\"name[]\" size=\"5\" multiple><option value=\"\">$I[choose]</option>";
@@ -393,7 +401,7 @@ function send_admin($arg=''){
 	echo "<center><h2>$I[admfunc]</h2><i>$arg</i><table cellspacing=\"0\">";
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[cleanmsgs]</b></td><td align=\"right\">";
-	echo frmadm('clean')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td><input type=\"radio\" name=\"what\" id=\"room\" value=\"room\"></td>";
+	echo frmadm('clean').'<table cellspacing="0"><tr><td>&nbsp;</td><td><input type="radio" name="what" id="room" value="room"></td>';
 	echo "<td align=\"left\"><label for=\"room\">$I[room]</label></td><td>&nbsp;</td><td><input type=\"radio\" name=\"what\" id=\"choose\" value=\"choose\" checked></td>";
 	echo "<td align=\"left\"><label for=\"choose\">$I[selection]</label></td><td>&nbsp;</td><td>";
 	echo submit($I['clean']).'</td></tr></table></form></td></tr></table></td></tr>';
@@ -408,30 +416,30 @@ function send_admin($arg=''){
 	echo submit($I['logout']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[viewsess]</b></td><td align=\"right\">";
-	echo frmadm('sessions')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td>".submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo frmadm('sessions').'<table cellspacing="0"><tr><td>&nbsp;</td><td>'.submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[filter]</b></td><td align=\"right\">";
-	echo frmadm('filter')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td>".submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo frmadm('filter').'<table cellspacing="0"><tr><td>&nbsp;</td><td>'.submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[guestacc]</b></td><td align=\"right\">";
 	echo frmadm('guestaccess').'<table cellspacing="0">';
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set1\" value=\"1\"";
-	if($ga==1) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set1" value="1"';
+	if($ga==1) echo ' checked';
 	echo "><label for=\"set1\">&nbsp;$I[guestallow]</label></td><td>&nbsp;</td><tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set2\" value=\"2\"";
-	if($ga==2) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set2" value="2"';
+	if($ga==2) echo ' checked';
 	echo "><label for=\"set2\">&nbsp;$I[guestwait]</label></td><td>&nbsp;</td><tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set3\" value=\"3\"";
-	if($ga==3) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set3" value="3"';
+	if($ga==3) echo ' checked';
 	echo "><label for=\"set3\">&nbsp;$I[adminallow]</label></td><td>&nbsp;</td><tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set4\" value=\"4\"";
-	if($ga==4) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set4" value="4"';
+	if($ga==4) echo ' checked';
 	echo "><label for=\"set4\">&nbsp;$I[globalpass]</label></td><td>&nbsp;</td></tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set0\" value=\"0\"";
-	if($ga==0) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set0" value="0"';
+	if($ga==0) echo ' checked';
 	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr>";
-	echo "<tr><td align=\"left\">&nbsp;<input type=\"radio\" name=\"set\" id=\"set-1\" value=\"-1\"";
-	if($ga==-1) echo " checked";
+	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set-1" value="-1"';
+	if($ga==-1) echo ' checked';
 	echo "><label for=\"set-1\">&nbsp;$I[memberglobalpass]</label></td><td>&nbsp;</td></tr>";
 	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
@@ -480,22 +488,20 @@ function send_admin($arg=''){
 }
 
 function send_sessions(){
-	global $U, $H, $I;
+	global $H, $I, $U;
 	$lines=parse_sessions();
 	print_start();
 	echo "<center><h1>$I[sessact]</h1><table border=\"0\" cellpadding=\"5\">";
 	echo "<thead valign=\"middle\"><tr><th align=\"left\"><b>$I[sessnick]</b></th><th align=\"center\"><b>$I[sesstimeout]</b></th><th align=\"left\"><b>$I[sessua]</b></th></tr></thead><tbody valign=\"middle\">";
-	if(isSet($lines)){
-		foreach($lines as $temp){
-			if($temp['status']!=0){
-				if($temp['status']==1 || $temp['status']==2) $s='&nbsp;(G)';
-				elseif($temp['status']==3) $s='';
-				elseif($temp['status']==5 || $temp['status']==6) $s='&nbsp;(M)';
-				elseif($temp['status']>=7) $s='&nbsp;(A)';
-				echo '<tr><td align="left">'.style_this($temp['nickname'].$s, $temp['fontinfo']).'</td><td align="center">'.get_timeout($temp['lastpost'], $temp['status']).'</td><td align="left">';
-				if($U['status']>$temp['status'] || $U['session']==$temp['session']) echo $temp['useragent'];
-				else echo '-</td></tr>';
-			}
+	foreach($lines as $temp){
+		if($temp['status']!=0){
+			if($temp['status']==1 || $temp['status']==2) $s='&nbsp;(G)';
+			elseif($temp['status']==3) $s='';
+			elseif($temp['status']==5 || $temp['status']==6) $s='&nbsp;(M)';
+			elseif($temp['status']>=7) $s='&nbsp;(A)';
+			echo '<tr><td align="left">'.style_this($temp['nickname'].$s, $temp['fontinfo']).'</td><td align="center">'.get_timeout($temp['lastpost'], $temp['status']).'</td><td align="left">';
+			if($U['status']>$temp['status'] || $U['session']==$temp['session']) echo $temp['useragent'];
+			else echo '-</td></tr>';
 		}
 	}
 	echo "</tbody></table><br>$H[backtochat]</center>";
@@ -503,7 +509,7 @@ function send_sessions(){
 }
 
 function manage_filter(){
-	global $mysqli, $I;
+	global $C, $I, $memcached, $mysqli;
 	if(isSet($_REQUEST['id'])){
 		$_REQUEST['match']=htmlspecialchars($_REQUEST['match']);
 		if(isSet($_REQUEST['regex']) && $_REQUEST['regex']==1){
@@ -518,28 +524,31 @@ function manage_filter(){
 		if(isSet($_REQUEST['kick']) && $_REQUEST['kick']==1) $kick=1;
 		else $kick=0;
 		if(preg_match('/^[0-9]*$/', $_REQUEST['id'])){
-			if($_REQUEST['match']==''){
+			if(empty($_REQUEST['match'])){
 				$stmt=mysqli_prepare($mysqli, 'DELETE FROM `filter` WHERE `id`=?');
-				mysqli_stmt_bind_param($stmt, 's', $_REQUEST['id']);
+				mysqli_stmt_bind_param($stmt, 'i', $_REQUEST['id']);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
+				if($C['memcached']) $memcached->delete("$C[dbname]-filter");
 			}else{
 				$stmt=mysqli_prepare($mysqli, 'UPDATE `filter` SET `match`=?, `replace`=?, `allowinpm`=?, `regex`=?, `kick`=? WHERE `id`=?');
-				mysqli_stmt_bind_param($stmt, 'ssdddd', $_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $_REQUEST['id']);
+				mysqli_stmt_bind_param($stmt, 'ssiiii', $_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $_REQUEST['id']);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
+				if($C['memcached']) $memcached->delete("$C[dbname]-filter");
 			}
 		}elseif(preg_match('/^\+$/', $_REQUEST['id'])){
 			$stmt=mysqli_prepare($mysqli, 'INSERT INTO `filter` (`match`, `replace`, `allowinpm`, `regex`, `kick`) VALUES (?, ?, ?, ?, ?)');
-			mysqli_stmt_bind_param($stmt, 'ssddd', $_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick);
+			mysqli_stmt_bind_param($stmt, 'ssiii', $_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
+			if($C['memcached']) $memcached->delete("$C[dbname]-filter");
 		}
 	}
 }
 
 function send_filter($arg=''){
-	global $U, $H, $I, $mysqli;
+	global $C, $H, $I, $U, $memcached, $mysqli;
 	print_start();
 	echo "<center><h2>$I[filter]</h2><i>$arg</i><table cellspacing=\"0\">";
 	thr();
@@ -550,25 +559,29 @@ function send_filter($arg=''){
 	echo "<td style=\"width:5em\"><center><b>$I[regex]</b></center></td>";
 	echo "<td style=\"width:5em\"><center><b>$I[kick]</b></center></td>";
 	echo "<td style=\"width:5em\"><center><b>$I[apply]</b></center></td></tr></table></th></tr>";
-	$result=mysqli_query($mysqli, 'SELECT * FROM `filter`');
-	if(mysqli_num_rows($result)>0){
-		while($filter=mysqli_fetch_array($result, MYSQLI_ASSOC)){
-			if($filter['allowinpm']==1) $check=' checked';
-			else $check='';
-			if($filter['regex']==1) $checked=' checked';
-			else $checked='';
-			if($filter['kick']==1) $checkedk=' checked';
-			else $checkedk='';
-			if($filter['regex']==0) $filter['match']=preg_replace('/(\\\\(.))/', "$2", $filter['match']);
-			echo '<tr><td>'.frmadm('filter').hidden('id', $filter['id']);
-			echo "<table cellspacing=\"0\" width=\"100%\"><tr><td style=\"width:8em\"><b>$I[filter] $filter[id]:</b></td>";
-			echo "<td style=\"width:12em\"><input type=\"text\" name=\"match\" value=\"".htmlspecialchars($filter['match'])."\" size=\"20\" style=\"$U[style]\"></td>";
-			echo "<td style=\"width:12em\"><input type=\"text\" name=\"replace\" value=\"".htmlspecialchars($filter['replace'])."\" size=\"20\" style=\"$U[style]\"></td>";
-			echo "<td style=\"width:9em\"><input type=\"checkbox\" name=\"allowinpm\" id=\"allowinpm-$filter[id]\" value=\"1\"$check><label for=\"allowinpm-$filter[id]\">$I[allowpm]</label></td>";
-			echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"regex\" id=\"regex-$filter[id]\" value=\"1\"$checked><label for=\"regex-$filter[id]\">$I[regex]</label></td>";
-			echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"kick\" id=\"kick-$filter[id]\" value=\"1\"$checkedk><label for=\"kick-$filter[id]\">$I[kick]</label></td>";
-			echo '<td align="right" style="width:5em">'.submit($I['change']).'</td></tr></table></form></td></tr>';
-		}
+	if($C['memcached']) $filters=$memcached->get("$C[dbname]-filter");
+	if(!$C['memcached'] || $memcached->getResultCode()!=Memcached::RES_SUCCESS){
+		$filters=array();
+		$result=mysqli_query($mysqli, 'SELECT * FROM `filter`');
+		while($filter=mysqli_fetch_array($result, MYSQLI_ASSOC)) $filters[]=$filter;
+		if($C['memcached']) $memcached->set("$C[dbname]-filter", $filters);
+	}
+	foreach($filters as $filter){
+		if($filter['allowinpm']==1) $check=' checked';
+		else $check='';
+		if($filter['regex']==1) $checked=' checked';
+		else $checked='';
+		if($filter['kick']==1) $checkedk=' checked';
+		else $checkedk='';
+		if($filter['regex']==0) $filter['match']=preg_replace('/(\\\\(.))/', "$2", $filter['match']);
+		echo '<tr><td>'.frmadm('filter').hidden('id', $filter['id']);
+		echo "<table cellspacing=\"0\" width=\"100%\"><tr><td style=\"width:8em\"><b>$I[filter] $filter[id]:</b></td>";
+		echo "<td style=\"width:12em\"><input type=\"text\" name=\"match\" value=\"$filter[match]\" size=\"20\" style=\"$U[style]\"></td>";
+		echo '<td style="width:12em"><input type="text" name="replace" value="'.htmlspecialchars($filter['replace'])."\" size=\"20\" style=\"$U[style]\"></td>";
+		echo "<td style=\"width:9em\"><input type=\"checkbox\" name=\"allowinpm\" id=\"allowinpm-$filter[id]\" value=\"1\"$check><label for=\"allowinpm-$filter[id]\">$I[allowpm]</label></td>";
+		echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"regex\" id=\"regex-$filter[id]\" value=\"1\"$checked><label for=\"regex-$filter[id]\">$I[regex]</label></td>";
+		echo "<td style=\"width:5em\"><input type=\"checkbox\" name=\"kick\" id=\"kick-$filter[id]\" value=\"1\"$checkedk><label for=\"kick-$filter[id]\">$I[kick]</label></td>";
+		echo '<td align="right" style="width:5em">'.submit($I['change']).'</td></tr></table></form></td></tr>';
 	}
 	echo '<tr><td>'.frmadm('filter').hidden('id', '+');
 	echo "<table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\" style=\"width:8em\"><b>$I[newfilter]</b></td>";
@@ -583,24 +596,24 @@ function send_filter($arg=''){
 }
 
 function send_frameset(){
-	global $U, $H, $I;
+	global $H, $I, $U;
 	header('Content-Type: text/html; charset=UTF-8'); header('Pragma: no-cache'); header('Expires: 0');
 	echo "<!DOCTYPE html><html><head>$H[meta_html]";
 	print_stylesheet();
 	if(isSet($_COOKIE['test'])){
-		echo "</head>\n<frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls\"><noframes>$H[begin_body]$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
+		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls\"><noframes>$H[begin_body]$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	}else{
-		echo "</head>\n<frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]\"><noframes>$H[begin_body]$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
+		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&amp;session=$U[session]\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&amp;session=$U[session]\"><noframes>$H[begin_body]$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	}
 	exit;
 }
 
 function send_messages(){
-	global $U, $C, $I;
+	global $C, $I, $U;
 	if(isSet($_COOKIE[$C['cookiename']])){
-		$url="$_SERVER[SCRIPT_NAME]?action=view&nocache=";
+		$url="$_SERVER[SCRIPT_NAME]?action=view&amp;nocache=";
 	}else{
-		$url="$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&nocache=";
+		$url="$_SERVER[SCRIPT_NAME]?action=view&amp;session=$U[session]&amp;nocache=";
 	}
 	if(!isSet($_REQUEST['nocache'])) $_REQUEST['nocache']='';
 	print_start('', $U['refresh'], $url.substr(time(), -6));
@@ -613,14 +626,15 @@ function send_messages(){
 }
 
 function send_notes($type){
-	global $U, $H, $I, $mysqli;
-	$text='';
+	global $H, $I, $U, $mysqli;
 	print_start();
-	if($type=="staff") echo "<center><h2>$I[staffnotes]</h2><p>";
+	$text='';
+	if($type=='staff') echo "<center><h2>$I[staffnotes]</h2><p>";
 	else echo "<center><h2>$I[adminnotes]</h2><p>";
 	if(isset($_REQUEST['text'])){
-		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `notes`(`type`, `lastedited`, `editedby`, `text`) VALUES (?, ?, ?, ?)');
-		mysqli_stmt_bind_param($stmt, 'sdss', $type, time(), $U['nickname'], $_REQUEST['text']);
+		$time=time();
+		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `notes` (`type`, `lastedited`, `editedby`, `text`) VALUES (?, ?, ?, ?)');
+		mysqli_stmt_bind_param($stmt, 'siss', $type, $time, $U['nickname'], $_REQUEST['text']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 		echo "<b>$I[notessaved]</b> ";
@@ -629,12 +643,8 @@ function send_notes($type){
 	mysqli_stmt_bind_param($stmt, 's', $type);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_bind_result($stmt, $lastedited, $editedby, $text);
-	if(mysqli_stmt_fetch($stmt)){
-		mysqli_stmt_close($stmt);
-		printf($I['lastedited'], $editedby, date(get_setting('dateformat'), $lastedited));
-	}else{
-		mysqli_stmt_close($stmt);
-	}
+	if(mysqli_stmt_fetch($stmt)) printf($I['lastedited'], $editedby, date(get_setting('dateformat'), $lastedited));
+	mysqli_stmt_close($stmt);
 	echo "</p><$H[form]>";
 	if($type=='staff') echo hidden('action', 'notes');
 	else echo hidden('action', 'admnotes');
@@ -643,43 +653,34 @@ function send_notes($type){
 }
 
 function send_approve_waiting(){
-	global $H, $U, $I, $mysqli;
+	global $H, $I, $U, $mysqli;
 	print_start('admin');
 	echo "<center><h2>$I[waitingroom]</h2>";
 	$result=mysqli_query($mysqli, 'SELECT * FROM `sessions` WHERE `entry`!=\'0\' AND `status`=\'1\' ORDER BY `entry`');
 	if(mysqli_num_rows($result)>0){
-		echo "<$H[form]>".hidden('action', 'admin').hidden('do', 'approve').hidden('session', $U['session'])."<table cellpadding=\"5\">";
+		echo "<$H[form]>".hidden('action', 'admin').hidden('do', 'approve').hidden('session', $U['session']).'<table cellpadding="5">';
 		echo "<thead align=\"left\"><tr><th><b>$I[sessnick]</b></th><th><b>$I[sessua]</b></th></tr></thead><tbody align=\"left\" valign=\"middle\">";
 		while($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
-			echo '<tr>'.hidden('alls[]', $temp['nickname'])."<td><input type=\"checkbox\" name=\"csid[]\" id=\"$temp[nickname]]\" value=\"$temp[nickname]\"><label for=\"$temp[nickname]\">&nbsp$temp[displayname]</label></td><td>$temp[useragent]</td></tr>";
+			echo '<tr>'.hidden('alls[]', $temp['nickname'])."<td><input type=\"checkbox\" name=\"csid[]\" id=\"$temp[nickname]]\" value=\"$temp[nickname]\"><label for=\"$temp[nickname]\">&nbsp;$temp[displayname]</label></td><td>$temp[useragent]</td></tr>";
 		}
 		echo "</tbody></table><br><table><tr><td><input type=\"radio\" name=\"what\" value=\"allowchecked\" id=\"allowchecked\" checked></td><td><label for=\"allowchecked\">$I[allowchecked]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"allowall\" id=\"allowall\"></td><td><label for=\"allowall\">$I[allowall]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"denychecked\" id=\"denychecked\"></td><td><label for=\"denychecked\">$I[denychecked]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"denyall\" id=\"denyall\"></td><td><label for=\"denyall\">$I[denyall]</label></td></tr><tr><td colspan=\"8\" align=\"center\">$I[denymessage] <input type=\"text\" name=\"kickmessage\" size=\"45\"></td>";
-		echo '</tr><tr><td colspan="8" align="center">'.submit($I['butallowdeny']).'</td></tr></table></form><br>';
+		echo '</tr><tr><td colspan="8" align="center">'.submit($I['butallowdeny']).'</td></tr></table></form>';
 	}else{
-		echo "$I[waitempty]<br><br>";
+		echo "$I[waitempty]<br>";
 	}
-	echo "$H[backtochat]</center>";
+	echo "<br>$H[backtochat]</center>";
 	print_end();
 }
 
 function send_waiting_room(){
-	global $U, $C, $M, $H, $I, $countmods, $mysqli;
+	global $C, $H, $I, $M, $U, $countmods, $mysqli;
 	parse_sessions();
-	if(get_setting('guestaccess')==3 && $countmods>0) $wait=false;
+	$ga=get_setting('guestaccess');
+	if($ga==3 && $countmods>0) $wait=false;
 	else $wait=true;
-	if(!isSet($_REQUEST['session'])){
-		setcookie($C['cookiename'], false);
-		send_error($I['expire']);
-	}
-	$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `kickmessage`, `bgcolour`, `notesboxheight`, `notesboxwidth`, `entry`, `timestamps`, `embed`, `incognito` FROM `sessions` WHERE `session`=?');
-	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['session']);
-	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['kickmessage'], $U['bgcolour'], $U['notesboxheight'], $U['notesboxwidth'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
-	if(mysqli_stmt_fetch($stmt)) add_user_defaults();
-	mysqli_stmt_close($stmt);
 	if(!isSet($U['session'])){
 		setcookie($C['cookiename'], false);
 		send_error($I['expire']);
@@ -689,9 +690,10 @@ function send_waiting_room(){
 		send_error("$I[kicked]<br>$U[kickmessage]");
 	}
 	$timeleft=$C['entrywait']-(time()-$U['entry']);
-	if(($timeleft<=0 || count($M)==0) && $wait){
-		$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `entry`=\'0\' WHERE `session`=?');
-		mysqli_stmt_bind_param($stmt, 's', $U['session']);
+	if($wait && ($timeleft<=0 || count($M)==0 || $ga==1)){
+		$U['entry']=0;
+		$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `entry`=? WHERE `session`=?');
+		mysqli_stmt_bind_param($stmt, 'is', $U['entry'], $U['session']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 		send_frameset();
@@ -701,10 +703,10 @@ function send_waiting_room(){
 		$U['nocache']=substr(time(), -6);
 		if(isSet($_COOKIE['test'])){
 			header("Refresh: $C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&nocache=$U[nocache]");
-			echo "<!DOCTYPE html><html><head>$H[meta_html]\n<meta http-equiv=\"Refresh\" content=\"$C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&nocache=$U[nocache]\">\n";
+			echo "<!DOCTYPE html><html><head>$H[meta_html]<meta http-equiv=\"Refresh\" content=\"$C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&nocache=$U[nocache]\">";
 		}else{
 			header("Refresh: $C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&nocache=$U[nocache]");
-			echo "<!DOCTYPE html><html><head>$H[meta_html]\n<meta http-equiv=\"Refresh\" content=\"$C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&nocache=$U[nocache]\">\n";
+			echo "<!DOCTYPE html><html><head>$H[meta_html]<meta http-equiv=\"Refresh\" content=\"$C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&nocache=$U[nocache]\">";
 		}
 		print_stylesheet();
 		if($wait){
@@ -719,7 +721,7 @@ function send_waiting_room(){
 }
 
 function send_choose_messages(){
-	global $U, $H, $I;
+	global $H, $I, $U;
 	print_start();
 	echo frmadm('clean').hidden('what', 'selected').submit($I['delselmes'], ' style="background-color:#660000;color:#FFFFFF;"').'<br><br>';
 	print_messages($U['status']);
@@ -728,18 +730,18 @@ function send_choose_messages(){
 }
 
 function send_post(){
-	global $U, $C, $P, $I, $countmods, $mysqli;
+	global $C, $I, $P, $U, $countmods;
 	$U['postid']=substr(time(), -6);
 	print_start();
-	echo "<center><table cellspacing=\"0\"><tr><td align=\"center\">".frmpst('post').hidden('postid', $U['postid']).@hidden('multi', $_REQUEST['multi']);
+	echo '<center><table cellspacing="0"><tr><td align="center">'.frmpst('post').hidden('postid', $U['postid']).@hidden('multi', $_REQUEST['multi']);
 	echo "<table cellspacing=\"0\"><tr><td valign=\"top\">$U[displayname]</td><td valign=\"top\">:</td>";
 	if(!isSet($U['rejected'])) $U['rejected']='';
-	if(isSet($_REQUEST['multi']) && $_REQUEST['multi']=="on"){
+	if(isSet($_REQUEST['multi']) && $_REQUEST['multi']=='on'){
 		echo "<td valign=\"top\"><textarea name=\"message\" wrap=\"virtual\" rows=\"$U[boxheight]\" cols=\"$U[boxwidth]\" style=\"$U[style]\">$U[rejected]</textarea></td>";
 	}else{
 		echo "<td valign=\"top\"><input type=\"text\" name=\"message\" value=\"$U[rejected]\" size=\"$U[boxwidth]\" maxlength=\"$C[maxmessage]\" style=\"$U[style]\"></td>";
 	}
-	echo '<td valign="top">'.submit($I['talkto'])."</td><td valign=\"top\"><select name=\"sendto\" size=\"1\">";
+	echo '<td valign="top">'.submit($I['talkto']).'</td><td valign="top"><select name="sendto" size="1">';
 	echo '<option '; if(isSet($_REQUEST['sendto']) && $_REQUEST['sendto']=='*') echo 'selected '; echo "value=\"*\">-$I[toall]-</option>";
 	if($U['status']>=3){
 		echo '<option ';
@@ -757,14 +759,11 @@ function send_post(){
 		echo "value=\"&\">-$I[toadmin]-</option>";
 	}
 	$ignored=array();
-	$stmt=mysqli_prepare($mysqli, '(SELECT `by` FROM `ignored` WHERE `ignored`=? OR `by`=?) UNION (SELECT `ignored` FROM `ignored` WHERE `ignored`=? OR `by`=?)');
-	mysqli_stmt_bind_param($stmt, 'ssss', $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname']);
-	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $ign);
-	while(mysqli_stmt_fetch($stmt)){
-		$ignored[]=$ign;
+	$ignore=get_ignored();
+	foreach($ignore as $ign){
+		if($ign['ignored']==$U['nickname']) $ignored[]=$ign['by'];
+		if($ign['by']==$U['nickname']) $ignored[]=$ign['ignored'];
 	}
-	mysqli_stmt_close($stmt);
 	array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
 	foreach($P as $user){
 		if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
@@ -793,7 +792,7 @@ function send_post(){
 }
 
 function send_help(){
-	global $U, $C, $H, $I;
+	global $C, $H, $I, $U;
 	print_start();
 	echo "<h2>$I[rules]</h2>".get_setting('rulestxt')."<br><br><hr><h2>$I[help]</h2>$I[helpguest]";
 	if($C['imgembed']) echo "<br>$I[helpembed]";
@@ -810,22 +809,20 @@ function send_help(){
 }
 
 function send_profile($arg=''){
-	global $U, $F, $H, $I, $P, $C, $mysqli;
+	global $C, $F, $H, $I, $P, $U;
 	print_start();
 	echo "<center><$H[form]>".hidden('action', 'profile').hidden('do', 'save').hidden('session', $U['session'])."<h2>$I[profile]</h2><i>$arg</i><table cellspacing=\"0\">";
 	thr();
 	array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
 	$ignored=array();
-	$stmt=mysqli_prepare($mysqli, 'SELECT `ignored` FROM `ignored` WHERE `by`=?');
-	mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
-	mysqli_stmt_execute($stmt);
-	mysqli_stmt_store_result($stmt);
-	if(mysqli_stmt_num_rows($stmt)>0){
-		mysqli_stmt_bind_result($stmt, $ign);
+	$ignore=get_ignored();
+	foreach($ignore as $ign){
+		if($ign['by']==$U['nickname']) $ignored[]=$ign['ignored'];
+	}
+	if(count($ignored)>0){
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[unignore]</b></td><td align=\"right\"><table cellspacing=\"0\">";
 		echo "<tr><td>&nbsp;</td><td><select name=\"unignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-		while(mysqli_stmt_fetch($stmt)){
-			$ignored[]=$ign;
+		foreach($ignored as $ign){
 			$style='';
 			foreach($P as $user){
 				if($ign==$user[0]){
@@ -838,8 +835,6 @@ function send_profile($arg=''){
 		echo '</select></td></tr></table></td></tr></table></td></tr>';
 		thr();
 	}
-	mysqli_stmt_free_result($stmt);
-	mysqli_stmt_close($stmt);
 	if(count($P)-count($ignored)>1){
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[ignore]</b></td><td align=\"right\"><table cellspacing=\"0\">";
 		echo "<tr><td>&nbsp;</td><td><select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
@@ -854,10 +849,10 @@ function send_profile($arg=''){
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[refreshrate]</b></td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td><input type=\"text\" name=\"refresh\" size=\"3\" maxlength=\"3\" value=\"$U[refresh]\"></td></tr></table></td></tr></table></td></tr>";
 	thr();
-	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[fontcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&session=$U[session]\" target=\"view\">$I[viewexample]</a>)</td><td align=\"right\"><table cellspacing=\"0\">";
+	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[fontcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&amp;session=$U[session]\" target=\"view\">$I[viewexample]</a>)</td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td><input type=\"text\" size=\"7\" maxlength=\"6\" value=\"$U[colour]\" name=\"colour\"></td></tr></table></td></tr></table></td></tr>";
 	thr();
-	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[bgcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&session=$U[session]\" target=\"view\">$I[viewexample]</a>)</td><td align=\"right\"><table cellspacing=\"0\">";
+	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[bgcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&amp;session=$U[session]\" target=\"view\">$I[viewexample]</a>)</td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td><input type=\"text\" size=\"7\" maxlength=\"6\" value=\"$U[bgcolour]\" name=\"bgcolour\"></td></tr></table></td></tr></table></td></tr>";
 	thr();
 	if($U['status']>=3){
@@ -868,7 +863,7 @@ function send_profile($arg=''){
 			if(preg_match("/$font/", $U['fontinfo'])) echo 'selected ';
 			echo "value=\"$name\">$name</option>";
 		}
-		echo "</select></td><td>&nbsp;</td><td><input type=\"checkbox\" name=\"bold\" id=\"bold\" value=\"on\"";
+		echo '</select></td><td>&nbsp;</td><td><input type="checkbox" name="bold" id="bold" value="on"';
 		if(preg_match('/<i?bi?>/', $U['fontinfo'])) echo ' checked';
 		echo "></td><td><label for=\"bold\"><b>$I[bold]</b></label></td><td>&nbsp;</td><td><input type=\"checkbox\" name=\"italic\" id=\"italic\" value=\"on\"";
 		if(preg_match('/<b?ib?>/', $U['fontinfo'])) echo ' checked';
@@ -878,20 +873,20 @@ function send_profile($arg=''){
 	echo "<tr><td align=\"center\">$U[displayname]&nbsp;: ".style_this($I['fontexample'], $U['fontinfo']).'</td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[timestamps]</b></td><td align=\"right\"><table cellspacing=\"0\">";
-	echo "<tr><td>&nbsp;</td><td><input type=\"checkbox\" name=\"timestamps\" id=\"timestamps\" value=\"on\"";
+	echo '<tr><td>&nbsp;</td><td><input type="checkbox" name="timestamps" id="timestamps" value="on"';
 	if($U['timestamps']) echo ' checked';
 	echo "></td><td><label for=\"timestamps\"><b>$I[timestamps]</b></label></td></tr></table></td></tr></table></td></tr>";
 	thr();
 	if($C['imgembed']){
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[embed]</b></td><td align=\"right\"><table cellspacing=\"0\">";
-		echo "<tr><td>&nbsp;</td><td><input type=\"checkbox\" name=\"embed\" id=\"embed\" value=\"on\"";
+		echo '<tr><td>&nbsp;</td><td><input type="checkbox" name="embed" id="embed" value="on"';
 		if($U['embed']) echo ' checked';
 		echo "></td><td><label for=\"embed\"><b>$I[embed]</b></label></td></tr></table></td></tr></table></td></tr>";
 		thr();
 	}
 	if($U['status']>=5 && $C['incognito']){
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[incognito]</b></td><td align=\"right\"><table cellspacing=\"0\">";
-		echo "<tr><td>&nbsp;</td><td><input type=\"checkbox\" name=\"incognito\" id=\"incognito\" value=\"on\"";
+		echo '<tr><td>&nbsp;</td><td><input type="checkbox" name="incognito" id="incognito" value="on"';
 		if($U['incognito']) echo ' checked';
 		echo "></td><td><label for=\"incognito\"><b>$I[incognito]</b></label></td></tr></table></td></tr></table></td></tr>";
 		thr();
@@ -920,7 +915,7 @@ function send_profile($arg=''){
 }
 
 function send_controls(){
-	global $U, $H, $I;
+	global $H, $I, $U;
 	print_start();
 	echo '<center><table cellspacing="0"><tr>';
 	echo "<td><$H[form] target=\"post\">".hidden('action', 'post').hidden('session', $U['session']).submit($I['reloadpb']).'</form></td>';
@@ -937,7 +932,7 @@ function send_controls(){
 }
 
 function send_logout(){
-	global $U, $H, $I;
+	global $H, $I, $U;
 	print_start();
 	echo '<center><h1>'.sprintf($I['bye'], $U['displayname'])."</h1>$H[backtologin]</center>";
 	print_end();
@@ -1006,18 +1001,18 @@ function send_error($err){
 }
 
 function print_chatters(){
-	global $U, $M, $H, $G, $I, $mysqli;
+	global $G, $H, $I, $M, $U, $mysqli;
 	echo '<table cellspacing="0"><tr>';
 	if($U['status']>=5 && get_setting('guestaccess')==3){
 		$result=mysqli_query($mysqli, 'SELECT COUNT(*) FROM `sessions` WHERE `entry`!=\'0\' AND `status`=\'1\' ORDER BY `entry`');
 		$temp=mysqli_fetch_array($result, MYSQLI_NUM);
 		if($temp[0]>0) echo "<td valign=\"top\"><$H[form]>".hidden('action', 'admin').hidden('do', 'approve').hidden('session', $_REQUEST['session']).submit(sprintf($I['approveguests'], $temp[0])).'</form></td><td>&nbsp;</td>';
 	}
-	if(isSet($M[0])){
+	if(!empty($M)){
 		echo "<td valign=\"top\"><b>$I[members]</b></td><td>&nbsp;</td><td valign=\"top\">".implode(' &nbsp; ', $M).'</td>';
-		if(isSet($G[0])) echo '<td>&nbsp;&nbsp;</td>';
+		if(!empty($G)) echo '<td>&nbsp;&nbsp;</td>';
 	}
-	if(isSet($G[0])) echo "<td valign=\"top\"><b>$I[guests]</b></td><td>&nbsp;</td><td valign=\"top\">".implode(' &nbsp; ', $G).'</td>';
+	if(!empty($G)) echo "<td valign=\"top\"><b>$I[guests]</b></td><td>&nbsp;</td><td valign=\"top\">".implode(' &nbsp; ', $G).'</td>';
 	echo '</tr></table>';
 }
 
@@ -1038,7 +1033,7 @@ function print_memberslist(){
 //  session management
 
 function create_session($setup){
-	global $U, $C, $I, $mysqli;
+	global $C, $I, $U, $memcached, $mysqli;
 	$U['nickname']=cleanup_nick($_REQUEST['nick']);
 	$U['passhash']=md5(sha1(md5($U['nickname'].$_REQUEST['pass'])));
 	if(isSet($_REQUEST['colour'])) $U['colour']=$_REQUEST['colour'];
@@ -1047,18 +1042,22 @@ function create_session($setup){
 	check_member();
 	add_user_defaults();
 	if($setup) $U['incognito']=true;
-	if($C['enablecaptcha'] && ($U['status']==1 || (!$C['dismemcaptcha'] || $setup))){
-		$captcha=explode(',', openssl_decrypt(base64_decode($_REQUEST['challenge']), 'aes-128-cbc', $C['captchapass'], 0, '1234567890123456'));
-		if(current($captcha)!==$_REQUEST['captcha']) send_error($I['wrongcaptcha']);
-		$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `captcha` WHERE `id`=?');
-		mysqli_stmt_bind_param($stmt, 'd', end($captcha));
-		mysqli_stmt_execute($stmt);
-		mysqli_stmt_store_result($stmt);
-		if(mysqli_stmt_num_rows($stmt)==0) send_error($I['captchatime']);
-		mysqli_stmt_free_result($stmt);
-		mysqli_stmt_close($stmt);
-		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `captcha` WHERE `id`=? OR `time`<\''.(time()-60*10)."'");
-		mysqli_stmt_bind_param($stmt, 'd', end($captcha));
+	if($C['enablecaptcha'] && ($U['status']==1 || !$C['dismemcaptcha'])){
+		if(!$C['memcached']){
+			$stmt=mysqli_prepare($mysqli, 'SELECT `code` FROM `captcha` WHERE `id`=?');
+			mysqli_stmt_bind_param($stmt, 'i', $_REQUEST['challenge']);
+			mysqli_stmt_execute($stmt);
+			mysqli_stmt_bind_result($stmt, $code);
+			if(!mysqli_stmt_fetch($stmt)) send_error($I['captchatime']);
+			mysqli_stmt_close($stmt);
+		}else{
+			if(!$code=$memcached->get("$C[dbname]-captcha-$_REQUEST[challenge]")) send_error($I['captchatime']);
+			$memcached->delete("$C[dbname]-captcha-$_REQUEST[challenge]");
+		}
+		if($_REQUEST['captcha']!=$code) send_error($I['wrongcaptcha']);
+		$timeout=time()-$C['captchatime'];
+		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `captcha` WHERE `id`=? OR `time`<?');
+		mysqli_stmt_bind_param($stmt, 'ii', $_REQUEST['challenge'], $timeout);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 	}
@@ -1073,24 +1072,22 @@ function create_session($setup){
 }
 
 function write_new_session(){
-	global $U, $C, $I, $mysqli;
+	global $C, $I, $U, $mysqli;
 	// read and update current sessions
 	$lines=parse_sessions();
 	$sids; $inuse=false; $reentry=false;
-	if(isSet($lines)){
-		foreach($lines as $temp){
-			$sids[$temp['session']]=true;// collect all existing ids
-			if($temp['nickname']==$U['nickname']){// nick already here?
-				if($U['passhash']==$temp['passhash']){
-					$U=$temp;
-					add_user_defaults();
-					setcookie($C['cookiename'], $U['session']);
-					$reentry=true;
-					break;
-				}else{
-					$inuse=true;
-					break;
-				}
+	foreach($lines as $temp){
+		$sids[$temp['session']]=true;// collect all existing ids
+		if($temp['nickname']==$U['nickname']){// nick already here?
+			if($U['passhash']==$temp['passhash']){
+				$U=$temp;
+				add_user_defaults();
+				setcookie($C['cookiename'], $U['session']);
+				$reentry=true;
+				break;
+			}else{
+				$inuse=true;
+				break;
 			}
 		}
 	}
@@ -1099,8 +1096,8 @@ function write_new_session(){
 		do{
 			$U['session']=md5(time().rand().$U['nickname']);
 		}while(isSet($sids[$U['session']]));// check for hash collision
-		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `sessions`(`session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `bgcolour`, `notesboxwidth`, `notesboxheight`, `entry`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-		mysqli_stmt_bind_param($stmt, 'sssddssdsdddssdddddd', $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
+		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `sessions` (`session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `bgcolour`, `notesboxwidth`, `notesboxheight`, `entry`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+		mysqli_stmt_bind_param($stmt, 'sssiissisiiissiiiiii', $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 		setcookie($C['cookiename'], $U['session']);
@@ -1114,7 +1111,7 @@ function write_new_session(){
 }
 
 function approve_session(){
-	global $mysqli;
+	global $C, $mysqli;
 	if(isSet($_REQUEST['what'])){
 		if($_REQUEST['what']=='allowchecked' && isSet($_REQUEST['csid'])){
 			$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `entry`=\'0\' WHERE `nickname`=?');
@@ -1149,14 +1146,16 @@ function approve_session(){
 }
 
 function check_login(){
-	global $mysqli, $C, $U, $I, $M;
+	global $C, $I, $M, $U, $mysqli;
 	$ga=get_setting('guestaccess');
 	if(isSet($_POST['session'])){
-		$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `kickmessage`, `bgcolour`, `notesboxheight`, `notesboxwidth`, `entry`, `timestamps`, `embed`, `incognito` FROM `sessions` WHERE `session`=?');
+		$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `sessions` WHERE `session`=?');
 		mysqli_stmt_bind_param($stmt, 's', $_POST['session']);
 		mysqli_stmt_execute($stmt);
-		mysqli_stmt_bind_result($stmt, $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['kickmessage'], $U['bgcolour'], $U['notesboxheight'], $U['notesboxwidth'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
-		if(mysqli_stmt_fetch($stmt)){
+		$result=mysqli_stmt_get_result($stmt);
+		$U=mysqli_fetch_array($result, MYSQLI_ASSOC);
+		mysqli_stmt_close($stmt);
+		if(isSet($U['session'])){
 			if($U['status']==0){
 				setcookie($C['cookiename'], false);
 				send_error("$I[kicked]<br>$U[kickmessage]");
@@ -1168,7 +1167,6 @@ function check_login(){
 			send_error($I['expire']);
 
 		}
-		mysqli_stmt_close($stmt);
 	}elseif($ga==-1 && ((!isSet($_POST['globalpass']) || $_POST['globalpass']!=get_setting('globalpass')) || !(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])))){
 		send_login();
 	}else{
@@ -1176,8 +1174,9 @@ function check_login(){
 	}
 	if($U['status']==1){
 		if(($ga==2 || $ga==3) && count($M)>0){
-			$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `entry`=\''.time().'\' WHERE `session`=?');
-			mysqli_stmt_bind_param($stmt, 's', $U['session']);
+			$U['entry']=time();
+			$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `entry`=? WHERE `session`=?');
+			mysqli_stmt_bind_param($stmt, 'is', $U['entry'], $U['session']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 			$_REQUEST['session']=$U['session'];
@@ -1187,7 +1186,7 @@ function check_login(){
 }
 
 function kill_session(){
-	global $U, $C, $I, $mysqli;
+	global $C, $I, $U, $memcached, $mysqli;
 	parse_sessions();
 	setcookie($C['cookiename'], false);
 	if(!isSet($U['session'])) send_error($I['expire']);
@@ -1209,33 +1208,32 @@ function kill_session(){
 		mysqli_stmt_bind_param($stmt, 'ss', $U['nickname'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
+		if($C['memcached']) $memcached->delete("$C[dbname]-ignored");
 	}
 	elseif($C['msglogout'] && $U['status']>=3 && !$U['incognito']) add_system_message(sprintf(get_setting('msgexit'), $U['displayname']));
 }
 
 function kick_chatter($names, $mes, $purge){
-	global $C, $U, $P, $mysqli;
+	global $C, $P, $U, $mysqli;
 	$lonick='';
 	$lines=parse_sessions();
 	$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `lastpost`=\''.(60*($C['kickpenalty']-$C['guestsexpire'])+time()).'\', `status`=\'0\', `kickmessage`=? WHERE `session`=? AND `status`!=\'0\'');
 	$i=0;
-	if(isSet($lines)){
-		foreach($names as $name){
-			foreach($lines as $temp){
-				if(($temp['nickname']==$U['nickname'] && $U['nickname']==$name) || ($U['status']>$temp['status'] && (($temp['nickname']==$name && $temp['status']>0) || ($name=='&' && $temp['status']==1)))){
-					mysqli_stmt_bind_param($stmt, 'ss', $mes, $temp['session']);
-					mysqli_stmt_execute($stmt);
-					if($purge) del_all_messages($temp['nickname']);
-					$lonick.="$temp[displayname], ";
-					$i++;
-					unset($P[$name]);
-				}
+	foreach($names as $name){
+		foreach($lines as $temp){
+			if(($temp['nickname']==$U['nickname'] && $U['nickname']==$name) || ($U['status']>$temp['status'] && (($temp['nickname']==$name && $temp['status']>0) || ($name=='&' && $temp['status']==1)))){
+				mysqli_stmt_bind_param($stmt, 'ss', $mes, $temp['session']);
+				mysqli_stmt_execute($stmt);
+				if($purge) del_all_messages($temp['nickname']);
+				$lonick.="$temp[displayname], ";
+				++$i;
+				unset($P[$name]);
 			}
 		}
 	}
 	mysqli_stmt_close($stmt);
 	if($C['msgkick']){
-		if($lonick!==''){
+		if(!empty($lonick)){
 			if($names[0]=='&'){
 				add_system_message(get_setting('msgallkick'));
 			}else{
@@ -1248,33 +1246,32 @@ function kick_chatter($names, $mes, $purge){
 			}
 		}
 	}
-	if($lonick!=='') return true;
+	if(!empty($lonick)) return true;
 	return false;
 }
 
 function logout_chatter($names){
-	global $U, $P, $mysqli;
+	global $C, $P, $U, $memcached, $mysqli;
 	$lines=parse_sessions();
 	$stmt=mysqli_prepare($mysqli, 'DELETE FROM `sessions` WHERE `session`=? AND `status`<? AND `status`!=\'0\'');
 	$stmt1=mysqli_prepare($mysqli, 'UPDATE `messages` SET `poster`=\'\' WHERE `poster`=? AND `poststatus`=\'9\'');
 	$stmt2=mysqli_prepare($mysqli, 'UPDATE `messages` SET `recipient`=\'\' WHERE `recipient`=? AND `poststatus`=\'9\'');
 	$stmt3=mysqli_prepare($mysqli, 'DELETE FROM `ignored` WHERE `ignored`=? OR `by`=?');
-	if(isSet($lines)){
-		foreach($names as $name){
-			foreach($lines as $temp){
-				if($temp['nickname']==$name || ($name=='&' && $temp['status']==1)){
-					mysqli_stmt_bind_param($stmt, 'sd', $temp['session'], $U['status']);
-					mysqli_stmt_execute($stmt);
-					if($temp['status']==1){
-						mysqli_stmt_bind_param($stmt1, 's', $temp['nickname']);
-						mysqli_stmt_bind_param($stmt2, 's', $temp['nickname']);
-						mysqli_stmt_bind_param($stmt3, 'ss', $temp['nickname'], $temp['nickname']);
-						mysqli_stmt_execute($stmt1);
-						mysqli_stmt_execute($stmt2);
-						mysqli_stmt_execute($stmt3);
-					}
-					unset($P[$name]);
+	foreach($names as $name){
+		foreach($lines as $temp){
+			if($temp['nickname']==$name || ($name=='&' && $temp['status']==1)){
+				mysqli_stmt_bind_param($stmt, 'si', $temp['session'], $U['status']);
+				mysqli_stmt_execute($stmt);
+				if($temp['status']==1){
+					mysqli_stmt_bind_param($stmt1, 's', $temp['nickname']);
+					mysqli_stmt_bind_param($stmt2, 's', $temp['nickname']);
+					mysqli_stmt_bind_param($stmt3, 'ss', $temp['nickname'], $temp['nickname']);
+					mysqli_stmt_execute($stmt1);
+					mysqli_stmt_execute($stmt2);
+					mysqli_stmt_execute($stmt3);
+					if($C['memcached']) $memcached->delete("$C[dbname]-ignored");
 				}
+				unset($P[$name]);
 			}
 		}
 	}
@@ -1285,7 +1282,7 @@ function logout_chatter($names){
 }
 
 function update_session(){
-	global $U, $C, $I, $mysqli;
+	global $U, $mysqli;
 	if($U['postid']==$_REQUEST['postid']){// ignore double post=reload from browser or proxy
 		$_REQUEST['message']='';
 	}elseif(time()-$U['lastpost']<=1){// time between posts too short, reject!
@@ -1295,14 +1292,14 @@ function update_session(){
 		$U['postid']=substr($_REQUEST['postid'], 0, 6);
 		$U['lastpost']=time();
 		$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `lastpost`=?, `postid`=? WHERE `session`=?');
-		mysqli_stmt_bind_param($stmt, 'dds', $U['lastpost'], $U['postid'], $U['session']);
+		mysqli_stmt_bind_param($stmt, 'iis', $U['lastpost'], $U['postid'], $U['session']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 	}
 }
 
 function check_session(){
-	global $U, $C, $I;
+	global $C, $I, $U;
 	parse_sessions();
 	if(!isSet($U['session'])){
 		setcookie($C['cookiename'], false);
@@ -1315,14 +1312,14 @@ function check_session(){
 }
 
 function get_nowchatting(){
-	global $M, $G, $P, $I;
+	global $G, $I, $M, $P;
 	parse_sessions();
 	echo sprintf($I['curchat'], count($P)).'<br>'.implode(' &nbsp; ', $M).' &nbsp; '.implode(' &nbsp; ', $G);
 }
 
 function parse_sessions(){
-	global $U, $P, $M, $G, $C, $mysqli, $countmods;
-	$result=mysqli_query($mysqli, 'SELECT `nickname`, `status` FROM `sessions` WHERE (`lastpost`<\''.(time()-60*$C['guestsexpire']).'\' AND `status`<=\'2\') OR (`lastpost`<\''.(time()-60*$C['sessionexpire']).'\' AND `status`>\'2\')');
+	global $C, $G, $M, $P, $U, $countmods, $memcached, $mysqli;
+	$result=mysqli_query($mysqli, 'SELECT `nickname`, `status`, `session` FROM `sessions` WHERE (`lastpost`<\''.(time()-60*$C['guestsexpire']).'\' AND `status`<=\'2\') OR (`lastpost`<\''.(time()-60*$C['sessionexpire']).'\' AND `status`>\'2\')');
 	if(mysqli_num_rows($result)>0){
 		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `sessions` WHERE `nickname`=?');
 		$stmt1=mysqli_prepare($mysqli, 'UPDATE `messages` SET `poster`=\'\' WHERE `poster`=? AND `poststatus`=\'9\'');
@@ -1338,6 +1335,7 @@ function parse_sessions(){
 				mysqli_stmt_execute($stmt1);
 				mysqli_stmt_execute($stmt2);
 				mysqli_stmt_execute($stmt3);
+				if($C['memcached']) $memcached->delete("$C[dbname]-ignored");
 			}
 		}
 		mysqli_stmt_close($stmt);
@@ -1345,23 +1343,24 @@ function parse_sessions(){
 		mysqli_stmt_close($stmt2);
 		mysqli_stmt_close($stmt3);
 	}
-	$result=mysqli_query($mysqli, 'SELECT * FROM `sessions` WHERE `entry`=\'0\' ORDER BY `status` DESC, `lastpost` DESC');
-	if(mysqli_num_rows($result)>0){
-		while($line=mysqli_fetch_array($result, MYSQLI_ASSOC)) $lines[]=$line;
-		if(isSet($_REQUEST['session'])){
-			foreach($lines as $temp){
-				if($temp['session']==$_REQUEST['session']){
-					$U=$temp;
-					add_user_defaults();
-					break;
-				}
+	$lines=array();
+	$result=mysqli_query($mysqli, 'SELECT * FROM `sessions` ORDER BY `status` DESC, `lastpost` DESC');
+	while($line=mysqli_fetch_array($result, MYSQLI_ASSOC)) $lines[]=$line;
+	if(isSet($_REQUEST['session'])){
+		foreach($lines as $temp){
+			if($temp['session']==$_REQUEST['session']){
+				$U=$temp;
+				add_user_defaults();
+				break;
 			}
 		}
-		$countmods=0;
-		$G=array();
-		$M=array();
-		$P=array();
-		foreach($lines as $temp){
+	}
+	$countmods=0;
+	$G=array();
+	$M=array();
+	$P=array();
+	foreach($lines as $temp){
+		if($temp['entry']==0){
 			if($temp['status']==1 || $temp['status']==2){
 				$P[$temp['nickname']]=[$temp['nickname'], $temp['status'], $temp['style']];
 				$G[]=$temp['displayname'];
@@ -1370,99 +1369,90 @@ function parse_sessions(){
 					$P[$temp['nickname']]=[$temp['nickname'], $temp['status'], $temp['style']];
 					$M[]=$temp['displayname'];
 				}
-				if($temp['status']>=5) $countmods++;
+				if($temp['status']>=5) ++$countmods;
 			}
 		}
-		return $lines;
 	}
+	return $lines;
 }
 
 //  member handling
 
 function check_member(){
-	global $U, $I, $mysqli;
-	$stmt=mysqli_prepare($mysqli, 'SELECT `nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `fontface`, `fonttags`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `lastlogin`, `timestamps`, `embed`, `incognito` FROM `members` WHERE `nickname`=?');
+	global $I, $U, $mysqli;
+	$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `members` WHERE `nickname`=?');
 	mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $temp['nickname'], $temp['passhash'], $temp['status'], $temp['refresh'], $temp['colour'], $temp['bgcolour'], $temp['fontface'], $temp['fonttags'], $temp['boxwidth'], $temp['boxheight'], $temp['notesboxwidth'], $temp['notesboxheight'], $temp['lastlogin'], $temp['timestamps'], $temp['embed'], $U['incognito']);
-	if(mysqli_stmt_fetch($stmt)){
-		mysqli_stmt_close($stmt);
+	$result=mysqli_stmt_get_result($stmt);
+	mysqli_stmt_close($stmt);
+	if($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
 		if($temp['passhash']==$U['passhash']){
 			$U=$temp;
+			$time=time();
 			$stmt=mysqli_prepare($mysqli, 'UPDATE `members` SET `lastlogin`=? WHERE `nickname`=?');
-			mysqli_stmt_bind_param($stmt, 'ds', time(), $U['nickname']);
+			mysqli_stmt_bind_param($stmt, 'is', $time, $U['nickname']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 		}else{
 			send_error($I['wrongpass']);
 		}
-	}else{
-		mysqli_stmt_close($stmt);
 	}
 }
 
 function read_members(){
-	global $A, $F, $mysqli;
-	$result=mysqli_query($mysqli, 'SELECT * FROM `members`');
-	if(mysqli_num_rows($result)>0){
+	global $A, $C, $F, $memcached, $mysqli;
+	if($C['memcached']) $A=$memcached->get("$C[dbname]-members");
+	if(!$C['memcached'] || $memcached->getResultCode()!=Memcached::RES_SUCCESS){
+		$result=mysqli_query($mysqli, 'SELECT * FROM `members`');
 		while($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
 			$A[$temp['nickname']][0]=$temp['nickname'];
 			$A[$temp['nickname']][1]=$temp['status'];
 			$A[$temp['nickname']][2]=@get_style("#$temp[colour] {$F[$temp['fontface']]} <$temp[fonttags]>");
 		}
+		if($C['memcached']) $memcached->set("$C[dbname]-members", $A);
 	}
 }
 
 function register_guest($status){
-	global $P, $U, $C, $I, $mysqli;
-	if($_REQUEST['name']=='') send_admin();
+	global $A, $C, $I, $P, $U, $memcached, $mysqli;
+	if(empty($_REQUEST['name'])) send_admin();
 	if(!isSet($P[$_REQUEST['name']])) send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
-	$stmt=mysqli_prepare($mysqli, 'SELECT `session`, `nickname`, `displayname`, `passhash`, `refresh`, `fontinfo`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`, `incognito` FROM `sessions` WHERE `nickname`=? AND `status`=\'1\'');
+	read_members();
+	if(isSet($A[$_REQUEST['name']])) send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
+	$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `sessions` WHERE `nickname`=? AND `status`=\'1\'');
 	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $reg['session'], $reg['nickname'], $reg['displayname'], $reg['passhash'], $reg['refresh'], $reg['fontinfo'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
-	if(mysqli_stmt_fetch($stmt)){
-		mysqli_stmt_close($stmt);
+	$result=mysqli_stmt_get_result($stmt);
+	mysqli_stmt_close($stmt);
+	if($reg=mysqli_fetch_array($result, MYSQL_ASSOC)){
 		$reg['status']=$status;
 		if(preg_match('/#([a-f0-9]{6})/i', $reg['fontinfo'], $match)) $reg['colour']=$match[1];
 		else $reg['colour']=$C['coltxt'];
 		$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `status`=? WHERE `session`=?');
-		mysqli_stmt_bind_param($stmt, 'ds', $reg['status'], $reg['session']);
+		mysqli_stmt_bind_param($stmt, 'is', $reg['status'], $reg['session']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 	}else{
-		mysqli_stmt_close($stmt);
+		send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
 	}
-	if(!isSet($reg['status'])) send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
-	$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `members` WHERE `nickname`=?');
-	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
-	mysqli_stmt_execute($stmt);
-	mysqli_stmt_store_result($stmt);
-	if(mysqli_stmt_num_rows($stmt)>0) send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
-	mysqli_stmt_free_result($stmt);
-	mysqli_stmt_close($stmt);
-	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members`(`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-	mysqli_stmt_bind_param($stmt, 'ssddssddddsddd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
+	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members` (`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+	mysqli_stmt_bind_param($stmt, 'ssiissiiiisiii', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
+	if($C['memcached']) $memcached->delete("$C[dbname]-members");
 	if($reg['status']==3) add_system_message(sprintf(get_setting('msgmemreg'), $reg['displayname']));
 	else add_system_message(sprintf(get_setting('msgsureg'), $reg['displayname']));
 }
 
 function register_new(){
-	global $C, $U, $P, $I, $mysqli;
+	global $A, $C, $I, $P, $U, $memcached, $mysqli;
 	$_REQUEST['name']=cleanup_nick($_REQUEST['name']);
-	if($_REQUEST['name']=='') send_admin();
+	if(empty($_REQUEST['name'])) send_admin();
 	if(isSet($P[$_REQUEST['name']])) send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
 	if(!valid_nick($_REQUEST['name'])) send_admin(sprintf($I['invalnick'], $C['maxname']));
 	if(!valid_pass($_REQUEST['pass'])) send_admin(sprintf($I['invalpass'], $C['minpass']));
-	$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `members` WHERE `nickname`=?');
-	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
-	mysqli_stmt_execute($stmt);
-	mysqli_stmt_store_result($stmt);
-	if(mysqli_stmt_num_rows($stmt)>0) send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
-	mysqli_stmt_free_result($stmt);
-	mysqli_stmt_close($stmt);
+	read_members();
+	if(isSet($A[$_REQUEST['name']])) send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
 	$reg=array(
 		'nickname'	=>$_REQUEST['name'],
 		'passhash'	=>md5(sha1(md5($_REQUEST['name'].$_REQUEST['pass']))),
@@ -1479,19 +1469,20 @@ function register_new(){
 		'embed'		=>$C['embed'],
 		'incognito'	=>false
 	);
-	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members`(`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`,`notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-	mysqli_stmt_bind_param($stmt, 'ssddssddddsddd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['regedby'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
+	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members` (`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`,`notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+	mysqli_stmt_bind_param($stmt, 'ssiissiiiisiii', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['regedby'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
+	if($C['memcached']) $memcached->delete("$C[dbname]-members");
 	send_admin(sprintf($I['successreg'], $reg['nickname']));
 }
 
 function change_status(){
-	global $U, $I, $mysqli;
-	if(!isSet($_REQUEST['name']) || $_REQUEST['name']=='') send_admin();
+	global $C, $I, $U, $memcached, $mysqli;
+	if(empty($_REQUEST['name'])) send_admin();
 	if($U['status']<=$_REQUEST['set'] || !preg_match('/^[023567\-]$/', $_REQUEST['set'])) send_admin(sprintf($I['cantchgstat'], $_REQUEST['name']));
 	$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `members` WHERE `nickname`=? AND `status`<?');
-	mysqli_stmt_bind_param($stmt, 'sd', $_REQUEST['name'], $U['status']);
+	mysqli_stmt_bind_param($stmt, 'si', $_REQUEST['name'], $U['status']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_store_result($stmt);
 	if(mysqli_stmt_num_rows($stmt)>0){
@@ -1506,16 +1497,18 @@ function change_status(){
 			mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
+			if($C['memcached']) $memcached->delete("$C[dbname]-members");
 			send_admin(sprintf($I['succdel'], $_REQUEST['name']));
 		}else{
 			$stmt=mysqli_prepare($mysqli, 'UPDATE `members` SET `status`=? WHERE `nickname`=?');
-			mysqli_stmt_bind_param($stmt, 'ds', $_REQUEST['set'], $_REQUEST['name']);
+			mysqli_stmt_bind_param($stmt, 'is', $_REQUEST['set'], $_REQUEST['name']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 			$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `status`=? WHERE `nickname`=?');
-			mysqli_stmt_bind_param($stmt, 'ds', $_REQUEST['set'], $_REQUEST['name']);
+			mysqli_stmt_bind_param($stmt, 'is', $_REQUEST['set'], $_REQUEST['name']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
+			if($C['memcached']) $memcached->delete("$C[dbname]-members");
 			send_admin(sprintf($I['succchg'], $_REQUEST['name']));
 		}
 	}else{
@@ -1526,7 +1519,7 @@ function change_status(){
 }
 
 function amend_profile(){
-	global $U, $F, $C;
+	global $C, $F, $U;
 	if(isSet($_REQUEST['refresh'])) $U['refresh']=$_REQUEST['refresh'];
 	else $U['refresh']=$C['defaultrefresh'];
 	if($U['refresh']<20) $U['refresh']=20;
@@ -1560,13 +1553,13 @@ function amend_profile(){
 }
 
 function save_profile(){
-	global $U, $C, $I, $mysqli;
+	global $C, $I, $U, $memcached, $mysqli;
 	if(!isSet($_REQUEST['oldpass'])) $_REQUEST['oldpass']='';
 	if(!isSet($_REQUEST['newpass'])) $_REQUEST['newpass']='';
 	if(!isSet($_REQUEST['confirmpass'])) $_REQUEST['confirmpass']='';
 	if($_REQUEST['newpass']!==$_REQUEST['confirmpass']){
 		send_profile($I['noconfirm']);
-	}elseif($_REQUEST['newpass']!==''){
+	}elseif(!empty($_REQUEST['newpass'])){
 		$U['oldhash']=md5(sha1(md5($U['nickname'].$_REQUEST['oldpass'])));
 		$U['newhash']=md5(sha1(md5($U['nickname'].$_REQUEST['newpass'])));
 	}else{
@@ -1576,32 +1569,35 @@ function save_profile(){
 	$U['passhash']=$U['newhash'];
 	amend_profile();
 	$stmt=mysqli_prepare($mysqli, 'UPDATE `sessions` SET `refresh`=?, `displayname`=?, `fontinfo`=?, `style`=?, `passhash`=?, `boxwidth`=?, `boxheight`=?, `bgcolour`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=?, `incognito`=? WHERE `session`=?');
-	mysqli_stmt_bind_param($stmt, 'dssssddsddddds', $U['refresh'], $U['displayname'], $U['fontinfo'], $U['style'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['session']);
+	mysqli_stmt_bind_param($stmt, 'issssiisiiiiis', $U['refresh'], $U['displayname'], $U['fontinfo'], $U['style'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['session']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	if($U['status']>=2){
 		$stmt=mysqli_prepare($mysqli, 'UPDATE `members` SET `passhash`=?, `refresh`=?, `colour`=?, `bgcolour`=?, `fontface`=?, `fonttags`=?, `boxwidth`=?, `boxheight`=?, `notesboxwidth`=?, `notesboxheight`=?, `timestamps`=?, `embed`=?, `incognito`=? WHERE `nickname`=?');
-		mysqli_stmt_bind_param($stmt, 'sdssssddddddds', $U['passhash'], $U['refresh'], $U['colour'], $U['bgcolour'], $U['fontface'], $U['fonttags'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nickname']);
+		mysqli_stmt_bind_param($stmt, 'sissssiiiiiiis', $U['passhash'], $U['refresh'], $U['colour'], $U['bgcolour'], $U['fontface'], $U['fonttags'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
+		if($C['memcached']) $memcached->delete("$C[dbname]-members");
 	}
-	if(isSet($_REQUEST['unignore']) && $_REQUEST['unignore']!=''){
+	if(!empty($_REQUEST['unignore'])){
 		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `ignored` WHERE `ignored`=? AND `by`=?');
 		mysqli_stmt_bind_param($stmt, 'ss', $_REQUEST['unignore'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
+		if($C['memcached']) $memcached->delete("$C[dbname]-ignored");
 	}
-	if(isSet($_REQUEST['ignore']) && $_REQUEST['ignore']!=''){
+	if(!empty($_REQUEST['ignore'])){
 		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `ignored` (`ignored`,`by`) VALUES (?, ?)');
 		mysqli_stmt_bind_param($stmt, 'ss', $_REQUEST['ignore'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
+		if($C['memcached']) $memcached->delete("$C[dbname]-ignored");
 	}
 	send_profile($I['succprofile']);
 }
 
 function add_user_defaults(){
-	global $U, $F, $C, $H;
+	global $C, $F, $H, $U;
 	if(isSet($_SERVER['HTTP_USER_AGENT'])) $U['useragent']=htmlspecialchars($_SERVER['HTTP_USER_AGENT']);
 	else $U['useragent']='';
 	if(!isSet($U['refresh'])) $U['refresh']=$C['defaultrefresh'];
@@ -1616,7 +1612,7 @@ function add_user_defaults(){
 		@$U['fontinfo'].=" {$F[$U['fontface']]} <$U[fonttags]>";
 	}
 	if(!isSet($U['bgcolour']) || !preg_match('/^[a-f0-9]{6}$/i', $U['bgcolour'])) $U['bgcolour']=$C['colbg'];
-	$H['begin_body']="\n<body bgcolor=\"#$U[bgcolour]\" text=\"#$C[coltxt]\" link=\"#$C[collnk]\" alink=\"#$C[colact]\" vlink=\"#$C[colvis]\">\n";
+	$H['begin_body']="<body bgcolor=\"#$U[bgcolour]\" text=\"#$C[coltxt]\" link=\"#$C[collnk]\" alink=\"#$C[colact]\" vlink=\"#$C[colvis]\">";
 	if(!isSet($U['colour'])){
 		preg_match('/([0-9a-f]{6})/i', $U['fontinfo'], $matches);
 		$U['colour']=$matches[0];
@@ -1638,7 +1634,7 @@ function add_user_defaults(){
 // message handling
 
 function validate_input(){
-	global $U, $P, $C, $mysqli;
+	global $C, $P, $U;
 	$U['message']=substr($_REQUEST['message'], 0, $C['maxmessage']);
 	$U['rejected']=substr($_REQUEST['message'], $C['maxmessage']);
 	if(preg_match('/&[^;]{0,8}$/', $U['message']) && preg_match('/^([^;]{0,8};)/', $U['rejected'], $match)){
@@ -1646,10 +1642,7 @@ function validate_input(){
 		$U['rejected']=preg_replace("/^$match[0]", '', $U['rejected']);
 	}
 	if($U['rejected']){
-		$U['rejected']=preg_replace('/<br>(<br>)+/', '<br><br>', $U['rejected']);
-		$U['rejected']=preg_replace('/<br><br>$/', '<br>', $U['rejected']);
-		$U['rejected']=preg_replace('/<br>/', "\n", $U['rejected']);
-		$U['rejected']=preg_replace('/^\s+|\s+$/', '', $U['rejected']);
+		$U['rejected']=trim($U['rejected']);
 		$U['rejected']=htmlspecialchars($U['rejected']);
 	}
 	$U['message']=htmlspecialchars($U['message']);
@@ -1659,13 +1652,11 @@ function validate_input(){
 	if($_REQUEST['multi']=='on'){
 		$U['message']=preg_replace('/<br>(<br>)+/', '<br><br>', $U['message']);
 		$U['message']=preg_replace('/<br><br>$/', '<br>', $U['message']);
-		$U['message']=preg_replace('/  /', ' &nbsp;', $U['message']);
-		$U['message']=preg_replace('/<br> /', '<br>&nbsp;', $U['message']);
 	}else{
 		$U['message']=preg_replace('/<br>/', ' ', $U['message']);
-		$U['message']=preg_replace('/^\s+|\s+$/', '', $U['message']);
-		$U['message']=preg_replace('/\s+/', ' ', $U['message']);
 	}
+	$U['message']=trim($U['message']);
+	$U['message']=preg_replace('/\s+/', ' ', $U['message']);
 	$U['delstatus']=$U['status'];
 	$U['recipient']='';
 	if($_REQUEST['sendto']=='*'){
@@ -1681,11 +1672,15 @@ function validate_input(){
 		$U['poststatus']='6';
 		$U['displaysend']="[Admin] $U[displayname] - ";
 	}else{// known nick in room?
-		$stmt=mysqli_prepare($mysqli, 'SELECT * FROM `ignored` WHERE (`ignored`=? AND `by`=?) OR (`ignored`=? AND `by`=?)');
-		mysqli_stmt_bind_param($stmt, 'ssss', $U['nickname'], $_REQUEST['sendto'], $_REQUEST['sendto'], $U['nickname']);
-		mysqli_stmt_execute($stmt);
-		mysqli_stmt_store_result($stmt);
-		if(mysqli_stmt_num_rows($stmt)==0){
+		$ignored=get_ignored();
+		$ignore=false;
+		foreach($ignored as $ign){
+			if($ign['by']==$U['nickname'] && $ign['ignored']==$_REQUEST['sendto'] || ($ign['by']==$_REQUEST['sendto'] && $ign['ignored']==$U['nickname'])){
+				$ignore=true;
+				break;
+			}
+		}
+		if(!$ignore){
 			foreach($P as $chatter){
 				if($_REQUEST['sendto']==$chatter[0]){
 					$U['recipient']=$chatter[0];
@@ -1694,9 +1689,7 @@ function validate_input(){
 				}
 			}
 		}
-		mysqli_stmt_free_result($stmt);
-		mysqli_stmt_close($stmt);
-		if($U['recipient']!==''){
+		if(!empty($U['recipient'])){
 			$U['poststatus']='9';
 			$U['delstatus']='9';
 			$U['displaysend']="[$U[displayname] to $U[displayrecp]] - ";
@@ -1706,31 +1699,34 @@ function validate_input(){
 		}
 	}
 	if(isSet($U['poststatus'])){
-		update_session();
 		if($U['poststatus']==9) apply_filter(true);
 		else apply_filter(false);
 		create_hotlinks();
-		add_message();
+		if(add_message()) update_session();
 	}
 }
 
 function apply_filter($pm){
-	global $U, $I, $mysqli;
-	$result=mysqli_query($mysqli, 'SELECT * FROM `filter`');
-	if(mysqli_num_rows($result)>0){
-		while($filter=mysqli_fetch_array($result, MYSQLI_ASSOC)){
-			if(!$pm) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
-			elseif(!$filter['allowinpm']) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
-			if($count>0 && $filter['kick']){
-				kick_chatter(array($U['nickname']), '', false);
-				send_error("$I[kicked]");
-			}
+	global $C, $I, $U, $memcached, $mysqli;
+	if($C['memcached']) $filters=$memcached->get("$C[dbname]-filter");
+	if(!$C['memcached'] || $memcached->getResultCode()!=Memcached::RES_SUCCESS){
+		$filters=array();
+		$result=mysqli_query($mysqli, 'SELECT * FROM `filter`');
+		while($filter=mysqli_fetch_array($result, MYSQLI_ASSOC)) $filters[]=$filter;
+		if($C['memcached']) $memcached->set("$C[dbname]-filter", $filters);
+	}
+	foreach($filters as $filter){
+		if(!$pm) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
+		elseif(!$filter['allowinpm']) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
+		if($count>0 && $filter['kick']){
+			kick_chatter(array($U['nickname']), '', false);
+			send_error("$I[kicked]");
 		}
 	}
 }
 
 function create_hotlinks(){
-	global $U, $C;
+	global $C, $U;
 	//Make hotlinks for URLs, redirect through dereferrer script to prevent session leakage
 	// 1. all explicit schemes with whatever xxx://yyyyyyy
 	$U['message']=preg_replace('~(\w*://[^\s<>]+)~i', "<<$1>>", $U['message']);
@@ -1743,7 +1739,7 @@ function create_hotlinks(){
 	$U['message']=preg_replace('~([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\.(?!rar|zip|exe|gz|7z|bat|doc)[a-z]{2,}))(?=[^a-z0-9\-\.]|$)(?![^<>]*>)~i', "<<$1>>", $U['message']);// xxx.yyy.zzz
 	// Convert every <<....>> into proper links:
 	$U['message']=preg_replace_callback('/<<([^<>]+)>>/', function ($matches){if(strpos($matches[1], '://')==false){ return "<a href=\"http://$matches[1]\" target=\"_blank\">$matches[1]</a>";}else{ return "<a href=\"$matches[1]\" target=\"_blank\">$matches[1]</a>"; }}, $U['message']);
-	if($C['imgembed']) $U['message']=preg_replace_callback('/\[img\]<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/i', function ($matched){ return "<br><a href=\"$matched[1]\" target=\"_blank\"><img src=\"$matched[1]\"></a><br>";}, $U['message']);
+	if($C['imgembed']) $U['message']=preg_replace_callback('/\[img\]<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/i', function ($matched){ return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\"><img src=\"$matched[1]\"></a><br>");}, $U['message']);
 	if($C['forceredirect']) $U['message']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched){ global $C; return "<a href=\"$C[redirect]".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $U['message']);
 	if(preg_match_all('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', $U['message'], $matches)){
 		foreach($matches[1] as $match){
@@ -1757,7 +1753,7 @@ function create_hotlinks(){
 
 function add_message(){
 	global $U;
-	if($U['message']=='') return;
+	if(empty($U['message'])) return false;
 	$newmessage=array(
 		'postdate'	=>time(),
 		'postid'	=>$U['postid'],
@@ -1768,6 +1764,7 @@ function add_message(){
 		'delstatus'	=>$U['delstatus']
 	);
 	write_message($newmessage);
+	return true;
 }
 
 function add_system_message($mes){
@@ -1784,19 +1781,21 @@ function add_system_message($mes){
 }
 
 function write_message($message){
-	global $C, $mysqli;
-	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `messages`(`postdate`, `postid`, `poststatus`, `poster`, `recipient`, `text`, `delstatus`) VALUES (?, ?, ?, ?, ?, ?, ?)');
-	mysqli_stmt_bind_param($stmt, 'dddsssd', $message['postdate'], $message['postid'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']);
+	global $C, $H, $mysqli;
+	$stmt=mysqli_prepare($mysqli, 'INSERT INTO `messages` (`postdate`, `postid`, `poststatus`, `poster`, `recipient`, `text`, `delstatus`) VALUES (?, ?, ?, ?, ?, ?, ?)');
+	mysqli_stmt_bind_param($stmt, 'iiisssi', $message['postdate'], $message['postid'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
+	$limit=$C['keeplimit']*$C['messagelimit'];
 	$stmt=mysqli_prepare($mysqli, 'DELETE FROM `messages` WHERE `id` NOT IN (SELECT `id` FROM (SELECT `id` FROM `messages` ORDER BY `postdate` DESC LIMIT ?) t )');
-	mysqli_stmt_bind_param($stmt, 'd', $limit=$C['keeplimit']*$C['messagelimit']);
+	mysqli_stmt_bind_param($stmt, 'i', $limit);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	if($C['sendmail'] && $message['poststatus']<9){
-		$subject = 'New Chat message';
-		$headers = "From: $C[mailsender]\r\nX-Mailer: PHP/".phpversion()."\r\nContent-Type: text/html; charset=UTF-8\r\n";
-		mail($C['mailreceiver'], $subject, $message['text'], $headers);
+		$subject='New Chat message';
+		$headers="From: $C[mailsender]\r\nX-Mailer: PHP/".phpversion()."\r\nContent-Type: text/html; charset=UTF-8\r\n";
+		$body="<html>$H[begin_body]$message[text]</body></html>";
+		mail($C['mailreceiver'], $subject, $body, $headers);
 	}
 }
 
@@ -1816,21 +1815,19 @@ function clean_room(){
 }
 
 function clean_selected(){
-	global $C, $mysqli;
+	global $mysqli;
 	if(isSet($_REQUEST['mid'])){
 		foreach($_REQUEST['mid'] as $mid) $mids[$mid]=1;
 	}
-	$result=mysqli_query($mysqli, 'SELECT * FROM `messages` ORDER BY `postdate` DESC');
-	if(mysqli_num_rows($result)>0){
-		$stmt=mysqli_prepare($mysqli, 'DELETE FROM `messages` WHERE `postdate`=? AND `postid`=?');
-		while($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
-			if(isSet($mids[$temp['postdate'].$temp['postid']])){
-				mysqli_stmt_bind_param($stmt, 'dd', $temp['postdate'], $temp['postid']);
-				mysqli_stmt_execute($stmt);
-			}
+	$result=mysqli_query($mysqli, 'SELECT `postdate`, `postid` FROM `messages` ORDER BY `postdate` DESC');
+	$stmt=mysqli_prepare($mysqli, 'DELETE FROM `messages` WHERE `postdate`=? AND `postid`=?');
+	while($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
+		if(isSet($mids[$temp['postdate'].$temp['postid']])){
+			mysqli_stmt_bind_param($stmt, 'ii', $temp['postdate'], $temp['postid']);
+			mysqli_stmt_execute($stmt);
 		}
-		mysqli_stmt_close($stmt);
 	}
+	mysqli_stmt_close($stmt);
 }
 
 function del_all_messages($nick){
@@ -1850,7 +1847,7 @@ function del_last_message(){
 }
 
 function print_messages($delstatus=''){
-	global $U, $C, $mysqli;
+	global $C, $U, $mysqli;
 	$dateformat=get_setting('dateformat');
 	mysqli_query($mysqli, 'DELETE FROM `messages` WHERE `postdate`<=\''.(time()-60*$C['messageexpire'])."'");
 	$stmt=mysqli_prepare($mysqli, 'SELECT `postdate`, `postid`, `text`, `delstatus` FROM `messages` WHERE ('.
@@ -1862,7 +1859,7 @@ function print_messages($delstatus=''){
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_bind_result($stmt, $message['postdate'], $message['postid'], $message['text'], $message['delstatus']);
 	while(mysqli_stmt_fetch($stmt)){
-		if($delstatus!==''){
+		if(!empty($delstatus)){
 			if($U['status']>$message['delstatus']){
 				echo "<input type=\"checkbox\" name=\"mid[]\" id=\"$message[postdate]$message[postid]\" value=\"$message[postdate]$message[postid]\"><label for=\"$message[postdate]$message[postid]\">&nbsp;$message[text]</label><br>";
 			}
@@ -1870,8 +1867,8 @@ function print_messages($delstatus=''){
 			if(!isSet($_COOKIE[$C['cookiename']]) && !$C['forceredirect']){
 				$message['text']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched){ global $C; return "<a href=\"$C[redirect]".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $message['text']);
 			}
-				if(!$U['embed'] && preg_match('/<img src="(.*?(?="))">/', $message['text'], $matches)){
-				$message['text']=preg_replace_callback("/<$matches[1] src=\"(.*?(?=\"))\">/", function ($matched){ return $matched[1];}, $message['text']);
+				if(!$U['embed'] && preg_match('/<img src="(.*?(?="))">/', $message['text'])){
+				$message['text']=preg_replace_callback("/<img src=\"(.*?(?=\"))\">/", function ($matched){ return $matched[1];}, $message['text']);
 			}
 			if($U['timestamps']) echo '<small>'.date($dateformat, $message['postdate']).' - </small>';
 			echo "$message[text]<br>";
@@ -1881,6 +1878,20 @@ function print_messages($delstatus=''){
 }
 
 // this and that
+
+function get_ignored(){
+	global $C, $memcached, $mysqli;
+	if($C['memcached']) $ignored=$memcached->get("$C[dbname]-ignored");
+	if(!$C['memcached'] || $memcached->getResultCode()!=Memcached::RES_SUCCESS){
+		$ignored=array();
+		$result=mysqli_query($mysqli, 'SELECT * FROM `ignored`');
+		while($tmp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
+			$ignored[]=$tmp;
+		}
+		if($C['memcached']) $memcached->set("$C[dbname]-ignored", $ignored);
+	}
+	return $ignored;
+}
 
 function valid_admin(){
 	global $U;
@@ -1972,11 +1983,11 @@ function style_this($text, $styleinfo){
 	$fitalic=preg_match('/(<b?ib?>|:italic)/', $styleinfo);
 	$fsmall=preg_match('/(size="-1"|:smaller)/', $styleinfo);
 	preg_match('/(#.{6})/', $styleinfo, $match);
-	if(isSet($match[0]))$fcolour=$match[0];
+	if(isSet($match[0])) $fcolour=$match[0];
 	preg_match('/face=\'([^"]+)\'/', $styleinfo, $match);
-	if(isSet($match[1]))$fface=$match[1];
+	if(isSet($match[1])) $fface=$match[1];
 	preg_match('/font-family:([^;]+);/', $styleinfo, $match);
-	if(isSet($match[1]))$sface=$match[1];
+	if(isSet($match[1])) $sface=$match[1];
 	if(isSet($fface)){
 		$sface=$fface;
 		$sface=preg_replace('/^/', "'", $sface);
@@ -1990,13 +2001,13 @@ function style_this($text, $styleinfo){
 	if(isSet($fcolour)) $fstyle.="color:$fcolour;";
 	if(isSet($sface)) $fstyle.="font-family:$sface;";
 	if($fsmall) $fstyle.='font-size:smaller;';
-	if($fitalic)$fstyle.='font-style:italic;';
+	if($fitalic) $fstyle.='font-style:italic;';
 	if($fbold) $fstyle.='font-weight:bold;';
 	$fstart='<font';
 	if(!isSet($fcolour)) $fstart.=" color=\"$fcolour\"";
 	if(isSet($fface)) $fstart.=" face=\"$fface\"";
 	if($fsmall) $fstart.=" size=\"-1\"";
-	if($fstyle!=='') $fstart.=" style=\"$fstyle\"";
+	if(!empty($fstyle)) $fstart.=" style=\"$fstyle\"";
 	$fstart.='>';
 	if($fbold) $fstart.='<b>';
 	if($fitalic) $fstart.='<i>';
@@ -2008,13 +2019,16 @@ function style_this($text, $styleinfo){
 }
 
 function init_chat(){
-	global $H, $C, $U, $I, $mysqli;
+	global $C, $H, $I, $memcached, $mysqli;
 	$suwrite='';
-	$tables=array('captcha', 'filter', 'ignored', 'members', 'messages', 'notes', 'sessions', 'settings');
-	$num_tables=0;
-	$result=mysqli_query($mysqli, 'SHOW TABLES');
-	while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
-		if(in_array($tmp[0],$tables)) $num_tables++;
+	if(!$C['memcached'] || !$num_tables=$memcached->get("$C[dbname]-num-tables")){
+		$tables=array('captcha', 'filter', 'ignored', 'members', 'messages', 'notes', 'sessions', 'settings');
+		$num_tables=0;
+		$result=mysqli_query($mysqli, 'SHOW TABLES');
+		while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
+			if(in_array($tmp[0],$tables)) ++$num_tables;
+		}
+		if($C['memcached']) $memcached->set("$C[dbname]-num-tables", $num_tables);
 	}
 	if($num_tables>=7){
 		$suwrite=$I['initdbexist'];
@@ -2082,7 +2096,7 @@ function init_chat(){
 			'incognito'	=>false
 		);
 		$stmt=mysqli_prepare($mysqli, 'INSERT INTO `members` (`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-		mysqli_stmt_bind_param($stmt, 'ssddssddddddd', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
+		mysqli_stmt_bind_param($stmt, 'ssiissiiiiiii', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 		$suwrite=$I['susuccess'];
@@ -2116,6 +2130,9 @@ function update_db(){
 		if($dbversion<6){
 			mysqli_query($mysqli, 'INSERT INTO `settings` (`setting`, `value`) VALUES (\'dateformat\', \'m-d H:i:s\')');
 		}
+		if($dbversion<7){
+			mysqli_query($mysqli, 'ALTER TABLE `captcha` ADD `code` TINYTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL');
+		}
 		update_setting('dbversion', $C['dbversion']);
 		send_update();
 	}
@@ -2134,22 +2151,26 @@ function update_messages(){
 }
 
 function get_setting($setting){
-	global $mysqli;
-	$stmt=mysqli_prepare($mysqli, 'SELECT `value` FROM `settings` WHERE `setting`=?');
-	mysqli_stmt_bind_param($stmt, 's', $setting);
-	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $value);
-	mysqli_stmt_fetch($stmt);
-	mysqli_stmt_close($stmt);
+	global $C, $memcached, $mysqli;
+	if(!$C['memcached'] || !$value=$memcached->get("$C[dbname]-settings-$setting")){
+		$stmt=mysqli_prepare($mysqli, 'SELECT `value` FROM `settings` WHERE `setting`=?');
+		mysqli_stmt_bind_param($stmt, 's', $setting);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_bind_result($stmt, $value);
+		mysqli_stmt_fetch($stmt);
+		mysqli_stmt_close($stmt);
+		if($C['memcached']) $memcached->set("$C[dbname]-settings-$setting", $value);
+	}
 	return $value;
 }
 
 function update_setting($setting, $value){
-	global $mysqli;
+	global $C, $memcached, $mysqli;
 	$stmt=mysqli_prepare($mysqli, 'UPDATE `settings` SET `value`=? WHERE `setting`=?');
 	mysqli_stmt_bind_param($stmt, 'ss', $value, $setting);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
+	if($C['memcached']) $memcached->set("$C[dbname]-settings-$setting", $value);
 }
 
 // configuration, defaults and internals
@@ -2175,11 +2196,11 @@ function load_fonts(){
 }
 
 function load_html(){
-	global $H, $C, $I;
+	global $C, $H, $I;
 	$H=array(// default HTML
-		'begin_body'	=>"\n<body bgcolor=\"#$C[colbg]\" text=\"#$C[coltxt]\" link=\"#$C[collnk]\" alink=\"#$C[colact]\" vlink=\"#$C[colvis]\">\n",
+		'begin_body'	=>"<body bgcolor=\"#$C[colbg]\" text=\"#$C[coltxt]\" link=\"#$C[collnk]\" alink=\"#$C[colact]\" vlink=\"#$C[colvis]\">",
 		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\" style=\"margin:0;padding:0;\"",
-		'meta_html'	=>"<title>$C[chatname]</title><meta name=\"robots\" content=\"noindex,nofollow\">\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<meta http-equiv=\"Pragma\" content=\"no-cache\">\n<meta http-equiv=\"expires\" content=\"0\">"
+		'meta_html'	=>"<title>$C[chatname]</title><meta name=\"robots\" content=\"noindex,nofollow\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"Pragma\" content=\"no-cache\"><meta http-equiv=\"expires\" content=\"0\">"
 	);
 	$H=$H+array(
 		'backtologin'	=>"<$H[form] target=\"_parent\">".submit($I['backtologin'], ' style="background-color:#004400;color:#FFFFFF;"').'</form>',
@@ -2188,7 +2209,7 @@ function load_html(){
 }
 
 function check_db(){
-	global $mysqli, $C, $I;
+	global $C, $I, $memcached, $mysqli;
 	$mysqli=mysqli_connect($C['dbhost'], $C['dbuser'], $C['dbpass'], $C['dbname']);
 	if(mysqli_connect_errno($mysqli)){
 		if($_REQUEST['action']=='setup'){
@@ -2196,6 +2217,10 @@ function check_db(){
 		}else{
 			die($I['nodb']);
 		}
+	}
+	if($C['memcached']){
+		$memcached=new Memcached();
+		$memcached->addServer($C['memcachedhost'], $C['memcachedport']);
 	}
 }
 
@@ -2218,8 +2243,8 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.7', // Script version
-		'dbversion'	=>6, // Database version
+		'version'	=>'1.8', // Script version
+		'dbversion'	=>7, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour
@@ -2234,7 +2259,7 @@ function load_config(){
 		'chatname'	=>'My Chat', // Chat Name
 		'messageexpire'	=>14400, // Minutes until a message expires
 		'messagelimit'	=>150, // Max messages displayed
-		'keeplimit'	=>3, // Numer of messages to keep in the database multiplied with max messages displayed - increase if you have many private messages
+		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
 		'defaultrefresh'=>30, // Seconds to refresh the messages
 		'maxmessage'	=>2000, // Longest number of characters for a message
 		'maxname'	=>20, // Longest number of chatacters for a name
@@ -2247,16 +2272,19 @@ function load_config(){
 		'dbuser'	=>'www-data', // Database user
 		'dbpass'	=>'YOUR_DB_PASS', // Database password
 		'dbname'	=>'public_chat', // Database
-		'captchapass'	=>'YOUR_PASS', // Password used for captcha encryption
+		'memcached'	=>'false', // Enable/disable memcached caching true/false - needs php5-memcached and a memcached server.
+		'memcachedhost'	=>'localhost', // Memcached server
+		'memcachedport'	=>'11211', // Memcached server
 		'captchachars'	=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // Characters used for captcha generation
-		'enablecaptcha'	=>true, // Enable captcha? ture/false
-		'dismemcaptcha'	=>false, // Disable captcha for members? ture/false
+		'captchatime'	=>600, // Seconds until the captcha expires
+		'enablecaptcha'	=>true, // Enable captcha? true/false
+		'dismemcaptcha'	=>false, // Disable captcha for members? true/false
 		'embed'		=>true, // Default for displaying embedded imgs or turning them into links true/false
-		'imgembed'	=>true, // Allow image embedding in chat using [img] tag? ture/false Warning: this might leak session data to the image hoster when cookies are disabled.
+		'imgembed'	=>true, // Allow image embedding in chat using [img] tag? true/false Warning: this might leak session data to the image hoster when cookies are disabled.
 		'suguests'	=>false, // Adds option to add applicants. They will have a reserved nick protected with a password, but don't count as member true/false
 		'timestamps'	=>true, // Display timestamps in front of the messages by default true/false
 		'incognito'	=>true, // Allow mods and admins to be invisable true/false
-		'forceredirect'	=>false, // Force redirect script or only use when no cookies available? ture/false
+		'forceredirect'	=>false, // Force redirect script or only use when no cookies available? true/false
 		'msglogout'	=>false, // Add a message on member logout
 		'msglogin'	=>true, // Add a message on member login
 		'msgkick'	=>true, // Add a message when kicking someone

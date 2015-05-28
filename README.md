@@ -1,7 +1,7 @@
 General Information:
 --------------------
 
-This is a PHP Chat based on LE CHAT v.1.14 . An up-to-date copy of this script can be downloaded at https://github.com/DanWin/le-chat-php
+This is a PHP Chat based on LE CHAT v.1.14. An up-to-date copy of this script can be downloaded at https://github.com/DanWin/le-chat-php
 The original perl LE CHAT script by Lucky Eddie can be downloaded at [his site](http://4fvfamdpoulu2nms.onion/lechat/) or via a tor2web proxy like [this one](https://4fvfamdpoulu2nms.tor2web.blutmagie.de/lechat/) if you don't have TOR installed.
 If you add your own cool features or have a feature request, please tell me and I will add them, if I like them.
 Please also let me know about any bugs you find in the code, so I can fix them.
@@ -75,6 +75,6 @@ If you never used regex before, check out [this starting guide](http://docs.acti
 Live demo:
 ----------
 
-If you want to see the script in action, you can visit my [TOR hidden site](http://tt3j2x4k5ycaa5zt.onion/chat.php) or via a tor2web proxy like [this one](http://tt3j2x4k5ycaa5zt.tor2web.blutmagie.de/chat.php) if you don't have TOR installed.
+If you want to see the script in action, you can visit my [TOR hidden service](http://tt3j2x4k5ycaa5zt.onion/chat.php) or via a tor2web proxy like [this one](http://tt3j2x4k5ycaa5zt.tor2web.blutmagie.de/chat.php) if you don't have TOR installed.
 Considering this is a hidden service, you should be prepared for the worst case, as people often tend to do illegal activities in the TOR network. I'm not online 24/7 so it might not be possible to remove such content right away.
 If you should see illegal content, don't panic. Use the contact form on my site to notify me and clean your browser cache afterwards. I will remove the content as soon as possible.
