@@ -701,11 +701,12 @@ function send_notes($type){
 		mysqli_stmt_close($stmt);
 		echo "<b>$I[notessaved]</b> ";
 	}
+	$dateformat=get_setting('dateformat');
 	$stmt=mysqli_prepare($mysqli, "SELECT `lastedited`, `editedby`, `text` FROM `$C[prefix]notes` WHERE `type`=? ORDER BY `lastedited` DESC LIMIT 1");
 	mysqli_stmt_bind_param($stmt, 's', $type);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_bind_result($stmt, $lastedited, $editedby, $text);
-	if(mysqli_stmt_fetch($stmt)) printf($I['lastedited'], $editedby, date(get_setting('dateformat'), $lastedited));
+	if(mysqli_stmt_fetch($stmt)) printf($I['lastedited'], $editedby, date($dateformat, $lastedited));
 	mysqli_stmt_close($stmt);
 	echo "</p><$H[form]>";
 	if($type=='staff') echo hidden('action', 'notes');
@@ -1105,6 +1106,7 @@ function create_session($setup){
 	add_user_defaults();
 	if($setup) $U['incognito']=true;
 	if(get_setting('captcha')>0 && ($U['status']==1 || !$C['dismemcaptcha'])){
+		if(!isSet($_REQUEST['challenge'])) send_error($I['wrongcaptcha']);
 		if(!$C['memcached']){
 			$stmt=mysqli_prepare($mysqli, "SELECT `$C[prefix]code` FROM `captcha` WHERE `id`=?");
 			mysqli_stmt_bind_param($stmt, 'i', $_REQUEST['challenge']);
@@ -2329,7 +2331,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.9', // Script version
+		'version'	=>'1.9.1', // Script version
 		'dbversion'	=>8, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
@@ -2358,7 +2360,7 @@ function load_config(){
 		'dbpass'	=>'YOUR_DB_PASS', // Database password
 		'dbname'	=>'public_chat', // Database
 		'prefix'	=>'', // Prefix - Set this to a unique value for every chat, if you have more than 1 chats on the same database or domain
-		'memcached'	=>'false', // Enable/disable memcached caching true/false - needs php5-memcached and a memcached server.
+		'memcached'	=>false, // Enable/disable memcached caching true/false - needs php5-memcached and a memcached server.
 		'memcachedhost'	=>'localhost', // Memcached server
 		'memcachedport'	=>'11211', // Memcached server
 		'captchachars'	=>'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ', // Characters used for captcha generation
