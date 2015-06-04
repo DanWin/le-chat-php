@@ -1212,13 +1212,12 @@ function check_login(){
 	global $C, $I, $M, $U, $mysqli;
 	$ga=get_setting('guestaccess');
 	if(isSet($_POST['session'])){
-		$stmt=mysqli_prepare($mysqli, "SELECT * FROM `$C[prefix]sessions` WHERE `session`=?");
+		$stmt=mysqli_prepare($mysqli, "SELECT `session`, `nickname`, `displayname`, `status`, `refresh`, `fontinfo`, `style`, `lastpost`, `passhash`, `postid`, `boxwidth`, `boxheight`, `useragent`, `kickmessage`, `bgcolour`, `notesboxheight`, `notesboxwidth`, `entry`, `timestamps`, `embed`, `incognito` FROM `$C[prefix]sessions` WHERE `session`=?");
 		mysqli_stmt_bind_param($stmt, 's', $_POST['session']);
 		mysqli_stmt_execute($stmt);
-		$result=mysqli_stmt_get_result($stmt);
-		$U=mysqli_fetch_array($result, MYSQLI_ASSOC);
-		mysqli_stmt_close($stmt);
-		if(isSet($U['session'])){
+		mysqli_stmt_bind_result($stmt, $U['session'], $U['nickname'], $U['displayname'], $U['status'], $U['refresh'], $U['fontinfo'], $U['style'], $U['lastpost'], $U['passhash'], $U['postid'], $U['boxwidth'], $U['boxheight'], $U['useragent'], $U['kickmessage'], $U['bgcolour'], $U['notesboxheight'], $U['notesboxwidth'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito']);
+		if(mysqli_stmt_fetch($stmt)){
+			mysqli_stmt_close($stmt);
 			if($U['status']==0){
 				setcookie($C['cookiename'], false);
 				send_error("$I[kicked]<br>$U[kickmessage]");
@@ -1226,6 +1225,7 @@ function check_login(){
 				setcookie($C['cookiename'], $U['session']);
 			}
 		}else{
+			mysqli_stmt_close($stmt);
 			setcookie($C['cookiename'], false);
 			send_error($I['expire']);
 
@@ -1443,13 +1443,13 @@ function parse_sessions(){
 
 function check_member(){
 	global $C, $I, $U, $mysqli;
-	$stmt=mysqli_prepare($mysqli, "SELECT * FROM `$C[prefix]members` WHERE `nickname`=?");
+	$stmt=mysqli_prepare($mysqli, "SELECT `nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `fontface`, `fonttags`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `lastlogin`, `timestamps`, `embed`, `incognito` FROM `$C[prefix]members` WHERE `nickname`=?");
 	mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
 	mysqli_stmt_execute($stmt);
-	$result=mysqli_stmt_get_result($stmt);
-	mysqli_stmt_close($stmt);
-	if($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
+	mysqli_stmt_bind_result($stmt, $temp['nickname'], $temp['passhash'], $temp['status'], $temp['refresh'], $temp['colour'], $temp['bgcolour'], $temp['fontface'], $temp['fonttags'], $temp['boxwidth'], $temp['boxheight'], $temp['notesboxwidth'], $temp['notesboxheight'], $temp['lastlogin'], $temp['timestamps'], $temp['embed'], $temp['incognito']);
+	if(mysqli_stmt_fetch($stmt)){
 		if($temp['passhash']==$U['passhash']){
+			mysqli_stmt_close($stmt);
 			$U=$temp;
 			$time=time();
 			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]members` SET `lastlogin`=? WHERE `nickname`=?");
@@ -1457,6 +1457,7 @@ function check_member(){
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 		}else{
+			mysqli_stmt_close($stmt);
 			send_error($I['wrongpass']);
 		}
 	}
@@ -1482,12 +1483,12 @@ function register_guest($status){
 	if(!isSet($P[$_REQUEST['name']])) send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
 	read_members();
 	if(isSet($A[$_REQUEST['name']])) send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
-	$stmt=mysqli_prepare($mysqli, "SELECT * FROM `$C[prefix]sessions` WHERE `nickname`=? AND `status`='1'");
+	$stmt=mysqli_prepare($mysqli, "SELECT `session`, `nickname`, `displayname`, `passhash`, `refresh`, `fontinfo`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`, `incognito` FROM `$C[prefix]sessions` WHERE `nickname`=? AND `status`='1'");
 	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
 	mysqli_stmt_execute($stmt);
-	$result=mysqli_stmt_get_result($stmt);
-	mysqli_stmt_close($stmt);
-	if($reg=mysqli_fetch_array($result, MYSQL_ASSOC)){
+	mysqli_stmt_bind_result($stmt, $reg['session'], $reg['nickname'], $reg['displayname'], $reg['passhash'], $reg['refresh'], $reg['fontinfo'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
+	if(mysqli_stmt_fetch($stmt)){
+		mysqli_stmt_close($stmt);
 		$reg['status']=$status;
 		if(preg_match('/#([a-f0-9]{6})/i', $reg['fontinfo'], $match)) $reg['colour']=$match[1];
 		else $reg['colour']=$C['coltxt'];
@@ -1496,6 +1497,7 @@ function register_guest($status){
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 	}else{
+		mysqli_stmt_close($stmt);
 		send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
 	}
 	$stmt=mysqli_prepare($mysqli, "INSERT INTO `$C[prefix]members` (`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -2331,7 +2333,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.9.1', // Script version
+		'version'	=>'1.9.2', // Script version
 		'dbversion'	=>8, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
