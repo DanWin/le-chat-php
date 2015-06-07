@@ -1,3 +1,6 @@
+Version 1.10 - Jun. 7, 2015
+Added message encryption option
+
 Version 1.9.2 - Jun. 4, 2015
 Avoid using mysqlnd-only functions
 

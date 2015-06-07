@@ -694,6 +694,7 @@ function send_notes($type){
 	if($type=='staff') echo "<center><h2>$I[staffnotes]</h2><p>";
 	else echo "<center><h2>$I[adminnotes]</h2><p>";
 	if(isset($_REQUEST['text'])){
+		if($C['msgencrypted']) $_REQUEST['text']=openssl_encrypt($_REQUEST['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
 		$time=time();
 		$stmt=mysqli_prepare($mysqli, "INSERT INTO `$C[prefix]notes` (`type`, `lastedited`, `editedby`, `text`) VALUES (?, ?, ?, ?)");
 		mysqli_stmt_bind_param($stmt, 'siss', $type, $time, $U['nickname'], $_REQUEST['text']);
@@ -702,13 +703,14 @@ function send_notes($type){
 		echo "<b>$I[notessaved]</b> ";
 	}
 	$dateformat=get_setting('dateformat');
-	$stmt=mysqli_prepare($mysqli, "SELECT `lastedited`, `editedby`, `text` FROM `$C[prefix]notes` WHERE `type`=? ORDER BY `lastedited` DESC LIMIT 1");
+	$stmt=mysqli_prepare($mysqli, "SELECT `lastedited`, `editedby`, `text` FROM `$C[prefix]notes` WHERE `type`=? ORDER BY `id` DESC LIMIT 1");
 	mysqli_stmt_bind_param($stmt, 's', $type);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_bind_result($stmt, $lastedited, $editedby, $text);
 	if(mysqli_stmt_fetch($stmt)) printf($I['lastedited'], $editedby, date($dateformat, $lastedited));
 	mysqli_stmt_close($stmt);
 	echo "</p><$H[form]>";
+	if($C['msgencrypted']) $text=openssl_decrypt($text, "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
 	if($type=='staff') echo hidden('action', 'notes');
 	else echo hidden('action', 'admnotes');
 	echo hidden('session', $U['session'])."<textarea name=\"text\" rows=\"$U[notesboxheight]\" cols=\"$U[notesboxwidth]\">".htmlspecialchars($text).'</textarea><br>';
@@ -719,7 +721,7 @@ function send_approve_waiting(){
 	global $C, $H, $I, $U, $mysqli;
 	print_start('admin');
 	echo "<center><h2>$I[waitingroom]</h2>";
-	$result=mysqli_query($mysqli, "SELECT * FROM `$C[prefix]sessions` WHERE `entry`!='0' AND `status`='1' ORDER BY `entry`");
+	$result=mysqli_query($mysqli, "SELECT * FROM `$C[prefix]sessions` WHERE `entry`!='0' AND `status`='1' ORDER BY `id`");
 	if(mysqli_num_rows($result)>0){
 		echo "<$H[form]>".hidden('action', 'admin').hidden('do', 'approve').hidden('session', $U['session']).'<table cellpadding="5">';
 		echo "<thead align=\"left\"><tr><th><b>$I[sessnick]</b></th><th><b>$I[sessua]</b></th></tr></thead><tbody align=\"left\" valign=\"middle\">";
@@ -1067,7 +1069,7 @@ function print_chatters(){
 	global $C, $G, $H, $I, $M, $U, $mysqli;
 	echo '<table cellspacing="0"><tr>';
 	if($U['status']>=5 && get_setting('guestaccess')==3){
-		$result=mysqli_query($mysqli, "SELECT COUNT(*) FROM `$C[prefix]sessions` WHERE `entry`!='0' AND `status`='1' ORDER BY `entry`");
+		$result=mysqli_query($mysqli, "SELECT COUNT(*) FROM `$C[prefix]sessions` WHERE `entry`!='0' AND `status`='1'");
 		$temp=mysqli_fetch_array($result, MYSQLI_NUM);
 		if($temp[0]>0) echo "<td valign=\"top\"><$H[form]>".hidden('action', 'admin').hidden('do', 'approve').hidden('session', $_REQUEST['session']).submit(sprintf($I['approveguests'], $temp[0])).'</form></td><td>&nbsp;</td>';
 	}
@@ -1108,7 +1110,7 @@ function create_session($setup){
 	if(get_setting('captcha')>0 && ($U['status']==1 || !$C['dismemcaptcha'])){
 		if(!isSet($_REQUEST['challenge'])) send_error($I['wrongcaptcha']);
 		if(!$C['memcached']){
-			$stmt=mysqli_prepare($mysqli, "SELECT `$C[prefix]code` FROM `captcha` WHERE `id`=?");
+			$stmt=mysqli_prepare($mysqli, "SELECT `code` FROM `$C[prefix]captcha` WHERE `id`=?");
 			mysqli_stmt_bind_param($stmt, 'i', $_REQUEST['challenge']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_bind_result($stmt, $code);
@@ -1824,7 +1826,6 @@ function add_message(){
 	if(empty($U['message'])) return false;
 	$newmessage=array(
 		'postdate'	=>time(),
-		'postid'	=>$U['postid'],
 		'poststatus'=>$U['poststatus'],
 		'poster'	=>$U['nickname'],
 		'recipient'	=>$U['recipient'],
@@ -1838,7 +1839,6 @@ function add_message(){
 function add_system_message($mes){
 	$sysmessage=array(
 		'postdate'	=>time(),
-		'postid'	=>substr(rand(), -6),
 		'poststatus'	=>1,
 		'poster'	=>'',
 		'recipient'	=>'',
@@ -1850,12 +1850,13 @@ function add_system_message($mes){
 
 function write_message($message){
 	global $C, $H, $mysqli;
-	$stmt=mysqli_prepare($mysqli, "INSERT INTO `$C[prefix]messages` (`postdate`, `postid`, `poststatus`, `poster`, `recipient`, `text`, `delstatus`) VALUES (?, ?, ?, ?, ?, ?, ?)");
-	mysqli_stmt_bind_param($stmt, 'iiisssi', $message['postdate'], $message['postid'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']);
+	if($C['msgencrypted']) $message['text']=openssl_encrypt($message['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
+	$stmt=mysqli_prepare($mysqli, "INSERT INTO `$C[prefix]messages` (`postdate`, `poststatus`, `poster`, `recipient`, `text`, `delstatus`) VALUES (?, ?, ?, ?, ?, ?)");
+	mysqli_stmt_bind_param($stmt, 'iisssi', $message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	$limit=$C['keeplimit']*$C['messagelimit'];
-	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `id` NOT IN (SELECT `id` FROM (SELECT `id` FROM `$C[prefix]messages` ORDER BY `postdate` DESC LIMIT ?) t )");
+	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `id` NOT IN (SELECT `id` FROM (SELECT `id` FROM `$C[prefix]messages` ORDER BY `id` DESC LIMIT ?) t )");
 	mysqli_stmt_bind_param($stmt, 'i', $limit);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
@@ -1872,7 +1873,6 @@ function clean_room(){
 	mysqli_query($mysqli, "DELETE FROM `$C[prefix]messages`");
 	$sysmessage=array(
 		'postdate'	=>time(),
-		'postid'	=>substr(rand(), -6),
 		'poster'	=>'',
 		'recipient'	=>'',
 		'poststatus'	=>1,
@@ -1885,17 +1885,13 @@ function clean_room(){
 function clean_selected(){
 	global $C, $mysqli;
 	if(isSet($_REQUEST['mid'])){
-		foreach($_REQUEST['mid'] as $mid) $mids[$mid]=1;
-	}
-	$result=mysqli_query($mysqli, "SELECT `postdate`, `postid` FROM `$C[prefix]messages` ORDER BY `postdate` DESC");
-	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `postdate`=? AND `postid`=?");
-	while($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
-		if(isSet($mids[$temp['postdate'].$temp['postid']])){
-			mysqli_stmt_bind_param($stmt, 'ii', $temp['postdate'], $temp['postid']);
+		$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `id`=?");
+		foreach($_REQUEST['mid'] as $mid){
+			mysqli_stmt_bind_param($stmt, 'i', $mid);
 			mysqli_stmt_execute($stmt);
 		}
+		mysqli_stmt_close($stmt);
 	}
-	mysqli_stmt_close($stmt);
 }
 
 function del_all_messages($nick){
@@ -1908,7 +1904,7 @@ function del_all_messages($nick){
 
 function del_last_message(){
 	global $C, $U, $mysqli;
-	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `poster`=? ORDER BY `postdate` DESC LIMIT 1");
+	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `poster`=? ORDER BY `id` DESC LIMIT 1");
 	mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
@@ -1919,27 +1915,31 @@ function print_messages($delstatus=''){
 	$dateformat=get_setting('dateformat');
 	mysqli_query($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `postdate`<='".(time()-60*$C['messageexpire'])."'");
 	if(!empty($delstatus)){
-		$stmt=mysqli_prepare($mysqli, "SELECT `postdate`, `postid`, `text` FROM `$C[prefix]messages` WHERE ".
-		"`id` IN (SELECT * FROM (SELECT `id` FROM `$C[prefix]messages` WHERE `poststatus`='1' ORDER BY `postdate` DESC LIMIT ?) AS t) ".
-		"OR (`poststatus`>'1' AND (`poststatus`<? OR `poster`=?) ) ORDER BY `postdate` DESC");
+		$stmt=mysqli_prepare($mysqli, "SELECT `postdate`, `id`, `text` FROM `$C[prefix]messages` WHERE ".
+		"`id` IN (SELECT * FROM (SELECT `id` FROM `$C[prefix]messages` WHERE `poststatus`='1' ORDER BY `id` DESC LIMIT ?) AS t) ".
+		"OR (`poststatus`>'1' AND (`poststatus`<? OR `poster`=?) ) ORDER BY `id` DESC");
 		mysqli_stmt_bind_param($stmt, 'iis', $C['messagelimit'], $U['status'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
-		mysqli_stmt_bind_result($stmt, $message['postdate'], $message['postid'], $message['text']);
+		mysqli_stmt_bind_result($stmt, $message['postdate'], $message['id'], $message['text']);
 		while(mysqli_stmt_fetch($stmt)){
-			echo "<input type=\"checkbox\" name=\"mid[]\" id=\"$message[postdate]$message[postid]\" value=\"$message[postdate]$message[postid]\"><label for=\"$message[postdate]$message[postid]\">&nbsp;$message[text]</label><br>";
+			if($C['msgencrypted']) $message['text']=openssl_decrypt($message['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
+			echo "<input type=\"checkbox\" name=\"mid[]\" id=\"$message[id]\" value=\"$message[id]\"><label for=\"$message[id]\">";
+			if($U['timestamps']) echo ' <small>'.date($dateformat, $message['postdate']).' - </small>';
+			echo " $message[text]</label><br>";
 		}
 	}else{
 		$stmt=mysqli_prepare($mysqli, "SELECT `postdate`, `text` FROM `$C[prefix]messages` WHERE (".
-		"`id` IN (SELECT * FROM (SELECT `id` FROM `$C[prefix]messages` WHERE `poststatus`='1' ORDER BY `postdate` DESC LIMIT ?) AS t) ".
+		"`id` IN (SELECT * FROM (SELECT `id` FROM `$C[prefix]messages` WHERE `poststatus`='1' ORDER BY `id` DESC LIMIT ?) AS t) ".
 		"OR (`poststatus`>'1' AND `poststatus`<=?) ".
-		"OR (`poststatus`='9' AND ( (`poster`=? AND `recipient` NOT IN (SELECT * FROM (SELECT `ignored` FROM `$C[prefix]ignored` WHERE `by`=?) AS t) ) OR `recipient`=?) )".
-		") AND `poster` NOT IN (SELECT * FROM (SELECT `ignored` FROM `$C[prefix]ignored` WHERE `by`=?) AS t) ORDER BY `postdate` DESC");
+		"OR (`poststatus`='9' AND ( (`poster`=? AND `recipient` NOT IN (SELECT `ignored` FROM `$C[prefix]ignored` WHERE `by`=?) ) OR `recipient`=?) )".
+		") AND `poster` NOT IN (SELECT `ignored` FROM `$C[prefix]ignored` WHERE `by`=?) ORDER BY `id` DESC");
 		mysqli_stmt_bind_param($stmt, 'iissss', $C['messagelimit'], $U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_bind_result($stmt, $message['postdate'], $message['text']);
 		if(!isSet($_COOKIE[$C['cookiename']]) && !$C['forceredirect']) $injectRedirect=true; else $injectRedirect=false;
 		if(!$U['embed'] || !isSet($_COOKIE[$C['cookiename']])) $removeEmbed=true; else $removeEmbed=false;
 		while(mysqli_stmt_fetch($stmt)){
+			if($C['msgencrypted']) $message['text']=openssl_decrypt($message['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
 			if($injectRedirect){
 				$message['text']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched){ global $C; return "<a href=\"$C[redirect]".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $message['text']);
 			}
@@ -2123,10 +2123,10 @@ function init_chat(){
 						"CREATE TABLE IF NOT EXISTS `$C[prefix]filter` (`id` tinyint(3) unsigned NOT NULL, `match` tinytext NOT NULL, `replace` text NOT NULL, `allowinpm` tinyint(1) unsigned NOT NULL, `regex` tinyint(1) unsigned NOT NULL, `kick` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
 						"CREATE TABLE IF NOT EXISTS `$C[prefix]ignored` (`id` int(10) unsigned NOT NULL, `ignored` tinytext NOT NULL, `by` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
 						"CREATE TABLE IF NOT EXISTS `$C[prefix]members` (`id` tinyint(3) unsigned NOT NULL, `nickname` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `passhash` tinytext NOT NULL, `status` tinyint(3) unsigned NOT NULL, `refresh` tinyint(3) unsigned NOT NULL, `colour` tinytext NOT NULL, `bgcolour` tinytext NOT NULL, `fontface` tinytext NOT NULL, `fonttags` tinytext NOT NULL, `boxwidth` tinyint(3) unsigned NOT NULL, `boxheight` tinyint(3) unsigned NOT NULL, `notesboxheight` tinyint(3) unsigned NOT NULL, `notesboxwidth` tinyint(3) unsigned NOT NULL, `regedby` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `lastlogin` int(10) unsigned NOT NULL, `timestamps` tinyint(1) unsigned NOT NULL, `embed` tinyint(1) unsigned NOT NULL, `incognito` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
-						"CREATE TABLE IF NOT EXISTS `$C[prefix]messages` (`id` int(10) unsigned NOT NULL, `postdate` int(10) unsigned NOT NULL, `postid` int(10) unsigned NOT NULL, `poststatus` tinyint(3) unsigned NOT NULL, `poster` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `recipient` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `text` text NOT NULL, `delstatus` tinyint(3) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
+						"CREATE TABLE IF NOT EXISTS `$C[prefix]messages` (`id` int(10) unsigned NOT NULL, `postdate` int(10) unsigned NOT NULL, `poststatus` tinyint(3) unsigned NOT NULL, `poster` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `recipient` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `text` text NOT NULL, `delstatus` tinyint(3) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
 						"CREATE TABLE IF NOT EXISTS `$C[prefix]notes` (`id` int(10) unsigned NOT NULL, `type` tinytext NOT NULL, `lastedited` int(10) unsigned NOT NULL, `editedby` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `text` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
 						"CREATE TABLE IF NOT EXISTS `$C[prefix]sessions` (`id` int(10) unsigned NOT NULL, `session` tinytext NOT NULL, `nickname` tinytext CHARACTER SET utf8 COLLATE utf8_bin NOT NULL, `displayname` text NOT NULL, `status` tinyint(3) unsigned NOT NULL, `refresh` tinyint(3) unsigned NOT NULL, `fontinfo` tinytext NOT NULL, `style` text NOT NULL, `lastpost` int(10) unsigned NOT NULL, `passhash` tinytext NOT NULL, `postid` int(10) unsigned NOT NULL, `boxwidth` tinyint(3) unsigned NOT NULL, `boxheight` tinyint(3) unsigned NOT NULL, `useragent` text NOT NULL, `kickmessage` text NOT NULL, `bgcolour` tinytext NOT NULL, `notesboxheight` tinyint(3) unsigned NOT NULL, `notesboxwidth` tinyint(3) unsigned NOT NULL, `entry` int(10) unsigned NOT NULL, `timestamps` tinyint(1) unsigned NOT NULL, `embed` tinyint(1) unsigned NOT NULL, `incognito` tinyint(1) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
-						"CREATE TABLE IF NOT EXISTS `$C[prefix]settings` (`id` tinyint(3) unsigned NOT NULL, `setting` tinytext NOT NULL, `value` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
+						"CREATE TABLE IF NOT EXISTS `$C[prefix]settings` (`id` tinyint(3) unsigned NOT NULL, `setting` tinytext NOT NULL, `value` text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8; ".
 						"ALTER TABLE `$C[prefix]captcha` ADD UNIQUE KEY `id` (`id`); ".
 						"ALTER TABLE `$C[prefix]filter` ADD PRIMARY KEY (`id`); ".
 						"ALTER TABLE `$C[prefix]ignored` ADD PRIMARY KEY (`id`); ".
@@ -2148,6 +2148,7 @@ function init_chat(){
 						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('captcha','0'); ".
 						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('dateformat','m-d H:i:s'); ".
 						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('rulestxt', '1. YOUR_RULS<br>2. YOUR_RULES'); ".
+						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('msgencrypted','0'); ".
 						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('msgenter','%s entered the chat.'); ".
 						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('msgexit','%s left the chat.'); ".
 						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('msgmemreg','%s is now a registered member.'); ".
@@ -2189,7 +2190,7 @@ function init_chat(){
 function update_db(){
 	global $C, $mysqli;
 	$dbversion=get_setting('dbversion');
-	if($dbversion<$C['dbversion']){
+	if($dbversion<$C['dbversion'] || get_setting('msgencrypted')!=$C['msgencrypted']){
 		if($dbversion<2){
 			mysqli_query($mysqli, "CREATE TABLE IF NOT EXISTS `$C[prefix]ignored` (`id` int(10) unsigned NOT NULL, `ignored` tinytext NOT NULL, `by` tinytext NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8");
 			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]ignored` ADD PRIMARY KEY (`id`)");
@@ -2222,6 +2223,32 @@ function update_db(){
 				update_setting('guestaccess', 1);
 				update_setting('englobalpass', 2);
 			}
+		}
+		if($dbversion<9){
+			mysqli_query($mysqli, "INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('msgencrypted', '0')");
+			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]settings` CHANGE `value` `value` text NOT NULL");
+			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]messages` DROP `postid`");
+		}
+		if(get_setting('msgencrypted')!=$C['msgencrypted']){
+			$result=mysqli_query($mysqli, "SELECT `id`, `text` FROM `$C[prefix]messages`");
+			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]messages` SET `text`=? WHERE `id`=?");
+			while($message=mysqli_fetch_array($result, MYSQLI_ASSOC)){
+				if($C['msgencrypted']) $message['text']=openssl_encrypt($message['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
+				else $message['text']=openssl_decrypt($message['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
+				mysqli_stmt_bind_param($stmt, 'si', $message['text'], $message['id']);
+				mysqli_stmt_execute($stmt);
+			}
+			mysqli_stmt_close($stmt);
+			$result=mysqli_query($mysqli, "SELECT `id`, `text` FROM `$C[prefix]notes`");
+			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]notes` SET `text`=? WHERE `id`=?");
+			while($message=mysqli_fetch_array($result, MYSQLI_ASSOC)){
+				if($C['msgencrypted']) $message['text']=openssl_encrypt($message['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
+				else $message['text']=openssl_decrypt($message['text'], "aes-256-cbc", $C['encryptkey'], 0, '1234567890123456');
+				mysqli_stmt_bind_param($stmt, 'si', $message['text'], $message['id']);
+				mysqli_stmt_execute($stmt);
+			}
+			mysqli_stmt_close($stmt);
+			update_setting('msgencrypted', (int)$C['msgencrypted']);
 		}
 		update_setting('dbversion', $C['dbversion']);
 		send_update();
@@ -2333,8 +2360,8 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.9.2', // Script version
-		'dbversion'	=>8, // Database version
+		'version'	=>'1.10', // Script version
+		'dbversion'	=>9, // Database version
 		'showcredits'	=>false, // Allow showing credits
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour
@@ -2351,6 +2378,8 @@ function load_config(){
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
 		'defaultrefresh'=>30, // Seconds to refresh the messages
 		'maxmessage'	=>2000, // Longest number of characters for a message
+		'msgencrypted'	=>false, // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
+		'encryptkey'	=>'MY_KEY', // Encryption key for messages
 		'maxname'	=>20, // Longest number of chatacters for a name
 		'minpass'	=>5, // Shortest number of chatacters for a password
 		'boxwidth'	=>40, // Default post box width
