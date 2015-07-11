@@ -1,3 +1,12 @@
+Version 1.11 - Jul. 11, 2015
+Clean all messages of someone
+Kick via active session display
+Change languages supported without cookies
+Global password only in setup and not in admin section
+CSS Styling supported
+Moved many configurations from file to database
+More simplifications and bugfixes
+
 Version 1.10 - Jun. 7, 2015
 Added message encryption option
 

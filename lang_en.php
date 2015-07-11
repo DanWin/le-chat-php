@@ -1,3 +1,4 @@
+
 <?php
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - English translation
@@ -37,7 +38,7 @@ $I=array(
 	'sulogin' => 'Superadmin Login',
 	'sunick' => 'Superadmin Nickname:',
 	'supass' => 'Superadmin Password:',
-	'suconfirm' => 'Confirm Passowrd:',
+	'suconfirm' => 'Confirm Passorwd:',
 	'susuccess' => 'Successfully registered!',
 	'initbtn' => 'Initalise Chat',
 	'initdbexist' => 'Database tables already exist! To continue, you have to delete these tables manually first.',
@@ -70,6 +71,7 @@ $I=array(
 	'cleanmsgs' => 'Clean messages',
 	'room' => 'Whole room',
 	'selection' => 'Selection',
+	'cleannick' => 'Following nickname:',
 	'clean' => 'Clean',
 	'kickchat' => '<b>Kick Chatter</b> (%d minutes)',
 	'kickmsg' => 'Kickmessage:',
@@ -142,7 +144,7 @@ $I=array(
 	'profile' => 'Your Profile',
 	'ignore' => 'Ignore',
 	'unignore' => 'Don\'t ignore anymore',
-	'refreshrate' => 'Refresh rate (20-150 seconds)',
+	'refreshrate' => 'Refresh rate (5-150 seconds)',
 	'fontcolour' => 'Font colour',
 	'viewexample' => 'View examples',
 	'bgcolour' => 'Background colour',
@@ -201,6 +203,7 @@ $I=array(
 	'succdel' => '%s successfully deleted from database.',
 	'succchg' => 'Status of %s successfully changed.',
 	'wrongpass' => 'Wrong Password!',
+	'wrongglobalpass' => 'Wrong global Password!',
 	'succprofile' => 'Your profile has successfully been saved.',
 	'backtologin' => 'Back to the login page.',
 	'backtochat' => 'Back to the chat.',
@@ -239,6 +242,19 @@ $I=array(
 	'White' => 'White',
 	'Yellow' => 'Yellow',
 	'YellowGreen' => 'Yellow green',
-	'contributors' => 'Contributors',
+	'redirectto' => 'Redirecting to:',
+	'nonhttp' => 'Non-http link requested:',
+	'httpredir' => 'If it\'s not working, try this one:',
+	'actions' => 'Actions',
+	'sesip' => 'IP-Address',
+	'css' => 'CSS Style',
+	'memberexpire' => 'Member timeout (minutes)',
+	'guestexpire' => 'Guest timeout (minutes)',
+	'kickpenalty' => 'Kick penalty (minutes)',
+	'entrywait' => 'Waiting room time (seconds)',
+	'captchatime' => 'Captcha timeout (seconds)',
+	'messageexpire' => 'Message timeout (minutes)',
+	'messagelimit' => 'Message limit (public)',
+	'maxmessage' => 'Maximum message length'
 );
 ?>
