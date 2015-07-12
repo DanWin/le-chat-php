@@ -560,8 +560,10 @@ function send_sessions(){
 		if($temp['status']!=0 && $temp['entry']==0 && (!$temp['incognito'] || $temp['status']<$U['status'])){
 			if($temp['status']==1 || $temp['status']==2) $s='&nbsp;(G)';
 			elseif($temp['status']==3) $s='';
-			elseif($temp['status']==5 || $temp['status']==6) $s='&nbsp;(M)';
-			elseif($temp['status']>=7) $s='&nbsp;(A)';
+			elseif($temp['status']==5) $s='&nbsp;(M)';
+			elseif($temp['status']==6) $s='&nbsp;(SM)';
+			elseif($temp['status']==7) $s='&nbsp;(A)';
+			elseif($temp['status']==8) $s='&nbsp;(SA)';
 			echo '<tr><td align="left">'.style_this($temp['nickname'].$s, $temp['fontinfo']).'</td><td>'.get_timeout($temp['lastpost'], $temp['status']).'</td>';
 			if($U['status']>$temp['status'] || $U['session']==$temp['session']){
 				echo "<td align=\"left\">$temp[useragent]</td>";
@@ -668,7 +670,7 @@ function send_filter($arg=''){
 function send_frameset(){
 	global $C, $H, $I, $U, $mysqli;
 	header('Content-Type: text/html; charset=UTF-8'); header('Pragma: no-cache'); header('Cache-Control: no-cache'); header('Expires: 0');
-	echo "<!DOCTYPE html><html><head>$H[meta_html]";
+	echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\"><html><head>$H[meta_html]";
 	print_stylesheet();
 	if(isSet($_COOKIE['test'])){
 		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
@@ -781,16 +783,15 @@ function send_waiting_room(){
 	}else{
 		if(isSet($_COOKIE['test'])){
 			header("Refresh: $C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait");
-			echo "<!DOCTYPE html><html><head>$H[meta_html]<meta http-equiv=\"Refresh\" content=\"$C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait\">";
+			print_start('waitingroom', $C['defaultrefresh'], "$_SERVER[SCRIPT_NAME]?action=wait");
 		}else{
 			header("Refresh: $C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]");
-			echo "<!DOCTYPE html><html><head>$H[meta_html]<meta http-equiv=\"Refresh\" content=\"$C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&amp;session=$U[session]&amp;lang=$C[lang]\">";
+			print_start('waitingroom', $C['defaultrefresh'], "$_SERVER[SCRIPT_NAME]?action=wait&amp;session=$U[session]&amp;lang=$C[lang]");
 		}
-		print_stylesheet();
 		if($wait){
-			echo "</head><body><center><h2>$I[waitingroom]</h2><p>".sprintf($I['waittext'], $U['displayname'], $timeleft).'</p><br><p>'.sprintf($I['waitreload'], $C['defaultrefresh']).'</p><br><br>';
+			echo "<center><h2>$I[waitingroom]</h2><p>".sprintf($I['waittext'], $U['displayname'], $timeleft).'</p><br><p>'.sprintf($I['waitreload'], $C['defaultrefresh']).'</p><br><br>';
 		}else{
-			echo "</head><body><center><h2>$I[waitingroom]</h2><p>".sprintf($I['admwaittext'], $U['displayname']).'</p><br><p>'.sprintf($I['waitreload'], $C['defaultrefresh']).'</p><br><br>';
+			echo "<center><h2>$I[waitingroom]</h2><p>".sprintf($I['admwaittext'], $U['displayname']).'</p><br><p>'.sprintf($I['waitreload'], $C['defaultrefresh']).'</p><br><br>';
 		}
 		echo "<hr><form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\">".hidden('action', 'wait').hidden('session', $U['session']).hidden('lang', $C['lang']).submit($I['reload']).'</form><br>';
 		echo "<h2>$I[rules]</h2><b>".get_setting('rulestxt').'</b></center>';
@@ -1101,8 +1102,10 @@ function print_memberslist(){
 		echo "<option value=\"$member[0]\" style=\"$member[2]\">$member[0]";
 		if($member[1]==0) echo ' (!)';
 		elseif($member[1]==2) echo ' (G)';
-		elseif($member[1]==5 || $member[1]==6) echo ' (M)';
-		elseif($member[1]>=7) echo ' (A)';
+		elseif($member[1]==5) echo ' (M)';
+		elseif($member[1]==6) echo ' (SM)';
+		elseif($member[1]==7) echo ' (A)';
+		elseif($member[1]==8) echo ' (SA)';
 		echo '</option>';
 	}
 }
@@ -1126,10 +1129,10 @@ function create_session($setup){
 			mysqli_stmt_bind_param($stmt, 'i', $_REQUEST['challenge']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_bind_result($stmt, $code);
-			if(!mysqli_stmt_fetch($stmt)) send_error($I['captchatime']);
+			if(!mysqli_stmt_fetch($stmt)) send_error($I['captchaexpire']);
 			mysqli_stmt_close($stmt);
 		}else{
-			if(!$code=$memcached->get("$C[dbname]-$C[prefix]captcha-$_REQUEST[challenge]")) send_error($I['captchatime']);
+			if(!$code=$memcached->get("$C[dbname]-$C[prefix]captcha-$_REQUEST[challenge]")) send_error($I['captchaexpire']);
 			$memcached->delete("$C[dbname]-$C[prefix]captcha-$_REQUEST[challenge]");
 		}
 		if($_REQUEST['captcha']!=$code) send_error($I['wrongcaptcha']);
@@ -2375,7 +2378,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.11', // Script version
+		'version'	=>'1.11.1', // Script version
 		'dbversion'	=>10, // Database version
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour

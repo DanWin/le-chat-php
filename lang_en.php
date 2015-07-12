@@ -1,4 +1,3 @@
-
 <?php
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - English translation
@@ -38,7 +37,7 @@ $I=array(
 	'sulogin' => 'Superadmin Login',
 	'sunick' => 'Superadmin Nickname:',
 	'supass' => 'Superadmin Password:',
-	'suconfirm' => 'Confirm Passorwd:',
+	'suconfirm' => 'Confirm Password:',
 	'susuccess' => 'Successfully registered!',
 	'initbtn' => 'Initalise Chat',
 	'initdbexist' => 'Database tables already exist! To continue, you have to delete these tables manually first.',
@@ -95,7 +94,7 @@ $I=array(
 	'memsuguest' => 'Set to applicant (G)',
 	'memreg' => 'Set to regular member',
 	'memmod' => 'Set to moderator (M)',
-	'memsumod' => 'Set to supermod (M)',
+	'memsumod' => 'Set to supermod (SM)',
 	'memadm' => 'Set to admin (A)',
 	'change' => 'Change',
 	'regguest' => 'Register Guest',
@@ -125,7 +124,7 @@ $I=array(
 	'waitreload' => 'If this page doesn\'t refresh every %d seconds, use the button below to reload it manually!',
 	'reload' => 'Reload',
 	'rules' => 'Rules',
-	'talkto' => 'Talk to',
+	'talkto' => 'Send to',
 	'toall' => 'All chatters',
 	'tomem' => 'Members only',
 	'tostaff' => 'Staff only',
@@ -193,7 +192,7 @@ $I=array(
 	'butallowdeny' => 'Submit',
 	'waitempty' => 'No more entry requests to approve.',
 	'wrongcaptcha' => 'Wrong Captcha',
-	'captchatime' => 'Captcha already used or timed out.',
+	'captchaexpire' => 'Captcha already used or timed out.',
 	'noguests' => 'Sorry, currently members only!',
 	'curchat' => 'Currently %d chatter(s) in room:',
 	'cantreg' => 'Can\'t register %s',
