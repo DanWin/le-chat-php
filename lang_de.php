@@ -253,6 +253,9 @@ $I=array(
 	'captchatime' => 'Captcha-Ablaufzeit (Sekunden)',
 	'messageexpire' => 'Nachrichten-Ablaufzeit (Minuten)',
 	'messagelimit' => 'Nachrichtenlimit (öffentliche)',
-	'maxmessage' => 'Maximale Nachrichenlänge'
+	'maxmessage' => 'Maximale Nachrichenlänge',
+	'confirm' => 'Bist du sicher?',
+	'yes' => 'Ja',
+	'no' => 'Nein'
 );
 ?>

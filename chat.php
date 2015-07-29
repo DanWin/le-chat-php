@@ -33,19 +33,20 @@ $U=array();// This user data
 $countmods=0;// Present moderators
 $memcached;// Memcached connection
 $mysqli;// MySQL database connection
-load_fonts();
 load_config();
-load_lang();
-load_html();
-check_db();
-
 // set session variable to cookie if cookies are enabled
 if(!isSet($_REQUEST['session']) && isSet($_COOKIE[$C['cookiename']])){
 	$_REQUEST['session']=$_COOKIE[$C['cookiename']];
 }
+elseif(!isSet($_REQUEST['session'])) $_REQUEST['session']='';
+load_fonts();
+load_lang();
+load_html();
+check_db();
 
 //  main program: decide what to do based on queries
 if(!isSet($_REQUEST['action'])){
+	if(check_init()<7) send_init();
 	send_login();
 }elseif($_REQUEST['action']=='view'){
 	check_session();
@@ -73,8 +74,11 @@ if(!isSet($_REQUEST['action'])){
 	send_controls();
 }elseif($_REQUEST['action']=='delete'){
 	check_session();
-	if($_REQUEST['what']=='all') del_all_messages($U['nickname'], 10);
-	if($_REQUEST['what']=='last') del_last_message();
+	if($_REQUEST['what']=='all'){
+		if(isSet($_REQUEST['confirm'])) del_all_messages($U['nickname'], 10, $U['entry']);
+		else send_del_confirm();
+	}
+	elseif($_REQUEST['what']=='last') del_last_message();
 	send_post();
 }elseif($_REQUEST['action']=='profile'){
 	check_session();
@@ -88,25 +92,25 @@ if(!isSet($_REQUEST['action'])){
 	send_colours();
 }elseif($_REQUEST['action']=='notes'){
 	check_session();
-	if(!$U['status']>=5) send_login();
+	if($U['status']<5) send_login();
 	send_notes('staff');
 }elseif($_REQUEST['action']=='help'){
 	check_session();
 	send_help();
 }elseif($_REQUEST['action']=='admnotes'){
 	check_session();
-	if(!$U['status']>=6) send_login();
+	if($U['status']<6) send_login();
 	send_notes('admin');
 }elseif($_REQUEST['action']=='admin'){
 	check_session();
-	if(!$U['status']>=5) send_login();
+	if($U['status']<5) send_login();
 	if(!isSet($_REQUEST['do'])){
 		send_admin();
 	}elseif($_REQUEST['do']=='clean'){
 		if($_REQUEST['what']=='choose') send_choose_messages();
 		elseif($_REQUEST['what']=='selected') clean_selected();
 		elseif($_REQUEST['what']=='room') clean_room();
-		elseif($_REQUEST['what']=='nick') del_all_messages($_REQUEST['nickname'], $U['status']);
+		elseif($_REQUEST['what']=='nick') del_all_messages($_REQUEST['nickname'], $U['status'], 0);
 		send_admin();
 	}elseif($_REQUEST['do']=='kick'){
 		if(!isSet($_REQUEST['name'])) send_admin();
@@ -136,8 +140,8 @@ if(!isSet($_REQUEST['action'])){
 		approve_session();
 		send_approve_waiting();
 	}elseif($_REQUEST['do']=='guestaccess'){
-		if(isSet($_REQUEST['set']) && preg_match('/^[0123]$/', $_REQUEST['set'])){
-			update_setting('guestaccess', $_REQUEST['set']);
+		if(isSet($_REQUEST['guestaccess']) && preg_match('/^[0123]$/', $_REQUEST['guestaccess'])){
+			update_setting('guestaccess', $_REQUEST['guestaccess']);
 		}
 	}elseif($_REQUEST['do']=='filter'){
 		manage_filter();
@@ -145,39 +149,20 @@ if(!isSet($_REQUEST['action'])){
 	}
 	send_admin();
 }elseif($_REQUEST['action']=='setup'){
-	if(!$C['memcached'] || !$num_tables=$memcached->get("$C[dbname]-$C[prefix]num-tables")){
-		$tables=array("$C[prefix]captcha", "$C[prefix]filter", "$C[prefix]ignored", "$C[prefix]members", "$C[prefix]messages", "$C[prefix]notes", "$C[prefix]sessions", "$C[prefix]settings");
-		$num_tables=0;
-		$result=mysqli_query($mysqli, 'SHOW TABLES');
-		while($tmp=mysqli_fetch_array($result, MYSQLI_NUM)){
-			if(in_array($tmp[0],$tables)) ++$num_tables;
-		}
-		if($C['memcached']) $memcached->set("$C[dbname]-$C[prefix]num-tables", $num_tables, 60);
-	}
-	if($num_tables<7) send_init();
+	if(check_init()<7) send_init();
 	update_db();
 	if(!valid_admin()) send_alogin();
-	$setting_update=array('guestaccess', 'dateformat', 'captcha', 'css', 'memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage');
 	if(!isSet($_REQUEST['do'])){
-	}elseif(in_array($_REQUEST['do'], $setting_update)){
-		if(isSet($_REQUEST[$_REQUEST['do']])){
-			update_setting($_REQUEST['do'], $_REQUEST[$_REQUEST['do']]);
+	}elseif($_REQUEST['do']=='save'){
+		$settings=array('guestaccess', 'englobalpass', 'globalpass', 'msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'dateformat', 'captcha', 'css', 'memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage');
+		foreach($settings as $setting){
+			if(isSet($_REQUEST[$setting])) update_setting($setting, $_REQUEST[$setting]);
 		}
-	}elseif($_REQUEST['do']=='messages'){
-		update_messages();
-	}elseif($_REQUEST['do']=='rules'){
 		if(isSet($_REQUEST['rulestxt'])){
 			$_REQUEST['rulestxt']=preg_replace("/\r\n/", '<br>', $_REQUEST['rulestxt']);
 			$_REQUEST['rulestxt']=preg_replace("/\n/", '<br>', $_REQUEST['rulestxt']);
 			$_REQUEST['rulestxt']=preg_replace("/\r/", '<br>', $_REQUEST['rulestxt']);
 			update_setting('rulestxt', $_REQUEST['rulestxt']);
-		}
-	}elseif($_REQUEST['do']=='globalpass'){
-		if(isSet($_REQUEST['globalpass'])){
-			update_setting('globalpass', $_REQUEST['globalpass']);
-		}
-		if(isSet($_REQUEST['englobalpass']) && preg_match('/^[012]$/', $_REQUEST['englobalpass'])){
-			update_setting('englobalpass', $_REQUEST['englobalpass']);
 		}
 	}
 	send_setup();
@@ -207,7 +192,9 @@ function frmpst($arg1='', $arg2=''){
 	global $C, $H, $U;
 	$string="<$H[form]>".hidden('action', $arg1).hidden('session', $U['session']).hidden('lang', $C['lang']);
 	if(!empty($arg2)){
-		$string.=hidden('what', $arg2).@hidden('sendto', $_REQUEST['sendto']).@hidden('multi', $_REQUEST['multi']);
+		if(!isSet($_REQUEST['multi'])) $_REQUEST['multi']='';
+		if(!isSet($_REQUEST['sendto'])) $_REQUEST['sendto']='';
+		$string.=hidden('what', $arg2).hidden('sendto', $_REQUEST['sendto']).hidden('multi', $_REQUEST['multi']);
 	}
 	return $string;
 }
@@ -235,12 +222,16 @@ function thr(){
 }
 
 function print_start($class='',  $ref=0, $url=''){
-	global $H;
+	global $C, $H;
 	header('Content-Type: text/html; charset=UTF-8'); header('Pragma: no-cache'); header('Cache-Control: no-cache'); header('Expires: 0');
 	if(!empty($url)) header("Refresh: $ref; URL=$url");
 	echo "<!DOCTYPE html><html><head>$H[meta_html]";
 	if(!empty($url)) echo "<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
-	print_stylesheet();
+	if($class=='init'){
+		echo "<style type=\"text/css\">body{background-color:#$C[colbg];color:#$C[coltxt];} a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;}</style>";
+	}else{
+		print_stylesheet();
+	}
 	echo "</head><$H[begin_body] class=\"$class\">";
 }
 
@@ -340,37 +331,29 @@ function send_setup(){
 	global $C, $H, $I, $U;
 	$ga=get_setting('guestaccess');
 	print_start('setup');
-	echo "<center><h2>$I[setup]</h2><table cellspacing=\"0\">";
+	echo "<center><h2>$I[setup]</h2><$H[form]>".hidden('action', 'setup').hidden('do', 'save').hidden('session', $U['session']).hidden('lang', $C['lang']).'<table cellspacing="0">';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[guestacc]</b></td><td align=\"right\">";
-	echo frmsetup('guestaccess').'<table cellspacing="0">';
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="guestaccess" id="set1" value="1"';
-	if($ga==1) echo ' checked';
-	echo "><label for=\"set1\">&nbsp;$I[guestallow]</label></td><td>&nbsp;</td><tr>";
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="guestaccess" id="set2" value="2"';
-	if($ga==2) echo ' checked';
-	echo "><label for=\"set2\">&nbsp;$I[guestwait]</label></td><td>&nbsp;</td><tr>";
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="guestaccess" id="set3" value="3"';
-	if($ga==3) echo ' checked';
-	echo "><label for=\"set3\">&nbsp;$I[adminallow]</label></td><td>&nbsp;</td><tr>";
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="guestaccess" id="set0" value="0"';
-	if($ga==0) echo ' checked';
-	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr>";
-	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '<select name="guestaccess">';
+	echo '<option value="1"'; if($ga==1) echo ' selected'; echo ">$I[guestallow]</option>";
+	echo '<option value="2"'; if($ga==2) echo ' selected'; echo ">$I[guestwait]</option>";
+	echo '<option value="3"'; if($ga==3) echo ' selected'; echo ">$I[adminallow]</option>";
+	echo '<option value="0"'; if($ga==0) echo ' selected'; echo ">$I[guestdisallow]</option>";
+	echo '</select></td></tr></table></td></tr>';
 	thr();
 	$englobal=get_setting('englobalpass');
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[globalloginpass]</b></td><td align=\"right\">";
-	echo frmsetup('globalpass').'<table cellspacing="0">';
+	echo '<table cellspacing="0">';
 	echo '<tr><td><select name="englobalpass">';
 	echo '<option value="0"'; if($englobal==0) echo ' selected'; echo ">$I[disabled]</option>";
 	echo '<option value="1"'; if($englobal==1) echo ' selected'; echo ">$I[enabled]</option>";
 	echo '<option value="2"'; if($englobal==2) echo ' selected'; echo ">$I[onlyguests]</option>";
 	echo '</select></td><td>&nbsp;</td>';
-	echo '<td><input type="text" name="globalpass" value="'.htmlspecialchars(get_setting('globalpass')).'"></td><td>&nbsp;</td>';
-	echo '<td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '<td><input type="text" name="globalpass" value="'.htmlspecialchars(get_setting('globalpass')).'"></td></tr>';
+	echo '</table></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[sysmessages]</b></td><td align=\"right\">";
-	echo frmsetup('messages').'<table cellspacing="0">';
+	echo '<table cellspacing="0">';
 	echo "<tr><td>&nbsp;$I[msgenter]</td><td>&nbsp;<input type=\"text\" name=\"msgenter\" value=\"".get_setting('msgenter').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgexit]</td><td>&nbsp;<input type=\"text\" name=\"msgexit\" value=\"".get_setting('msgexit').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgmemreg]</td><td>&nbsp;<input type=\"text\" name=\"msgmemreg\" value=\"".get_setting('msgmemreg').'"></td></tr>';
@@ -379,43 +362,43 @@ function send_setup(){
 	echo "<tr><td>&nbsp;$I[msgmultikick]</td><td>&nbsp;<input type=\"text\" name=\"msgmultikick\" value=\"".get_setting('msgmultikick').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgallkick]</td><td>&nbsp;<input type=\"text\" name=\"msgallkick\" value=\"".get_setting('msgallkick').'"></td></tr>';
 	echo "<tr><td>&nbsp;$I[msgclean]</td><td>&nbsp;<input type=\"text\" name=\"msgclean\" value=\"".get_setting('msgclean').'"></td></tr>';
-	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '</table></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[rules]</b></td><td align=\"right\">";
-	echo frmsetup('rules').'<table cellspacing="0">';
+	echo '<table cellspacing="0">';
 	echo '<tr><td colspan="2"><textarea name="rulestxt" rows="4" cols="60">'.htmlspecialchars(get_setting('rulestxt')).'</textarea></td></tr>';
-	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '</table></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[dateformat]</b></td><td align=\"right\">";
-	echo frmsetup('dateformat').'<table cellspacing="0">';
-	echo '<tr><td><input type="text" name="dateformat" value="'.htmlspecialchars(get_setting('dateformat')).'"></td><td>&nbsp;</td>';
-	echo '<td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '<table cellspacing="0">';
+	echo '<tr><td><input type="text" name="dateformat" value="'.htmlspecialchars(get_setting('dateformat')).'"></td></tr>';
+	echo '</table></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[captcha]</b></td><td align=\"right\">";
-	echo frmsetup('captcha').'<table cellspacing="0">';
+	echo '<table cellspacing="0">';
 	echo '<tr><td><select name="captcha">';
 	$captcha=get_setting('captcha');
 	echo '<option value="0"'; if($captcha==0) echo ' selected'; echo ">$I[disabled]</option>";
 	echo '<option value="1"'; if($captcha==1) echo ' selected'; echo ">$I[simple]</option>";
 	echo '<option value="2"'; if($captcha==2) echo ' selected'; echo ">$I[moderate]</option>";
 	echo '<option value="3"'; if($captcha==3) echo ' selected'; echo ">$I[extreme]</option>";
-	echo '</select></td><td>&nbsp;</td>';
-	echo '<td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '</select></td></tr>';
+	echo '</table></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[css]</b></td><td align=\"right\">";
-	echo frmsetup('css').'<table cellspacing="0">';
+	echo '<table cellspacing="0">';
 	echo '<tr><td colspan="2"><textarea name="css" rows="4" cols="60">'.htmlspecialchars(get_setting('css')).'</textarea></td></tr>';
-	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '</table></td></tr></table></td></tr>';
 	$number_settings=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage');
 	foreach($number_settings as $setting){
 		thr();
 		echo '<tr><td><table cellspacing="0" width="100%"><tr><td align="left"><b>'.$I[$setting].'</b></td><td align="right">';
-		echo frmsetup($setting).'<table cellspacing="0">';
-		echo "<tr><td colspan=\"2\"><input type=\"number\" name=\"$setting\" value=\"".htmlspecialchars(get_setting($setting)).'"></td><td>&nbsp;</td>';
-		echo '<td align="right">'.submit($I['apply']).'</td></tr></table></form></td></tr></table></td></tr>';
+		echo '<table cellspacing="0">';
+		echo "<tr><td colspan=\"2\"><input type=\"number\" name=\"$setting\" value=\"".htmlspecialchars(get_setting($setting)).'"></td></tr>';
+		echo '</table></td></tr></table></td></tr>';
 	}
 	thr();
-	echo "</table><$H[form]>".hidden('action', 'logout').hidden('session', $U['session']).hidden('lang', $C['lang']).submit($I['logout'])."</form>$H[credit]";
+	echo '<tr align="center"><td>'.submit($I['apply'])."</td></tr></table></form><br><$H[form]>".hidden('action', 'logout').hidden('session', $U['session']).hidden('lang', $C['lang']).submit($I['logout'])."</form></tr>$H[credit]";
 	print_end();
 }
 
@@ -471,6 +454,11 @@ function send_admin($arg=''){
 	}
 	$chlist.='</select>';
 	echo "<center><h2>$I[admfunc]</h2><i>$arg</i><table cellspacing=\"0\">";
+	if($U['status']>=7){
+		thr();
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"center\">";
+		echo "<$H[form] target=\"view\">".hidden('action', 'setup').hidden('session', $U['session']).hidden('lang', $C['lang']).submit($I['initgosetup']).'</form></td></tr></table></td></tr>';
+	}
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[cleanmsgs]</b></td><td align=\"right\">";
 	echo frmadm('clean').'<table cellspacing="0"><tr><td><input type="radio" name="what" id="room" value="room">';
@@ -485,34 +473,27 @@ function send_admin($arg=''){
 	echo submit($I['kick']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[logoutinact]</b></td><td align=\"right\">";
-	echo frmadm('logout')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td align=\"right\">$chlist</td><td align=\"right\">";
+	echo frmadm('logout')."<table cellspacing=\"0\"><tr><td align=\"right\">$chlist</td><td align=\"right\">";
 	echo submit($I['logout']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[viewsess]</b></td><td align=\"right\">";
-	echo frmadm('sessions').'<table cellspacing="0"><tr><td>&nbsp;</td><td align="right">'.submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo frmadm('sessions').'<table cellspacing="0"><tr><td align="right">'.submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[filter]</b></td><td align=\"right\">";
-	echo frmadm('filter').'<table cellspacing="0"><tr><td>&nbsp;</td><td align="right">'.submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo frmadm('filter').'<table cellspacing="0"><tr><td align="right">'.submit($I['view']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[guestacc]</b></td><td align=\"right\">";
 	echo frmadm('guestaccess').'<table cellspacing="0">';
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set1" value="1"';
-	if($ga==1) echo ' checked';
-	echo "><label for=\"set1\">&nbsp;$I[guestallow]</label></td><td>&nbsp;</td><tr>";
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set2" value="2"';
-	if($ga==2) echo ' checked';
-	echo "><label for=\"set2\">&nbsp;$I[guestwait]</label></td><td>&nbsp;</td><tr>";
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set3" value="3"';
-	if($ga==3) echo ' checked';
-	echo "><label for=\"set3\">&nbsp;$I[adminallow]</label></td><td>&nbsp;</td><tr>";
-	echo '<tr><td align="left">&nbsp;<input type="radio" name="set" id="set0" value="0"';
-	if($ga==0) echo ' checked';
-	echo "><label for=\"set0\">&nbsp;$I[guestdisallow]</label></td><td>&nbsp;</td></tr>";
-	echo '<tr><td>&nbsp;</td><td align="right">'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
+	echo '<tr><td align="left"><select name="guestaccess">';
+	echo '<option value="1"'; if($ga==1) echo ' selected'; echo ">$I[guestallow]</option>";
+	echo '<option value="2"'; if($ga==2) echo ' selected'; echo ">$I[guestwait]</option>";
+	echo '<option value="3"'; if($ga==3) echo ' selected'; echo ">$I[adminallow]</option>";
+	echo '<option value="0"'; if($ga==0) echo ' selected'; echo ">$I[guestdisallow]</option>";
+	echo '</select></td><td align="right">'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	if($C['suguests']){
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[addsuguest]</b></td><td align=\"right\">";
-		echo frmadm('superguest')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td valign=\"bottom\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
+		echo frmadm('superguest')."<table cellspacing=\"0\"><tr><td valign=\"bottom\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		foreach($P as $user){
 			if($user[1]==1) echo "<option value=\"$user[0]\" style=\"$user[2]\">$user[0]</option>";
 		}
@@ -520,8 +501,8 @@ function send_admin($arg=''){
 		thr();
 	}
 	if($U['status']>=7){
-		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[admmembers]</b></td></tr><tr><td align=\"right\">";
-		echo frmadm('status')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td valign=\"bottom\" align=\"right\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
+		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[admmembers]</b></td><td align=\"right\">";
+		echo frmadm('status')."<table cellspacing=\"0\"><td valign=\"bottom\" align=\"right\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		print_memberslist();
 		echo "</select><select name=\"set\" size=\"1\"><option value=\"\">$I[choose]</option><option value=\"-\">$I[memdel]</option><option value=\"0\">$I[memdeny]</option>";
 		if($C['suguests']) echo "<option value=\"2\">$I[memsuguest]</option>";
@@ -532,15 +513,15 @@ function send_admin($arg=''){
 		echo '</select></td><td valign="bottom">'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[regguest]</b></td><td align=\"right\">";
-		echo frmadm('register')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td valign=\"bottom\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
+		echo frmadm('register')."<table cellspacing=\"0\"><tr><td valign=\"bottom\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		foreach($P as $user){
 			if($user[1]==1) echo "<option value=\"$user[0]\" style=\"$user[2]\">$user[0]</option>";
 		}
 		echo '</select></td><td valign="bottom">'.submit($I['register']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 		echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[regmem]</b></td></tr><tr><td align=\"right\">";
-		echo frmadm('regnew')."<table cellspacing=\"0\"><tr><td>&nbsp;</td><td align=\"left\">$I[nick]</td><td><input type=\"text\" name=\"name\" size=\"20\"></td><td>&nbsp;</td></tr>";
-		echo "<tr><td>&nbsp;</td><td align=\"left\">$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"20\"></td><td valign=\"bottom\">";
+		echo frmadm('regnew')."<table cellspacing=\"0\"><tr><td align=\"left\">$I[nick]</td><td><input type=\"text\" name=\"name\" size=\"20\"></td><td>&nbsp;</td></tr>";
+		echo "<tr><td align=\"left\">$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"20\"></td><td valign=\"bottom\">";
 		echo submit($I['register']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 	}
@@ -557,7 +538,7 @@ function send_sessions(){
 	if($C['trackip']) echo "<th><b>$I[sesip]</b></th>";
 	echo "<th><b>$I[actions]</b></th></tr></thead><tbody valign=\"middle\">";
 	foreach($lines as $temp){
-		if($temp['status']!=0 && $temp['entry']==0 && (!$temp['incognito'] || $temp['status']<$U['status'])){
+		if($temp['status']!=0 && $temp['entry']!=0 && (!$temp['incognito'] || $temp['status']<$U['status'])){
 			if($temp['status']==1 || $temp['status']==2) $s='&nbsp;(G)';
 			elseif($temp['status']==3) $s='';
 			elseif($temp['status']==5) $s='&nbsp;(M)';
@@ -675,7 +656,7 @@ function send_frameset(){
 	if(isSet($_COOKIE['test'])){
 		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	}else{
-		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$C[lang]\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&amp;session=$U[session]&amp;lang=$C[lang]\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&amp;session=$U[session]&amp;lang=$C[lang]\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
+		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$C[lang]\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$C[lang]\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$C[lang]\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	}
 	mysqli_close($mysqli);
 	exit;
@@ -686,14 +667,14 @@ function send_messages(){
 	if(isSet($_COOKIE[$C['cookiename']])){
 		$url="$_SERVER[SCRIPT_NAME]?action=view";
 	}else{
-		$url="$_SERVER[SCRIPT_NAME]?action=view&amp;session=$U[session]&amp;lang=$C[lang]";
+		$url="$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$C[lang]";
 	}
 	print_start('messages', $U['refresh'], $url);
 	echo '<a name="top"></a>';
 	print_chatters();
-	echo "<table cellspacing=\"0\" width=\"100%\"><tr><td valign=\"top\" align=\"right\"><a href=\"$url#bottom\">$I[bottom]</a></td></tr></table>";
+	echo "<table cellspacing=\"0\" width=\"100%\"><tr><td valign=\"top\" align=\"right\"><a href=\"#bottom\">$I[bottom]</a></td></tr></table>";
 	print_messages();
-	echo "<a name=\"bottom\"></a><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"right\"><a href=\"$url#top\">$I[top]</a></td></tr></table>";
+	echo "<a name=\"bottom\"></a><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"right\"><a href=\"#top\">$I[top]</a></td></tr></table>";
 	print_end();
 }
 
@@ -737,7 +718,7 @@ function send_approve_waiting(){
 	global $C, $H, $I, $mysqli;
 	print_start('approve_waiting');
 	echo "<center><h2>$I[waitingroom]</h2>";
-	$result=mysqli_query($mysqli, "SELECT * FROM `$C[prefix]sessions` WHERE `entry`!='0' AND `status`='1' ORDER BY `id`");
+	$result=mysqli_query($mysqli, "SELECT * FROM `$C[prefix]sessions` WHERE `entry`=='0' AND `status`='1' ORDER BY `id`");
 	if(mysqli_num_rows($result)>0){
 		echo frmadm('approve').'<table cellpadding="5">';
 		echo "<thead align=\"left\"><tr><th><b>$I[sessnick]</b></th><th><b>$I[sessua]</b></th></tr></thead><tbody align=\"left\" valign=\"middle\">";
@@ -757,7 +738,7 @@ function send_approve_waiting(){
 }
 
 function send_waiting_room(){
-	global $C, $H, $I, $U, $countmods, $mysqli;
+	global $C, $I, $U, $countmods, $mysqli;
 	parse_sessions();
 	$ga=get_setting('guestaccess');
 	if($ga==3 && $countmods>0) $wait=false;
@@ -770,15 +751,15 @@ function send_waiting_room(){
 		setcookie($C['cookiename'], false);
 		send_error("$I[kicked]<br>$U[kickmessage]");
 	}
-	$timeleft=get_setting('entrywait')-(time()-$U['entry']);
+	$timeleft=get_setting('entrywait')-(time()-$U['lastpost']);
 	if($wait && ($timeleft<=0 || $ga==1)){
-		$U['entry']=0;
-		$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`=? WHERE `session`=?");
-		mysqli_stmt_bind_param($stmt, 'is', $U['entry'], $U['session']);
+		$U['entry']=$U['lastpost'];
+		$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`=`lastpost` WHERE `session`=?");
+		mysqli_stmt_bind_param($stmt, 's', $U['session']);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 		send_frameset();
-	}elseif(!$wait && $U['entry']==0){
+	}elseif(!$wait && $U['entry']!=0){
 		send_frameset();
 	}else{
 		if(isSet($_COOKIE['test'])){
@@ -786,7 +767,7 @@ function send_waiting_room(){
 			print_start('waitingroom', $C['defaultrefresh'], "$_SERVER[SCRIPT_NAME]?action=wait");
 		}else{
 			header("Refresh: $C[defaultrefresh]; URL=$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]");
-			print_start('waitingroom', $C['defaultrefresh'], "$_SERVER[SCRIPT_NAME]?action=wait&amp;session=$U[session]&amp;lang=$C[lang]");
+			print_start('waitingroom', $C['defaultrefresh'], "$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&lang=$C[lang]");
 		}
 		if($wait){
 			echo "<center><h2>$I[waitingroom]</h2><p>".sprintf($I['waittext'], $U['displayname'], $timeleft).'</p><br><p>'.sprintf($I['waitreload'], $C['defaultrefresh']).'</p><br><br>';
@@ -794,7 +775,9 @@ function send_waiting_room(){
 			echo "<center><h2>$I[waitingroom]</h2><p>".sprintf($I['admwaittext'], $U['displayname']).'</p><br><p>'.sprintf($I['waitreload'], $C['defaultrefresh']).'</p><br><br>';
 		}
 		echo "<hr><form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\">".hidden('action', 'wait').hidden('session', $U['session']).hidden('lang', $C['lang']).submit($I['reload']).'</form><br>';
-		echo "<h2>$I[rules]</h2><b>".get_setting('rulestxt').'</b></center>';
+		$rulestxt=get_setting('rulestxt');
+		if(!empty($rulestxt)) echo "<h2>$I[rules]</h2><b>$rulestxt</b>";
+		echo '</center>';
 		print_end();
 	}
 }
@@ -808,11 +791,24 @@ function send_choose_messages(){
 	print_end();
 }
 
+function send_del_confirm(){
+	global $I;
+	print_start('del_confirm');
+	if(!isSet($_REQUEST['multi'])) $_REQUEST['multi']='';
+	if(!isSet($_REQUEST['sendto'])) $_REQUEST['sendto']='';
+	echo "<center><table cellspacing=\"0\"><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>";
+	echo frmpst('delete').hidden('sendto', $_REQUEST['sendto']).hidden('multi', $_REQUEST['multi']).hidden('confirm', 'yes').hidden('what', $_REQUEST['what']).submit($I['yes'], 'class="delbutton"').'</form></td><td>';
+	echo frmpst('post').hidden('sendto', $_REQUEST['sendto']).hidden('multi', $_REQUEST['multi']).submit($I['no'], 'class="backbutton"').'</form></td><tr></table></center>';
+	print_end();
+}
+
 function send_post(){
 	global $C, $I, $P, $U, $countmods;
 	$U['postid']=substr(time(), -6);
 	print_start('post');
-	echo '<center><table cellspacing="0"><tr><td align="center">'.frmpst('post').hidden('postid', $U['postid']).@hidden('multi', $_REQUEST['multi']);
+	if(!isSet($_REQUEST['multi'])) $_REQUEST['multi']='';
+	if(!isSet($_REQUEST['sendto'])) $_REQUEST['sendto']='';
+	echo '<center><table cellspacing="0"><tr><td align="center">'.frmpst('post').hidden('postid', $U['postid']).hidden('multi', $_REQUEST['multi']);
 	echo "<table cellspacing=\"0\"><tr><td valign=\"top\">$U[displayname]</td><td valign=\"top\">:</td>";
 	if(!isSet($U['rejected'])) $U['rejected']='';
 	if(isSet($_REQUEST['multi']) && $_REQUEST['multi']=='on'){
@@ -858,14 +854,14 @@ function send_post(){
 	}
 	echo '</td></tr></table></form></td></tr><tr><td height="8"></td></tr><tr><td align="center"><table cellspacing="0"><tr><td>';
 	echo frmpst('delete', 'last').submit($I['dellast'], 'class="delbutton"').'</form></td><td>'.frmpst('delete', 'all').submit($I['delall'], 'class="delbutton"').'</form></td><td width="10"></td><td>';
-	if(isSet($_REQUEST['multi']) && $_REQUEST['multi']=='on'){
+	if($_REQUEST['multi']=='on'){
 		$switch=$I['switchsingle'];
 		$multi='';
 	}else{
 		$switch=$I['switchmulti'];
 		$multi='on';
 	}
-	echo frmpst('post').@hidden('sendto', $_REQUEST['sendto']).hidden('multi', $multi).submit($switch).'</form></td>';
+	echo frmpst('post').hidden('sendto', $_REQUEST['sendto']).hidden('multi', $multi).submit($switch).'</form></td>';
 	echo '</tr></table></td></tr></table></center>';
 	print_end();
 }
@@ -873,7 +869,9 @@ function send_post(){
 function send_help(){
 	global $C, $H, $I, $U;
 	print_start('help');
-	echo "<h2>$I[rules]</h2>".get_setting('rulestxt')."<br><br><hr><h2>$I[help]</h2>$I[helpguest]";
+	$rulestxt=get_setting('rulestxt');
+	if(!empty($rulestxt)) echo "<h2>$I[rules]</h2>$rulestxt<br><br><hr>";
+	echo "<h2>$I[help]</h2>$I[helpguest]";
 	if($C['imgembed']) echo "<br>$I[helpembed]";
 	if($U['status']>=3){
 		echo "<br>$I[helpmem]<br>";
@@ -927,7 +925,7 @@ function send_profile($arg=''){
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[refreshrate]</b></td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td><input type=\"number\" name=\"refresh\" size=\"3\" maxlength=\"3\" min=\"5\" max=\"150\" value=\"$U[refresh]\"></td></tr></table></td></tr></table></td></tr>";
 	thr();
-	if(!isSet($_COOKIE[$C['cookiename']])) $session='&amp;session=$U[session]'; else $session='';
+	if(!isSet($_COOKIE[$C['cookiename']])) $session='&session=$U[session]'; else $session='';
 	echo "<tr><td><table cellspacing=\"0\" width=\"100%\"><tr><td align=\"left\"><b>$I[fontcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours$session\" target=\"view\">$I[viewexample]</a>)</td><td align=\"right\"><table cellspacing=\"0\">";
 	echo "<tr><td>&nbsp;</td><td><input type=\"text\" size=\"6\" maxlength=\"6\" pattern=\"[a-fA-F0-9]{6}\" value=\"$U[colour]\" name=\"colour\"></td></tr></table></td></tr></table></td></tr>";
 	thr();
@@ -1057,7 +1055,8 @@ function send_login(){
 		}
 		echo '<tr><td colspan="2" align="center">'.submit($I['enter']).'</td></tr></table></form>';
 		get_nowchatting();
-		echo "<h2>$I[rules]</h2><b>".get_setting('rulestxt').'</b><br>';
+		$rulestxt=get_setting('rulestxt');
+		if(!empty($rulestxt)) echo "<h2>$I[rules]</h2><b>$rulestxt</b><br>";
 	}else{
 		echo "<tr><td align=\"left\">$I[globalloginpass]</td><td align=\"right\"><input type=\"password\" name=\"globalpass\" size=\"15\"></td></tr>";
 		if($ga==0) echo "<tr><td colspan=\"2\" align=\"center\">$I[noguests]</td></tr>";
@@ -1082,7 +1081,7 @@ function print_chatters(){
 	global $C, $G, $I, $M, $U, $mysqli;
 	echo '<table cellspacing="0"><tr>';
 	if($U['status']>=5 && get_setting('guestaccess')==3){
-		$result=mysqli_query($mysqli, "SELECT COUNT(*) FROM `$C[prefix]sessions` WHERE `entry`!='0' AND `status`='1'");
+		$result=mysqli_query($mysqli, "SELECT COUNT(*) FROM `$C[prefix]sessions` WHERE `entry`='0' AND `status`='1'");
 		$temp=mysqli_fetch_array($result, MYSQLI_NUM);
 		if($temp[0]>0) echo '<td valign="top">'.frmadm('approve').submit(sprintf($I['approveguests'], $temp[0])).'</form></td><td>&nbsp;</td>';
 	}
@@ -1132,7 +1131,7 @@ function create_session($setup){
 			if(!mysqli_stmt_fetch($stmt)) send_error($I['captchaexpire']);
 			mysqli_stmt_close($stmt);
 		}else{
-			if(!$code=$memcached->get("$C[dbname]-$C[prefix]captcha-$_REQUEST[challenge]")) send_error($I['captchaexpire']);
+			if(!$code=$memcached->get("$C[dbname]-$C[prefix]captcha-$_REQUEST[challenge]")) send_error($I['captchexpire']);
 			$memcached->delete("$C[dbname]-$C[prefix]captcha-$_REQUEST[challenge]");
 		}
 		if($_REQUEST['captcha']!=$code) send_error($I['wrongcaptcha']);
@@ -1197,14 +1196,14 @@ function approve_session(){
 	global $C, $mysqli;
 	if(isSet($_REQUEST['what'])){
 		if($_REQUEST['what']=='allowchecked' && isSet($_REQUEST['csid'])){
-			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`='0' WHERE `nickname`=?");
+			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`=`lastpost` WHERE `nickname`=?");
 			foreach($_REQUEST['csid'] as $nick){
 				mysqli_stmt_bind_param($stmt, 's', $nick);
 				mysqli_stmt_execute($stmt);
 			}
 			mysqli_stmt_close($stmt);
 		}elseif($_REQUEST['what']=='allowall' && isSet($_REQUEST['alls'])){
-			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`='0' WHERE `nickname`=?");
+			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`=`lastpost` WHERE `nickname`=?");
 			foreach($_REQUEST['alls'] as $nick){
 				mysqli_stmt_bind_param($stmt, 's', $nick);
 				mysqli_stmt_execute($stmt);
@@ -1259,9 +1258,8 @@ function check_login(){
 	}
 	if($U['status']==1){
 		if($ga==2 || $ga==3){
-			$U['entry']=time();
-			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`=? WHERE `session`=?");
-			mysqli_stmt_bind_param($stmt, 'is', $U['entry'], $U['session']);
+			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `entry`='0' WHERE `session`=?");
+			mysqli_stmt_bind_param($stmt, 's', $U['session']);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 			$_REQUEST['session']=$U['session'];
@@ -1309,7 +1307,7 @@ function kick_chatter($names, $mes, $purge){
 			if(($temp['nickname']==$U['nickname'] && $U['nickname']==$name) || ($U['status']>$temp['status'] && (($temp['nickname']==$name && $temp['status']>0) || ($name=='&' && $temp['status']==1)))){
 				mysqli_stmt_bind_param($stmt, 'ss', $mes, $temp['session']);
 				mysqli_stmt_execute($stmt);
-				if($purge) del_all_messages($temp['nickname'], 10);
+				if($purge) del_all_messages($temp['nickname'], 10, 0);
 				$lonick.="$temp[displayname], ";
 				++$i;
 				unset($P[$name]);
@@ -1392,6 +1390,9 @@ function check_session(){
 		setcookie($C['cookiename'], false);
 		send_error("$I[kicked]<br>$U[kickmessage]");
 	}
+	if($U['entry']==0){
+		send_waiting_room();
+	}
 }
 
 function get_nowchatting(){
@@ -1429,7 +1430,7 @@ function parse_sessions(){
 	$lines=array();
 	$result=mysqli_query($mysqli, "SELECT * FROM `$C[prefix]sessions` ORDER BY `status` DESC, `lastpost` DESC");
 	while($line=mysqli_fetch_array($result, MYSQLI_ASSOC)) $lines[]=$line;
-	if(isSet($_REQUEST['session'])){
+	if(!empty($_REQUEST['session'])){
 		foreach($lines as $temp){
 			if($temp['session']==$_REQUEST['session']){
 				$U=$temp;
@@ -1443,7 +1444,7 @@ function parse_sessions(){
 	$M=array();
 	$P=array();
 	foreach($lines as $temp){
-		if($temp['entry']==0){
+		if($temp['entry']!=0){
 			if($temp['status']==1 || $temp['status']==2){
 				$P[$temp['nickname']]=[$temp['nickname'], $temp['status'], $temp['style']];
 				$G[]=$temp['displayname'];
@@ -1711,7 +1712,7 @@ function add_user_defaults(){
 	if(!isSet($U['embed'])) $U['embed']=$C['embed'];
 	if(!isSet($U['incognito'])) $U['incognito']=false;
 	if(!isSet($U['lastpost'])) $U['lastpost']=time();
-	if(!isSet($U['entry'])) $U['entry']=0;
+	if(!isSet($U['entry'])) $U['entry']=$U['lastpost'];
 	if(!isSet($U['postid'])) $U['postid']='OOOOOO';
 	if(!isSet($U['displayname'])) $U['displayname']=style_this($U['nickname'], $U['fontinfo']);
 }
@@ -1736,8 +1737,10 @@ function validate_input(){
 	$U['message']=preg_replace("/\n/", '<br>', $U['message']);
 	$U['message']=preg_replace("/\r/", '<br>', $U['message']);
 	if(isSet($_REQUEST['multi']) && $_REQUEST['multi']=='on'){
+		$U['message']=preg_replace('/\s*<br>/', '<br>', $U['message']);
 		$U['message']=preg_replace('/<br>(<br>)+/', '<br><br>', $U['message']);
-		$U['message']=preg_replace('/<br><br>$/', '<br>', $U['message']);
+		$U['message']=preg_replace('/<br><br>\s*$/', '<br>', $U['message']);
+		$U['message']=preg_replace('/^<br>\s*$/', '', $U['message']);
 	}else{
 		$U['message']=preg_replace('/<br>/', ' ', $U['message']);
 	}
@@ -1808,7 +1811,7 @@ function apply_filter(){
 	foreach($filters as $filter){
 		if($U['poststatus']!=9) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
 		elseif(!$filter['allowinpm']) $U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
-		if($count>0 && $filter['kick']){
+		if(isSet($count) && $count>0 && $filter['kick']){
 			kick_chatter(array($U['nickname']), '', false);
 			send_error("$I[kicked]");
 		}
@@ -1917,18 +1920,22 @@ function clean_selected(){
 	}
 }
 
-function del_all_messages($nick, $status){
-	global $C, $mysqli;
-	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `poster`=? AND `delstatus`<?");
-	mysqli_stmt_bind_param($stmt, 'si', $nick, $status);
+function del_all_messages($nick, $status, $entry){
+	global $C, $U, $mysqli;
+	if($nick==$U['nickname']) $status=10;
+	if($U['status']>1) $entry=0;
+	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `poster`=? AND `delstatus`<? AND `postdate`>?");
+	mysqli_stmt_bind_param($stmt, 'sii', $nick, $status, $entry);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 }
 
 function del_last_message(){
 	global $C, $U, $mysqli;
-	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `poster`=? ORDER BY `id` DESC LIMIT 1");
-	mysqli_stmt_bind_param($stmt, 's', $U['nickname']);
+	if($U['status']>1) $entry=0;
+	else $entry=$U['entry'];
+	$stmt=mysqli_prepare($mysqli, "DELETE FROM `$C[prefix]messages` WHERE `poster`=? AND `postdate`>? ORDER BY `id` DESC LIMIT 1");
+	mysqli_stmt_bind_param($stmt, 'si', $U['nickname'], $entry);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 }
@@ -2001,7 +2008,7 @@ function get_ignored(){
 
 function valid_admin(){
 	global $U;
-	if(isSet($_REQUEST['session'])){
+	if(!empty($_REQUEST['session'])){
 		check_session();
 	}
 	elseif(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
@@ -2123,9 +2130,8 @@ function style_this($text, $styleinfo){
 	return "$fstart$text$fend";
 }
 
-function init_chat(){
-	global $C, $H, $I, $memcached, $mysqli;
-	$suwrite='';
+function check_init(){
+	global $C, $memcached, $mysqli;
 	if(!$C['memcached'] || !$num_tables=$memcached->get("$C[dbname]-$C[prefix]num-tables")){
 		$tables=array("$C[prefix]captcha", "$C[prefix]filter", "$C[prefix]ignored", "$C[prefix]members", "$C[prefix]messages", "$C[prefix]notes", "$C[prefix]sessions", "$C[prefix]settings");
 		$num_tables=0;
@@ -2135,7 +2141,13 @@ function init_chat(){
 		}
 		if($C['memcached']) $memcached->set("$C[dbname]-$C[prefix]num-tables", $num_tables, 60);
 	}
-	if($num_tables>=7){
+	return $num_tables;
+}
+
+function init_chat(){
+	global $C, $H, $I, $mysqli;
+	$suwrite='';
+	if(check_init()>=7){
 		$suwrite=$I['initdbexist'];
 		$result=mysqli_query($mysqli, "SELECT * FROM `$C[prefix]members` WHERE `status`='8'");
 		if(mysqli_num_rows($result)>0){
@@ -2272,18 +2284,6 @@ function update_db(){
 	}
 }
 
-function update_messages(){
-	global $C;
-	update_setting('msgenter', $_REQUEST['msgenter']);
-	update_setting('msgexit', $_REQUEST['msgexit']);
-	update_setting('msgmemreg', $_REQUEST['msgmemreg']);
-	if($C['suguests']) update_setting('msgsureg', $_REQUEST['msgsureg']);
-	update_setting('msgkick', $_REQUEST['msgkick']);
-	update_setting('msgmultikick', $_REQUEST['msgmultikick']);
-	update_setting('msgallkick', $_REQUEST['msgallkick']);
-	update_setting('msgclean', $_REQUEST['msgclean']);
-}
-
 function get_setting($setting){
 	global $C, $memcached, $mysqli;
 	if(!$C['memcached'] || !$value=$memcached->get("$C[dbname]-$C[prefix]settings-$setting")){
@@ -2339,7 +2339,7 @@ function load_html(){
 	);
 	$H=$H+array(
 		'backtologin'	=>"<$H[form] target=\"_parent\">".hidden('lang', $C['lang']).submit($I['backtologin'], 'class="backbutton"').'</form>',
-		'backtochat'	=>"<$H[form]>".hidden('action', 'view').@hidden('session', $_REQUEST['session']).hidden('lang', $C['lang']).submit($I['backtochat'], 'class="backbutton"').'</form>'
+		'backtochat'	=>"<$H[form]>".hidden('action', 'view').hidden('session', $_REQUEST['session']).hidden('lang', $C['lang']).submit($I['backtochat'], 'class="backbutton"').'</form>'
 	);
 }
 
@@ -2378,7 +2378,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.11.1', // Script version
+		'version'	=>'1.11.2', // Script version
 		'dbversion'	=>10, // Database version
 		'colbg'		=>'000000', // Background colour
 		'coltxt'	=>'FFFFFF', // Default text colour

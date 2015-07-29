@@ -254,6 +254,9 @@ $I=array(
 	'captchatime' => 'Captcha timeout (seconds)',
 	'messageexpire' => 'Message timeout (minutes)',
 	'messagelimit' => 'Message limit (public)',
-	'maxmessage' => 'Maximum message length'
+	'maxmessage' => 'Maximum message length',
+	'confirm' => 'Are you sure?',
+	'yes' => 'Yes',
+	'no' => 'No'
 );
 ?>
