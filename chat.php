@@ -2465,7 +2465,7 @@ function update_db(){
 			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]linkfilter` ADD PRIMARY KEY (`id`)");
 			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]linkfilter` MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT");
 			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]sessions` DROP `fontinfo`, DROP `displayname`");
-			mysqli_query($mysqli, "ALTER TABLE `members` ADD `style` TEXT NOT NULL");
+			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]members` ADD `style` TEXT NOT NULL");
 			$result=mysqli_query($mysqli, "SELECT * FROM `$C[prefix]members`");
 			$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]members` SET `style`=? WHERE `id`=?");
 			while($temp=mysqli_fetch_array($result, MYSQLI_ASSOC)){
@@ -2474,7 +2474,7 @@ function update_db(){
 				mysqli_stmt_execute($stmt);
 			}
 			mysqli_stmt_close($stmt);
-			mysqli_query($mysqli, "ALTER TABLE `members` DROP `colour`, DROP `fontface`, DROP `fonttags`;");
+			mysqli_query($mysqli, "ALTER TABLE `$C[prefix]members` DROP `colour`, DROP `fontface`, DROP `fonttags`;");
 			mysqli_query($mysqli, "INSERT INTO `$C[prefix]settings` (`setting`, `value`) VALUES ('colbg', '000000'), ('coltxt', 'FFFFFF'), ('maxname', '20'), ('minpass', '5'), ('defaultrefresh', '20'), ('dismemcaptcha', '0'), ('suguests', '0'), ('imgembed', '1'), ('timestamps', '1'), ('trackip', '1'), ('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), ('memkick', '1'), ('forceredirect', '0'), ('redirect', ''), ('incognito', '1')");
 		}
 		if(get_setting('msgencrypted')!=$C['msgencrypted']){
@@ -2597,7 +2597,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.12', // Script version
+		'version'	=>'1.12.1', // Script version
 		'dbversion'	=>11, // Database version
 		'chatname'	=>'My Chat', // Chat Name
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
