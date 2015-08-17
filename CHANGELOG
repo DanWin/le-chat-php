@@ -1,3 +1,11 @@
+Version 1.12 - Aug. 17, 2015
+Almost all settings moved to setup
+Backup/restore for super admin
+Moderate and extreme captcha are more readable
+Simplified font styling
+Linkfilter to modify text of a link
+More simplifications and fixes
+
 Version 1.11.2 - Jul. 29, 2015
 Fix security vulnerability
 More simplifications
