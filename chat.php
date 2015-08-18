@@ -2337,7 +2337,7 @@ function check_init(){
 }
 
 function init_chat(){
-	global $C, $H, $I, $mysqli;
+	global $C, $H, $I, $memcached, $mysqli;
 	$suwrite='';
 	if(check_init()>=7){
 		$suwrite=$I['initdbexist'];
@@ -2380,6 +2380,7 @@ function init_chat(){
 						"ALTER TABLE `$C[prefix]settings` MODIFY `id` tinyint(3) unsigned NOT NULL AUTO_INCREMENT; ".
 						"INSERT INTO `$C[prefix]settings` (`setting`,`value`) VALUES ('guestaccess', '0'), ('globalpass', ''), ('englobalpass', '0'), ('captcha', '0'), ('dateformat', 'm-d H:i:s'), ('rulestxt', ''), ('msgencrypted', '0'), ('msgenter', '%s entered the chat.'), ('msgexit', '%s left the chat.'), ('msgmemreg', '%s is now a registered member.'), ('msgsureg', '%s is now a registered applicant.'), ('msgkick', '%s has been kicked.'), ('msgmultikick', '%s have been kicked.'), ('msgallkick', 'All chatters have been kicked.'), ('msgclean', '%s has been cleaned.'), ('dbversion', '$C[dbversion]'), ('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;}'), ('memberexpire', '60'), ('guestexpire', '15'), ('kickpenalty', '10'), ('entrywait', '120'), ('messageexpire', '14400'), ('messagelimit', '150'), ('maxmessage', 2000), ('captchatime', '600'), ('colbg', '000000'), ('coltxt', 'FFFFFF'), ('maxname', '20'), ('minpass', '5'), ('defaultrefresh', '20'), ('dismemcaptcha', '0'), ('suguests', '0'), ('imgembed', '1'), ('timestamps', '1'), ('trackip', '1'), ('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), ('memkick', '1'), ('forceredirect', '0'), ('redirect', ''), ('incognito', '1');");
 		while(mysqli_more_results($mysqli)) mysqli_next_result($mysqli);
+		if($C['memcached']) $memcached->delete("$C[dbname]-$C[prefix]num-tables");
 		$reg=array(
 			'nickname'	=>$_REQUEST['sunick'],
 			'passhash'	=>md5(sha1(md5($_REQUEST['sunick'].$_REQUEST['supass']))),
@@ -2582,7 +2583,8 @@ function load_lang(){
 	global $C, $I, $L;
 	$L=array(
 		'de'	=>'Deutsch',
-		'en'	=>'English'
+		'en'	=>'English',
+		'ru'	=>'Русский'
 	);
 	if(isSet($_REQUEST['lang']) && array_key_exists($_REQUEST['lang'], $L)){
 		$C['lang']=$_REQUEST['lang'];
@@ -2591,7 +2593,10 @@ function load_lang(){
 		$C['lang']=$_COOKIE['language'];
 	}
 	include('lang_en.php'); //always include English
-	if($C['lang']!=='en') include("lang_$C[lang].php"); //replace with translation if available
+	if($C['lang']!=='en'){
+		include("lang_$C[lang].php"); //replace with translation if available
+		foreach($T as $name=>$translation) $I[$name]=$translation;
+	}
 }
 
 function load_config(){

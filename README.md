@@ -25,7 +25,7 @@ Features:
 * Multi-line messages
 * Change font, colour and refresh rate in profile settings
 * Autologout when inactive for some time
-* Image and video embedding
+* Image embedding
 * Notes for admins and moderators
 * Clone the chat to have multiple tabs
 * Kick chatters

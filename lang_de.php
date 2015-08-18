@@ -18,7 +18,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-$I=array(
+$T=array(
 	'nodb' => 'Keine Verbindung zur Datenbank!',
 	'nodbsetup' => 'Keine Verbindung zur Datenbank, bitte erstelle eine Datenbank und bearbeite das Skript, um die korrekte Datenbank mit angegebenem Benutzernamen und Passwort zu benutzen.',
 	'changelang' => 'Sprache ändern:',
