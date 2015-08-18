@@ -2046,7 +2046,6 @@ function apply_filter(){
 
 function apply_linkfilter(){
 	global $C, $U, $memcached, $mysqli;
-	if(get_setting('imgembed')) $U['message']=preg_replace_callback('/\[img\]\s?<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/i', function ($matched){ return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\"><img src=\"$matched[1]\"></a><br>");}, $U['message']);
 	if($C['memcached']) $filters=$memcached->get("$C[dbname]-$C[prefix]linkfilter");
 	if(!$C['memcached'] || $memcached->getResultCode()!=Memcached::RES_SUCCESS){
 		$filters=array();
@@ -2058,12 +2057,13 @@ function apply_linkfilter(){
 		$U['message']=preg_replace_callback("/<a href=\"(.*?(?=\"))\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/i", function ($matched) use(&$filter){ return "<a href=\"$matched[1]\" target=\"_blank\">".preg_replace("/$filter[match]/i", $filter['replace'], $matched[2]).'</a>';}, $U['message']);
 	}
 	$redirect=get_setting('redirect');
+	if(get_setting('imgembed')) $U['message']=preg_replace_callback('/\[img\]\s?<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/i', function ($matched){ return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\"><img src=\"$matched[1]\"></a><br>");}, $U['message']);
 	if(empty($redirect)) $redirect="$_SERVER[SCRIPT_NAME]?action=redirect&url=";
-	if(get_setting('forceredirect')) $U['message']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched){ global $C; return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $U['message']);
+	if(get_setting('forceredirect')) $U['message']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched) use($redirect){ return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $U['message']);
 	elseif(preg_match_all('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', $U['message'], $matches)){
 		foreach($matches[1] as $match){
 			if(!preg_match('~^http(s)?://~', $match)){
-				$U['message']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched){ global $C; return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $U['message']);
+				$U['message']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched) use($redirect){ return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $U['message']);
 				break;
 			}
 		}
@@ -2203,7 +2203,7 @@ function print_messages($delstatus=''){
 		while(mysqli_stmt_fetch($stmt)){
 			if($C['msgencrypted']) $message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', $C['encryptkey'], 0, '1234567890123456');
 			if($injectRedirect){
-				$message['text']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched){ global $C; return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $message['text']);
+				$message['text']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched) use ($redirect){ return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $message['text']);
 			}
 			if($removeEmbed){
 				$message['text']=preg_replace_callback('/<img src="(.*?(?="))">/', function ($matched){ return $matched[1];}, $message['text']);
@@ -2224,7 +2224,7 @@ function print_messages($delstatus=''){
 		while(mysqli_stmt_fetch($stmt)){
 			if($C['msgencrypted']) $message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', $C['encryptkey'], 0, '1234567890123456');
 			if($injectRedirect){
-				$message['text']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched){ global $C; return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $message['text']);
+				$message['text']=preg_replace_callback('/<a href="(.*?(?="))" target="_blank">(.*?(?=<\/a>))<\/a>/', function ($matched) use($redirect) { return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";}, $message['text']);
 			}
 			if($removeEmbed){
 				$message['text']=preg_replace_callback('/<img src="(.*?(?="))">/', function ($matched){ return $matched[1];}, $message['text']);
@@ -2597,7 +2597,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.12.1', // Script version
+		'version'	=>'1.12.2', // Script version
 		'dbversion'	=>11, // Database version
 		'chatname'	=>'My Chat', // Chat Name
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
