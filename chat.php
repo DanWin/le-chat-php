@@ -1737,15 +1737,13 @@ function register_guest($status){
 	if(!isSet($P[$_REQUEST['name']])) send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
 	read_members();
 	if(isSet($A[$_REQUEST['name']])) send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
-	$stmt=mysqli_prepare($mysqli, "SELECT `session`, `nickname`, ``passhash`, `refresh`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`, `incognito` FROM `$C[prefix]sessions` WHERE `nickname`=? AND `status`='1'");
+	$stmt=mysqli_prepare($mysqli, "SELECT `session`, `nickname`, `passhash`, `refresh`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `timestamps`, `embed`, `incognito`, `style` FROM `$C[prefix]sessions` WHERE `nickname`=? AND `status`='1'");
 	mysqli_stmt_bind_param($stmt, 's', $_REQUEST['name']);
 	mysqli_stmt_execute($stmt);
-	mysqli_stmt_bind_result($stmt, $reg['session'], $reg['nickname'], $reg['passhash'], $reg['refresh'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
+	mysqli_stmt_bind_result($stmt, $reg['session'], $reg['nickname'], $reg['passhash'], $reg['refresh'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $reg['timestamps'], $reg['embed'], $reg['incognito'], $reg['style']);
 	if(mysqli_stmt_fetch($stmt)){
 		mysqli_stmt_close($stmt);
 		$reg['status']=$status;
-		if(preg_match('/#([a-f0-9]{6})/i', $reg['style'], $match)) $reg['colour']=$match[1];
-		else $reg['colour']=get_setting('coltxt');
 		$stmt=mysqli_prepare($mysqli, "UPDATE `$C[prefix]sessions` SET `status`=? WHERE `session`=?");
 		mysqli_stmt_bind_param($stmt, 'is', $reg['status'], $reg['session']);
 		mysqli_stmt_execute($stmt);
@@ -1754,8 +1752,8 @@ function register_guest($status){
 		mysqli_stmt_close($stmt);
 		send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
 	}
-	$stmt=mysqli_prepare($mysqli, "INSERT INTO `$C[prefix]members` (`nickname`, `passhash`, `status`, `refresh`, `colour`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-	mysqli_stmt_bind_param($stmt, 'ssiissiiiisiii', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['colour'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['incognito']);
+	$stmt=mysqli_prepare($mysqli, "INSERT INTO `$C[prefix]members` (`nickname`, `passhash`, `status`, `refresh`, `bgcolour`, `boxwidth`, `boxheight`, `notesboxwidth`, `notesboxheight`, `regedby`, `timestamps`, `embed`, `incognito`, `style`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+	mysqli_stmt_bind_param($stmt, 'ssiisiiiisiiis', $reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $reg['notesboxwidth'], $reg['notesboxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['incognito'], $reg['style']);
 	mysqli_stmt_execute($stmt);
 	mysqli_stmt_close($stmt);
 	if($C['memcached']) $memcached->delete("$C[dbname]-$C[prefix]members");
@@ -2602,7 +2600,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.12.2', // Script version
+		'version'	=>'1.12.3', // Script version
 		'dbversion'	=>11, // Database version
 		'chatname'	=>'My Chat', // Chat Name
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
