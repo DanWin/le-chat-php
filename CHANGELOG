@@ -1,3 +1,12 @@
+Version 1.13 - Sep. 15, 2015
+Switch from mysqli to PDO
+More optimizations
+Match case-insensitive @mention and also non-present members
+Added topic field
+Member password resetting by admins
+Note revisioning
+Added optional tiny JavaScript code to transfer less data with JavaScript enabled browsers
+
 Version 1.12.3 - Aug. 18, 2015
 Fix member registration
 

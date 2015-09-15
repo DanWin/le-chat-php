@@ -13,7 +13,7 @@ Features:
 ---------
 
 * Optimized for TOR
-* No JavaScript
+* No JavaScript needed
 * Cookies supported, but not needed
 * Captcha
 * Multiple languages
@@ -39,6 +39,7 @@ Installation Instructions:
 --------------------------
 
 You'll need to have mysql, php and a web-server installed. For the captcha feature, you also need php5-gd.
+If you want to make the script even faster, install a memcached server and php5-memcached and change the configuaration to use memcached. This will lessen the database load.
 When you have everything installed, you'll have to create a database and a user for the chat in mysql.
 Then edit the configuration at the bottom of the script to reflect the appropriate database settings and to modify the chat settings the way you like them.
 Then copy the script to your web-server directory and call the script in your browser with a parameter like this:
@@ -51,7 +52,7 @@ Translating:
 ------------
 
 Copy lang_en.php and rename it to lang_YOUR_LANGCODE.php
-Then edit the file and translate the messages into your language.
+Then edit the file and translate the messages into your language and change $I to $T at the top.
 If you ever use a ' character, you have to escape it by using \' instead or the script will fail.
 When you are done, you have to edit the chat script, to include your translation. Simply add a line with
 		'lang_code'	=>'Language name',
