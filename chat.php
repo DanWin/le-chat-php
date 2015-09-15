@@ -168,7 +168,7 @@ if(!isSet($_REQUEST['action'])){
 	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes');
 	$C['textarea_settings']=array('rulestxt', 'css');
 	$C['text_settings']=array('dateformat', 'captchachars', 'redirect', 'chatname');
-	$C['settings']=array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic')+$C['bool_settings']+$C['colour_settings']+$C['msg_settings']+$C['number_settings']+$C['text_settings']; // All settings in the database
+	$C['settings']=array_merge(array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic'), $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
 	if(empty($_REQUEST['do'])){
 	}elseif($_REQUEST['do']=='save'){
 		foreach($C['msg_settings'] as $setting) $_REQUEST[$setting]=htmlspecialchars($_REQUEST[$setting]);
@@ -2525,7 +2525,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.13', // Script version
+		'version'	=>'1.13.1', // Script version
 		'dbversion'	=>12, // Database version
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
 		'msgencrypted'	=>false, // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!

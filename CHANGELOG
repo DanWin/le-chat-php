@@ -1,3 +1,6 @@
+Version 1.13.1 - Sep. 15, 2015
+Fix saving some setup settings
+
 Version 1.13 - Sep. 15, 2015
 Switch from mysqli to PDO
 More optimizations
