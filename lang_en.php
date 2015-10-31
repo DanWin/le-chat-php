@@ -20,8 +20,8 @@
 
 //Language: English
 $I=array(
-	'nodb' => 'No Connection to Database!',
-	'nodbsetup' => 'No Connection to Database, please create a database and edit the script to use the correct database with given username and password!',
+	'nodb' => 'No connection to database!',
+	'nodbsetup' => 'No connection to database, please create a database and edit the script to use the correct database with given username and password!',
 	'changelang' => 'Change language:',
 	'expire' => 'Invalid/expired session',
 	'kicked' => 'Kicked!',
@@ -280,8 +280,7 @@ $I=array(
 	'chatname' => 'Chat name',
 	'destroy' => 'Destroy chat',
 	'destroyed' => 'Successfully destroyed chat',
-	'topic' => 'Topic: %s',
-	'admtopic' => 'Topic',
+	'topic' => 'Topic',
 	'passreset' => 'Reset password',
 	'cantresetpass' => 'Can\'t reset password',
 	'succpassreset' => 'Successfully reset password',

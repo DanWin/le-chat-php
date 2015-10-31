@@ -1,3 +1,9 @@
+Version 1.14 - Oct. 30, 2015
+Added support for sqlite and PostgreSQL database engines
+Replaced deprecated HTML with CSS for HTML5 compatibility
+Show Topic on login and don't prepend "Topic:"
+More optimizations and fixes
+
 Version 1.13.1 - Sep. 15, 2015
 Fix saving some setup settings
 
