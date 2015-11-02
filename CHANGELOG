@@ -1,4 +1,8 @@
-Version 1.14 - Oct. 30, 2015
+Version 1.14.1 - Nov. 2, 2015
+Ignore possible deadlock warning
+Only display the let users in button when there are guests waiting to be let in
+Fix filter and ignore feature if they have multiple values
+
 Added support for sqlite and PostgreSQL database engines
 Replaced deprecated HTML with CSS for HTML5 compatibility
 Show Topic on login and don't prepend "Topic:"

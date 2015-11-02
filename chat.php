@@ -522,17 +522,13 @@ function send_backup(){
 		}
 		if(isSet($_REQUEST['filter'])){
 			$result=$db->query("SELECT filtermatch, filterreplace, allowinpm, regex, kick FROM $C[prefix]filter;");
-			$result->bindColumn(1, $filter['match']);
-			$result->bindColumn(2, $filter['replace']);
-			$result->bindColumn(3, $filter['allowinpm']);
-			$result->bindColumn(4, $filter['regex']);
-			$result->bindColumn(5, $filter['kick']);
-			while($result->fetch(PDO::FETCH_BOUND)) $code['filters'][]=$filter;
+			while($filter=$result->fetch(PDO::FETCH_ASSOC)){
+				$code['filters'][]=array('match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick']);
+			}
 			$result=$db->query("SELECT filtermatch, filterreplace, regex FROM $C[prefix]linkfilter;");
-			$result->bindColumn(1, $filter['match']);
-			$result->bindColumn(2, $filter['replace']);
-			$result->bindColumn(3, $filter['regex']);
-			while($result->fetch(PDO::FETCH_BOUND)) $code['linkfilters'][]=$filter;
+			while($filter=$result->fetch(PDO::FETCH_ASSOC)){
+				$code['linkfilters'][]=array('match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
+			}
 		}
 		if(isSet($_REQUEST['members'])){
 			$result=$db->query("SELECT nickname, passhash, status, refresh, bgcolour, boxwidth, boxheight, notesboxwidth, notesboxheight, regedby, lastlogin, timestamps, embed, incognito, style FROM $C[prefix]members;");
@@ -863,13 +859,9 @@ function send_filter($arg=''){
 	if(!$C['memcached'] || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
 		$filters=array();
 		$result=$db->query("SELECT id, filtermatch, filterreplace, allowinpm, regex, kick FROM $C[prefix]filter;");
-		$result->bindColumn(1, $filter['id']);
-		$result->bindColumn(2, $filter['match']);
-		$result->bindColumn(3, $filter['replace']);
-		$result->bindColumn(4, $filter['allowinpm']);
-		$result->bindColumn(5, $filter['regex']);
-		$result->bindColumn(6, $filter['kick']);
-		while($result->fetch(PDO::FETCH_BOUND)) $filters[]=$filter;
+		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
+			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick']);
+		}
 		if($C['memcached']) $memcached->set("$C[dbname]-$C[prefix]filter", $filters);
 	}
 	foreach($filters as $filter){
@@ -921,11 +913,9 @@ function send_linkfilter($arg=''){
 	if(!$C['memcached'] || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
 		$filters=array();
 		$result=$db->query("SELECT id, filtermatch, filterreplace, regex FROM $C[prefix]linkfilter;");
-		$result->bindColumn(1, $filter['id']);
-		$result->bindColumn(2, $filter['match']);
-		$result->bindColumn(3, $filter['replace']);
-		$result->bindColumn(4, $filter['regex']);
-		while($result->fetch(PDO::FETCH_BOUND)) $filters[]=$filter;
+		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
+			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
+		}
 		if($C['memcached']) $memcached->set("$C[dbname]-$C[prefix]linkfilter", $filters);
 	}
 	foreach($filters as $filter){
@@ -1450,9 +1440,11 @@ function print_chatters(){
 	if($U['status']>=5 && get_setting('guestaccess')==3){
 		$result=$db->query("SELECT COUNT(*) FROM $C[prefix]sessions WHERE entry=0 AND status=1;");
 		$temp=$result->fetch(PDO::FETCH_NUM);
-		if($temp[0]>0) echo '<td>';
-		frmadm('approve');
-		echo submit(sprintf($I['approveguests'], $temp[0])).'</form></td><td>&nbsp;</td>';
+		if($temp[0]>0){
+			echo '<td>';
+			frmadm('approve');
+			echo submit(sprintf($I['approveguests'], $temp[0])).'</form></td><td>&nbsp;</td>';
+		}
 	}
 	foreach($P as $user){
 		if($user[2]<=2){
@@ -2068,13 +2060,9 @@ function apply_filter(){
 	if(!$C['memcached'] || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
 		$filters=array();
 		$result=$db->query("SELECT id, filtermatch, filterreplace, allowinpm, regex, kick FROM $C[prefix]filter;");
-		$result->bindColumn(1, $filter['id']);
-		$result->bindColumn(2, $filter['match']);
-		$result->bindColumn(3, $filter['replace']);
-		$result->bindColumn(4, $filter['allowinpm']);
-		$result->bindColumn(5, $filter['regex']);
-		$result->bindColumn(6, $filter['kick']);
-		while($result->fetch(PDO::FETCH_BOUND)) $filters[]=$filter;
+		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
+			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick']);
+		}
 		if($C['memcached']) $memcached->set("$C[dbname]-$C[prefix]filter", $filters);
 	}
 	foreach($filters as $filter){
@@ -2093,11 +2081,9 @@ function apply_linkfilter(){
 	if(!$C['memcached'] || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
 		$filters=array();
 		$result=$db->query("SELECT id, filtermatch, filterreplace, regex FROM $C[prefix]linkfilter;");
-		$result->bindColumn(1, $filter['id']);
-		$result->bindColumn(2, $filter['match']);
-		$result->bindColumn(3, $filter['replace']);
-		$result->bindColumn(4, $filter['regex']);
-		while($result->fetch(PDO::FETCH_BOUND)) $filters[]=$filter;
+		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
+			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
+		}
 		if($C['memcached']) $memcached->set("$C[dbname]-$C[prefix]linkfilter", $filters);
 	}
 	foreach($filters as $filter){
@@ -2226,8 +2212,8 @@ function print_messages($delstatus=''){
 	if(get_setting('imgembed') && (!$U['embed'] || !isSet($_COOKIE[$C['cookiename']]))) $removeEmbed=true; else $removeEmbed=false;
 	if($U['timestamps'] && !empty($dateformat)) $timestamps=true; else $timestamps=false;
 	$expire=time()-60*get_setting('messageexpire');
-	$stmt=$db->prepare("DELETE FROM $C[prefix]messages WHERE postdate<?;");
-	$stmt->execute(array($expire));
+	// ignore possible deadlock warning
+	@$db->exec("DELETE FROM $C[prefix]messages WHERE postdate<$expire;");
 	if(!empty($delstatus)){
 		$stmt=$db->prepare("SELECT postdate, id, text FROM $C[prefix]messages WHERE ".
 		"id IN (SELECT * FROM (SELECT id FROM $C[prefix]messages WHERE poststatus=1 ORDER BY id DESC LIMIT $messagelimit) AS t) ".
@@ -2277,9 +2263,9 @@ function get_ignored(){
 	if(!$C['memcached'] || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
 		$ignored=array();
 		$result=$db->query("SELECT ign, ignby FROM $C[prefix]ignored;");
-		$result->bindColumn(1, $tmp['ignored']);
-		$result->bindColumn(2, $tmp['by']);
-		while($result->fetch(PDO::FETCH_BOUND)) $ignored[]=$tmp;
+		while($tmp=$result->fetch(PDO::FETCH_ASSOC)){
+			$ignored[]=array('ignored'=>$tmp['ign'], 'by'=>$tmp['ignby']);
+		}
 		if($C['memcached']) $memcached->set("$C[dbname]-$C[prefix]ignored", $ignored);
 	}
 	return $ignored;
@@ -2694,7 +2680,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.14', // Script version
+		'version'	=>'1.14.1', // Script version
 		'dbversion'	=>13, // Database version
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
 		'msgencrypted'	=>false, // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
