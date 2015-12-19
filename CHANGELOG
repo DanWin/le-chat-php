@@ -1,3 +1,6 @@
+Version 1.15.1 - Dec. 19, 2015
+Fix XSS vulnerability in change nickname + make it available for registered users only
+
 Version 1.15 - Dec. 17, 2015
 Made code reading easier for newbies
 Removed inefficient memcached caching of members and ignored

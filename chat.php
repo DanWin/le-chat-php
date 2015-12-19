@@ -1721,13 +1721,13 @@ function send_profile($arg=''){
 		echo "<tr><td>&nbsp;</td><td>$I[confirmpass]</td><td><input type=\"password\" name=\"confirmpass\" size=\"20\"></td></tr>";
 		echo '</table></td></tr></table></td></tr>';
 		thr();
+		echo "<tr><td><table style=\"width:100%;text-align:left;\"><tr><th>$I[changenickname]</th></tr>";
+		echo '<tr><td><table style="border-spacing:0px;margin-left:auto;">';
+		echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\"></td></tr>";
+		echo "<tr><td>&nbsp;</td><td>$I[newpass]</td><td><input type=\"password\" name=\"new_pass\" size=\"20\"></td></tr>";
+		echo '</table></td></tr></table></td></tr>';
+		thr();
 	}
-	echo "<tr><td><table style=\"width:100%;text-align:left;\"><tr><th>$I[changenickname]</th></tr>";
-	echo '<tr><td><table style="border-spacing:0px;margin-left:auto;">';
-	echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\"></td></tr>";
-	echo "<tr><td>&nbsp;</td><td>$I[newpass]</td><td><input type=\"password\" name=\"new_pass\" size=\"20\"></td></tr>";
-	echo '</table></td></tr></table></td></tr>';
-	thr();
 	echo '<tr><td>'.submit($I['savechanges'])."</td></tr></table></form><br>$H[backtochat]</div>";
 	print_end();
 }
@@ -2432,7 +2432,7 @@ function save_profile(){
 		$stmt=$db->prepare("INSERT INTO $C[prefix]ignored (ign, ignby) VALUES (?, ?);");
 		$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
 	}
-	if(!empty($_REQUEST['newnickname'])){
+	if($U['status']>1 && !empty($_REQUEST['newnickname'])){
 		set_new_nickname();
 	}
 	if(!empty($_REQUEST['newpass']) && !valid_pass($_REQUEST['newpass'])){
@@ -2445,6 +2445,9 @@ function set_new_nickname(){
 	global $C, $I, $U, $db;
 	if(!isSet($_REQUEST['new_pass']) || !valid_pass($_REQUEST['new_pass'])){
 		send_profile(sprintf($I['nopass'], get_setting('minpass')));
+	}
+	if(!valid_nick($_REQUEST['newnickname'])){
+		send_profile(sprintf($I['invalnick'], get_setting('maxname')));
 	}
 	$U['passhash']=md5(sha1(md5($_REQUEST['newnickname'].$_REQUEST['new_pass'])));
 	$stmt=$db->prepare("SELECT id FROM $C[prefix]sessions WHERE nickname=? UNION SELECT id FROM $C[prefix]members WHERE nickname=?;");
@@ -3369,7 +3372,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.15', // Script version
+		'version'	=>'1.15.1', // Script version
 		'dbversion'	=>14, // Database version
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
 		'msgencrypted'	=>false, // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
