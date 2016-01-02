@@ -3352,6 +3352,7 @@ function load_lang(){
 	$L=array(
 		'de'	=>'Deutsch',
 		'en'	=>'English',
+		'id'	=>'Bahasa Indonesia',
 		'ru'	=>'Русский'
 	);
 	if(isSet($_REQUEST['lang']) && array_key_exists($_REQUEST['lang'], $L)){
