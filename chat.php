@@ -2175,7 +2175,7 @@ function parse_sessions(){
 	$countmods=0;
 	$P=array();
 	foreach($lines as $temp){
-		if($temp['entry']!=0){
+		if($temp['entry']!=0 && $temp['status']>0){
 			if(!$temp['incognito']){
 				$P[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
 			}
@@ -2826,8 +2826,7 @@ function print_messages($delstatus=''){
 		$timestamps=false;
 	}
 	$expire=time()-60*get_setting('messageexpire');
-	// ignore possible deadlock warning
-	@$db->exec("DELETE FROM $C[prefix]messages WHERE postdate<$expire;");
+	$db->exec("DELETE FROM $C[prefix]messages WHERE id IN (SELECT * FROM (SELECT id FROM $C[prefix]messages WHERE postdate<$expire) AS t);");
 	if(!empty($delstatus)){
 		$stmt=$db->prepare("SELECT postdate, id, text FROM $C[prefix]messages WHERE ".
 		"id IN (SELECT * FROM (SELECT id FROM $C[prefix]messages WHERE poststatus=1 ORDER BY id DESC LIMIT $messagelimit) AS t) ".
@@ -3373,7 +3372,7 @@ function load_lang(){
 function load_config(){
 	global $C;
 	$C=array(
-		'version'	=>'1.15.1', // Script version
+		'version'	=>'1.15.2', // Script version
 		'dbversion'	=>14, // Database version
 		'keeplimit'	=>3, // Amount of messages to keep in the database (multiplied with max messages displayed) - increase if you have many private messages
 		'msgencrypted'	=>false, // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
