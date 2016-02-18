@@ -1,3 +1,10 @@
+Added 2 Spanish translations.
+
+Version 1.15.2 - Jan. 26, 2016
+Don't display kicked people
+Fix deadlock warning
+Added indonesian translation
+
 Version 1.15.1 - Dec. 19, 2015
 Fix XSS vulnerability in change nickname + make it available for registered users only
 
@@ -112,4 +119,3 @@ Added ignore feature
 
 Version 1.0 - Mar. 31, 2015
 Initial release
-

@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - Main program
 *
-* Copyright (C) 2015 Daniel Winzen <d@winzen4.de>
+* Copyright (C) 2015-2016 Daniel Winzen <d@winzen4.de>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -3351,6 +3351,8 @@ function load_lang(){
 	$L=array(
 		'de'	=>'Deutsch',
 		'en'	=>'English',
+		'es_AR'	=>'Español (Argentina)',
+		'es_ES'	=>'Español (España)',
 		'id'	=>'Bahasa Indonesia',
 		'ru'	=>'Русский'
 	);
