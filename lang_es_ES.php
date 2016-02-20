@@ -18,8 +18,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Language: Español (España)
-$I=array(
+//Native language name: Español (España)
+$T=array(
 	'nodb' => '¡Sin conexión a la base de datos!',
 	'nodbsetup' => '¡No pudo conectarse a la base de datos! Por favor crea la base de datos y edita el script para usarla con el nombre de usuario y clave dados.',
 	'changelang' => 'Cambiar idioma:',

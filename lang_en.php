@@ -18,7 +18,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Language: English
+//Native language name: English
 $I=array(
 	'nodb' => 'No connection to database!',
 	'nodbsetup' => 'No connection to database, please create a database and edit the script to use the correct database with given username and password!',

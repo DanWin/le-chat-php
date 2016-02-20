@@ -18,7 +18,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Language: Bahasa Indonesia
+//Native language name: Bahasa Indonesia
 $T=array(
 	'nodb' => 'Tak ada sambungan ke basisdata!',
 	'nodbsetup' => 'Tak ada sambungan ke basisdata, silahkan buat basisdata dan sunting skrip ini agar menggunakan basisdata yang benar dengan nama pengguna dan kata sandi yang telah diberikan!',

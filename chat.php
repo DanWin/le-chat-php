@@ -3353,6 +3353,7 @@ function load_lang(){
 		'en'	=>'English',
 		'es_AR'	=>'Español (Argentina)',
 		'es_ES'	=>'Español (España)',
+		'fr'	=>'Français',
 		'id'	=>'Bahasa Indonesia',
 		'ru'	=>'Русский'
 	);

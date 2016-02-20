@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - French translation
 *
-* Copyright (C) 2015-2016 
+* Copyright (C) 2015-2016
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,11 @@
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Language: French
-$I=array(
-	'nodb' => 'Pas de connexion à la base de données! ',
-	'nodbsetup' => 'Pas de connexion à la base de données, s'il vous plaît de créer une base de données et modifier le script pour utiliser la base de données correcte avec nom d'utilisateur et mot de passe donné!',
+
+//Native language name: Français
+$T=array(
+	'nodb' => 'Pas de connexion à la base de données!',
+	'nodbsetup' => 'Pas de connexion à la base de données, s\'il vous plaît de créer une base de données et modifier le script pour utiliser la base de données correcte avec nom d\'utilisateur et mot de passe donné!',
 	'changelang' => 'Changer langue:',
 	'expire' => 'Invalide/expiree session',
 	'kicked' => 'Banni!',
@@ -95,7 +96,7 @@ $I=array(
 	'apply' => 'Apply',
 	'newfilter' => 'New filter:',
 	'add' => 'Add',
-	'noframes' => 'Ce chat utlise <b>frames</b>. S'il vous plaît aautorisé ces fenêtres dans votre navigateur! !',
+	'noframes' => 'Ce chat utlise <b>frames</b>. S\'il vous plaît aautorisé ces fenêtres dans votre navigateur! !',
 	'delselmes' => 'Delete selected messages',
 	'staffnotes' => 'Staff notes',
 	'adminnotes' => 'Admin notes',
