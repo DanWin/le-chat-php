@@ -1,3 +1,5 @@
+Version 1.15.3 - Mar. 6, 2016
+Allow using html tags in linkfilter without breaking dereferrer or image embed
 Added French translation
 Added 2 Spanish translations.
 
