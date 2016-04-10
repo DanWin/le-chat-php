@@ -254,6 +254,7 @@ $T=array(
 	'captchatime' => 'Captcha-Ablaufzeit (Sekunden)',
 	'messageexpire' => 'Nachrichten-Ablaufzeit (Minuten)',
 	'messagelimit' => 'Nachrichtenlimit (öffentliche)',
+	'keeplimit' => 'So viele Male zusätzliche Nachrichten behalten (PMs und Mitgliederchat)',
 	'maxmessage' => 'Maximale Nachrichenlänge',
 	'confirm' => 'Bist du sicher?',
 	'yes' => 'Ja',
@@ -319,5 +320,8 @@ $T=array(
 	'pdo_pgsqlextrequired' => 'Die pdo_pgsql Erweiterung von PHP wird für den ausgewählten Datenbanktreiber benötigt. Bitte installieren Sie diese zuerst.',
 	'pdo_sqliteextrequired' => 'Die pdo_sqlite Erweiterung von PHP wird für den ausgewählten Datenbanktreiber benötigt. Bitte installieren Sie diese zuerst.',
 	'jsonextrequired' => 'Für diese Funktion wird die json Erweiterung von PHP benötigt. Bitte installieren Sie diese zuerst.',
+	'sendmail' => 'E-Mail bei neuer Nachricht senden',
+	'mailsender' => 'E-Mail mit dieser Adresse versenden',
+	'mailreceiver' => 'E-Mail and diese Adresse senden'
 );
 ?>

@@ -254,6 +254,7 @@ $I=array(
 	'captchatime' => 'Captcha timeout (seconds)',
 	'messageexpire' => 'Message timeout (minutes)',
 	'messagelimit' => 'Message limit (public)',
+	'keeplimit' => 'Keep this times additional messages (PMs and Member chat)',
 	'maxmessage' => 'Maximal message length',
 	'confirm' => 'Are you sure?',
 	'yes' => 'Yes',
@@ -318,6 +319,9 @@ $I=array(
 	'pdo_mysqlextrequired' => 'The pdo_mysql extension of PHP is required for the selected database driver. Please install it first.',
 	'pdo_pgsqlextrequired' => 'The pdo_pgsql extension of PHP is required for the selected database driver. Please install it first.',
 	'pdo_sqliteextrequired' => 'The pdo_sqlite extension of PHP is required for the selected database driver. Please install it first.',
-	'jsonextrequired' => 'The json extension of PHP is required for this feature. Please install it first.'
+	'jsonextrequired' => 'The json extension of PHP is required for this feature. Please install it first.',
+	'sendmail' => 'Send mail on new public message',
+	'mailsender' => 'Send mail using this address',
+	'mailreceiver' => 'Send mail to this address'
 );
 ?>
