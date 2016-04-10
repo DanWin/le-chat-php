@@ -311,6 +311,13 @@ $T=array(
 	'changenickname' => 'Nickname ändern',
 	'newnickname' => 'Neuer Nickname:',
 	'nicknametaken' => 'Nickname ist bereits vergeben',
-	'nopass' => 'Ungültiges Passwort (Mindestens %d Zeichen), Nickname nicht geändert'
+	'nopass' => 'Ungültiges Passwort (Mindestens %d Zeichen), Nickname nicht geändert',
+	'gdextrequired' => 'Für diese Funktion wird die gd Erweiterung von PHP benötigt. Bitte installieren Sie diese zuerst.',
+	'memcachedextrequired' => 'Die memcached Erweiterung von PHP wird benötigt, um die Cache-Funktion zu benutzen. Bitte installieren Sie diese zuerst oder setzen Sie die memcached Einstellung zurück auf false.',
+	'opensslextrequired' => 'Die openssl Erweiterung von PHP wird benötigt, um die Verschlüsselungs-Funktion zu benutzen. Bitte installieren Sie diese zuerst oder setzen Sie die encrypted Einstellung zurück auf false.',
+	'pdo_mysqlextrequired' => 'Die pdo_mysql Erweiterung von PHP wird für den ausgewählten Datenbanktreiber benötigt. Bitte installieren Sie diese zuerst.',
+	'pdo_pgsqlextrequired' => 'Die pdo_pgsql Erweiterung von PHP wird für den ausgewählten Datenbanktreiber benötigt. Bitte installieren Sie diese zuerst.',
+	'pdo_sqliteextrequired' => 'Die pdo_sqlite Erweiterung von PHP wird für den ausgewählten Datenbanktreiber benötigt. Bitte installieren Sie diese zuerst.',
+	'jsonextrequired' => 'Für diese Funktion wird die json Erweiterung von PHP benötigt. Bitte installieren Sie diese zuerst.',
 );
 ?>

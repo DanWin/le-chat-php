@@ -1,21 +1,3 @@
-LE CHAT-PHP - a PHP Chat based on LE CHAT
-
-Copyright (C) 2015-2016 Daniel Winzen <d@winzen4.de>
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
 GENERAL INFORMATION:
 
 This is a PHP Chat based on LE CHAT v.1.14. An up-to-date copy of this script can be downloaded at https://github.com/DanWin/le-chat-php
@@ -53,8 +35,14 @@ And more
 
 INSTALLATION INSTRUCTIONS:
 
-You'll need to have mysql, php and a web-server installed. For the captcha feature, you also need php5-gd.
-If you want to make the script even faster, install a memcached server and php5-memcached and change the configuaration to use memcached. This will lessen the database load.
+You'll need to have php with pdo, pcre and date extension and a web-server installed.
+You will also need the pdo_sqlite, pdo_mysql or pdo_pgsql extension, depending on which database you choose.
+Optionally, you can install:
+- the gd extension for the captcha feature
+- the json extension for save/restore and a JavaScript helper for clients with enabled JavaScript.
+- a memcached server and the memcached extension and change the configuaration to use memcached. This will lessen the database load a bit.
+- a MySQL or PostgreSQL server to use as an external database instead of SQLite
+- the openssl extension for encryption of messages and notes in the database
 When you have everything installed, you'll have to create a database and a user for the chat in mysql.
 Then edit the configuration at the bottom of the script to reflect the appropriate database settings and to modify the chat settings the way you like them.
 Then copy the script to your web-server directory and call the script in your browser with a parameter like this:

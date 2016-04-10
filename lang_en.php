@@ -311,6 +311,13 @@ $I=array(
 	'changenickname' => 'Change nickname',
 	'newnickname' => 'New nickname:',
 	'nicknametaken' => 'Nickname is already taken',
-	'nopass' => 'Invalid password (At least %d characters), not changing nickname'
+	'nopass' => 'Invalid password (At least %d characters), not changing nickname',
+	'gdextrequired' => 'The gd extension of PHP is required for this feature. Please install it first.',
+	'memcachedextrequired' => 'The memcached extension of PHP is required for the caching feature. Please install it first or set the memcached setting back to false.',
+	'opensslextrequired' => 'The openssl extension of PHP is required for the encryption feature. Please install it first or set the encrypted setting back to false.',
+	'pdo_mysqlextrequired' => 'The pdo_mysql extension of PHP is required for the selected database driver. Please install it first.',
+	'pdo_pgsqlextrequired' => 'The pdo_pgsql extension of PHP is required for the selected database driver. Please install it first.',
+	'pdo_sqliteextrequired' => 'The pdo_sqlite extension of PHP is required for the selected database driver. Please install it first.',
+	'jsonextrequired' => 'The json extension of PHP is required for this feature. Please install it first.'
 );
 ?>

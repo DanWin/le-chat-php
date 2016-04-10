@@ -1,3 +1,8 @@
+Use constants for configuration
+Simplify extreme captcha code generation
+Add language setting to profile
+Add checks for required extensions
+
 Version 1.15.3 - Mar. 6, 2016
 Allow using html tags in linkfilter without breaking dereferrer or image embed
 Added French translation

@@ -38,8 +38,14 @@ Features:
 Installation Instructions:
 --------------------------
 
-You'll need to have mysql, php and a web-server installed. For the captcha feature, you also need php5-gd.
-If you want to make the script even faster, install a memcached server and php5-memcached and change the configuaration to use memcached. This will lessen the database load.
+You'll need to have php with pdo, pcre and date extension and a web-server installed.
+You will also need the pdo_sqlite, pdo_mysql or pdo_pgsql extension, depending on which database you choose.
+Optionally, you can install:
+- the gd extension for the captcha feature
+- the json extension for save/restore and a JavaScript helper for clients with enabled JavaScript.
+- a memcached server and the memcached extension and change the configuaration to use memcached. This will lessen the database load a bit.
+- a MySQL or PostgreSQL server to use as an external database instead of SQLite
+- the openssl extension for encryption of messages and notes in the database
 When you have everything installed, you'll have to create a database and a user for the chat in mysql.
 Then edit the configuration at the bottom of the script to reflect the appropriate database settings and to modify the chat settings the way you like them.
 Then copy the script to your web-server directory and call the script in your browser with a parameter like this:
