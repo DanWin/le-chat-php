@@ -3240,7 +3240,7 @@ function update_db(){
 				$memcached->delete(DBNAME . '-' . PREFIX . 'members');
 				$memcached->delete(DBNAME . '-' . PREFIX . 'ignored');
 			}
-			if(DBDRIVER===0){//MySQL
+			if(DBDRIVER===0){//MySQL - previously had a wrong SQL syntax and the captcha table was not created.
 				$db->exec('CREATE TABLE IF NOT EXISTS ' . PREFIX . 'captcha (id int(10) unsigned NOT NULL AUTO_INCREMENT, time int(10) unsigned NOT NULL, code char(5) NOT NULL, PRIMARY KEY (id) USING BTREE) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_bin;');
 			}
 		}
@@ -3324,10 +3324,30 @@ function check_db(){
 			$db=new PDO('sqlite:' . SQLITEDBFILE, NULL, NULL, $options);
 		}
 	}catch(PDOException $e){
-		if(isSet($_REQUEST['action']) && $_REQUEST['action']==='setup'){
-			die($I['nodbsetup']);
-		}else{
-			die($I['nodb']);
+		try{
+			//Attempt to create database
+			if(DBDRIVER===0){
+				$db=new PDO('mysql:host=' . DBHOST, DBUSER, DBPASS, $options);
+				if(false!==$db->exec('CREATE DATABASE ' . DBNAME)){
+					$db=new PDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
+				}else{
+					die($I['nodbsetup']);
+				}
+
+			}elseif(DBDRIVER===1){
+				$db=new PDO('pgsql:host=' . DBHOST, DBUSER, DBPASS, $options);
+				if(false!==$db->exec('CREATE DATABASE ' . DBNAME)){
+					$db=new PDO('pgsql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
+				}else{
+					die($I['nodbsetup']);
+				}
+			}
+		}catch(PDOException $e){
+			if(isSet($_REQUEST['action']) && $_REQUEST['action']==='setup'){
+				die($I['nodbsetup']);
+			}else{
+				die($I['nodb']);
+			}
 		}
 	}
 	if(MEMCACHED){

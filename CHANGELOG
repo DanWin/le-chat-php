@@ -4,6 +4,7 @@ Add language setting to profile
 Add checks for required extensions
 Move some more settings to the database
 Add CSS to limit list of chatters hight
+Attempt to create database when there is no connection
 
 Version 1.15.3 - Mar. 6, 2016
 Allow using html tags in linkfilter without breaking dereferrer or image embed
