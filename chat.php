@@ -486,8 +486,9 @@ function send_setup(){
 	echo ">$I[guestwait]</option>";
 	echo '<option value="3"';
 	if($ga===3){
-		echo ' selected'; echo ">$I[adminallow]</option>";
+		echo ' selected';
 	}
+	echo ">$I[adminallow]</option>";
 	echo '<option value="0"';
 	if($ga===0){
 		echo ' selected';

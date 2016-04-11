@@ -6,7 +6,7 @@ Move some more settings to the database
 Add CSS to limit list of chatters hight
 Attempt to create database when there is no connection
 Add fallback option for moderator approval
-
+Fix guestaccess selection in setup
 
 Version 1.15.3 - Mar. 6, 2016
 Allow using html tags in linkfilter without breaking dereferrer or image embed
