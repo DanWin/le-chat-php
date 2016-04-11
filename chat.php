@@ -203,7 +203,7 @@ if(!isSet($_REQUEST['action'])){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'enablejs', 'sendmail');
+	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'enablejs', 'sendmail', 'modfallback');
 	$C['colour_settings']=array('colbg', 'coltxt');
 	$C['msg_settings']=array('msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv');
 	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'keeplimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes');
@@ -1378,7 +1378,7 @@ function send_waiting_room(){
 	global $H, $I, $U, $countmods, $db;
 	parse_sessions();
 	$ga=(int) get_setting('guestaccess');
-	if($ga===3 && $countmods>0){
+	if($ga===3 && ($countmods>0 || !get_setting('modfallback'))){
 		$wait=false;
 	}else{
 		$wait=true;
@@ -3117,7 +3117,7 @@ function init_chat(){
 			$db->exec('CREATE INDEX IF NOT EXISTS lastpost ON ' . PREFIX . 'sessions (lastpost);');
 			$db->exec('CREATE TABLE IF NOT EXISTS ' . PREFIX . "settings (setting TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL);");
 		}
-		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('enablejs', '0'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'));
+		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('enablejs', '0'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'));
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
 			$stmt->execute($pair);
@@ -3245,7 +3245,7 @@ function update_db(){
 			}
 		}
 		if($dbversion<15){
-			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('keeplimit', '3'), ('mailsender', 'www-data <www-data@localhost>'), ('mailreceiver', 'Webmaster <webmaster@localhost>'), ('sendmail', '0');");
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('keeplimit', '3'), ('mailsender', 'www-data <www-data@localhost>'), ('mailreceiver', 'Webmaster <webmaster@localhost>'), ('sendmail', '0'), ('modfallback', '1');");
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){

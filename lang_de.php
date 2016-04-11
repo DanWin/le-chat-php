@@ -322,6 +322,7 @@ $T=array(
 	'jsonextrequired' => 'Für diese Funktion wird die json Erweiterung von PHP benötigt. Bitte installieren Sie diese zuerst.',
 	'sendmail' => 'E-Mail bei neuer Nachricht senden',
 	'mailsender' => 'E-Mail mit dieser Adresse versenden',
-	'mailreceiver' => 'E-Mail and diese Adresse senden'
+	'mailreceiver' => 'E-Mail and diese Adresse senden',
+	'modfallback' => 'Auf Warteraum rückgreifen, falls kein Moderator anwesend ist, um Gäste hereinzulassen'
 );
 ?>

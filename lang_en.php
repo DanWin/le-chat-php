@@ -322,6 +322,7 @@ $I=array(
 	'jsonextrequired' => 'The json extension of PHP is required for this feature. Please install it first.',
 	'sendmail' => 'Send mail on new public message',
 	'mailsender' => 'Send mail using this address',
-	'mailreceiver' => 'Send mail to this address'
+	'mailreceiver' => 'Send mail to this address',
+	'modfallback' => 'Fallback to waiting room, if no moderator is present to approve guests'
 );
 ?>
