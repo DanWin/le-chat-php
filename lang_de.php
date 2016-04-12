@@ -323,6 +323,10 @@ $T=array(
 	'sendmail' => 'E-Mail bei neuer Nachricht senden',
 	'mailsender' => 'E-Mail mit dieser Adresse versenden',
 	'mailreceiver' => 'E-Mail and diese Adresse senden',
-	'modfallback' => 'Auf Warteraum rückgreifen, falls kein Moderator anwesend ist, um Gäste hereinzulassen'
+	'modfallback' => 'Auf Warteraum rückgreifen, falls kein Moderator anwesend ist, um Gäste hereinzulassen',
+	'regpass' => 'Zum registrieren<br>Passwort wiederholen<br>(optional)',
+	'guestreg' => 'Gäste sich selbst registrieren lassen',
+	'asmember' => 'Als Mitglied',
+	'assuguest' => 'Als Anwerber'
 );
 ?>

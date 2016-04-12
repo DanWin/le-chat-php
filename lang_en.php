@@ -323,6 +323,10 @@ $I=array(
 	'sendmail' => 'Send mail on new public message',
 	'mailsender' => 'Send mail using this address',
 	'mailreceiver' => 'Send mail to this address',
-	'modfallback' => 'Fallback to waiting room, if no moderator is present to approve guests'
+	'modfallback' => 'Fallback to waiting room, if no moderator is present to approve guests',
+	'regpass' => 'Repeat password<br>to register<br>(optional)',
+	'guestreg' => 'Let guests register themselves',
+	'asmember' => 'As member',
+	'assuguest' => 'As applicant'
 );
 ?>

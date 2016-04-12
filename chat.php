@@ -167,9 +167,9 @@ if(!isSet($_REQUEST['action'])){
 		}
 		send_sessions();
 	}elseif($_REQUEST['do']==='register'){
-		register_guest(3);
+		send_admin(register_guest(3, $_REQUEST['name']));
 	}elseif($_REQUEST['do']==='superguest'){
-		register_guest(2);
+		send_admin(register_guest(2, $_REQUEST['name']));
 	}elseif($_REQUEST['do']==='status'){
 		change_status();
 	}elseif($_REQUEST['do']==='regnew'){
@@ -209,7 +209,7 @@ if(!isSet($_REQUEST['action'])){
 	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'keeplimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes');
 	$C['textarea_settings']=array('rulestxt', 'css');
 	$C['text_settings']=array('dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver');
-	$C['settings']=array_merge(array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic'), $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
+	$C['settings']=array_merge(array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg'), $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
 	if(empty($_REQUEST['do'])){
 	}elseif($_REQUEST['do']==='save'){
 		foreach($C['msg_settings'] as $setting){
@@ -464,7 +464,6 @@ function send_captcha(){
 
 function send_setup(){
 	global $C, $H, $I, $U;
-	$ga=(int) get_setting('guestaccess');
 	print_start('setup');
 	echo "<div style=\"text-align:center;\"><h2>$I[setup]</h2><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'save');
 	if(!isSet($_REQUEST['session'])){
@@ -472,6 +471,7 @@ function send_setup(){
 	}
 	echo '<table style="margin-left:auto;margin-right:auto;">';
 	thr();
+	$ga=(int) get_setting('guestaccess');
 	echo "<tr><td><table style=\"width:100%;text-align:left;\"><tr><th>$I[guestacc]</th><td style=\"text-align:right;\">";
 	echo '<select name="guestaccess">';
 	echo '<option value="1"';
@@ -518,6 +518,26 @@ function send_setup(){
 	echo '</select></td><td>&nbsp;</td>';
 	echo '<td><input type="text" name="globalpass" value="'.htmlspecialchars(get_setting('globalpass')).'"></td></tr>';
 	echo '</table></td></tr></table></td></tr>';
+	thr();
+	$ga=(int) get_setting('guestreg');
+	echo "<tr><td><table style=\"width:100%;text-align:left;\"><tr><th>$I[guestreg]</th><td style=\"text-align:right;\">";
+	echo '<select name="guestreg">';
+	echo '<option value="0"';
+	if($ga===0){
+		echo ' selected';
+	}
+	echo ">$I[disabled]</option>";
+	echo '<option value="1"';
+	if($ga===1){
+		echo ' selected';
+	}
+	echo ">$I[assuguest]</option>";
+	echo '<option value="2"';
+	if($ga===2){
+		echo ' selected';
+	}
+	echo ">$I[asmember]</option>";
+	echo '</select></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table style=\"width:100%;text-align:left;\"><tr><th>$I[sysmessages]</th><td>";
 	echo '<table style="border-spacing:0px;text-align:right;margin-left:auto;">';
@@ -1798,6 +1818,9 @@ function send_login(){
 		echo "<tr><td style=\"text-align:left;\">$I[pass]</td><td style=\"text-align:right;\"><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 		send_captcha();
 		if($ga!==0){
+			if(get_setting('guestreg')!=0){
+				echo "<tr><td style=\"text-align:left;\">$I[regpass]</td><td style=\"text-align:right;\"><input type=\"password\" name=\"regpass\" size=\"15\"></td></tr>";
+			}
 			if($englobal===2){
 				echo "<tr><td style=\"text-align:left;\">$I[globalloginpass]</td><td style=\"text-align:right;\"><input type=\"password\" name=\"globalpass\" size=\"15\"></td></tr>";
 			}
@@ -1927,7 +1950,7 @@ function create_session($setup){
 }
 
 function write_new_session(){
-	global $I, $U, $db;
+	global $I, $P, $U, $db;
 	$lines=parse_sessions();
 	$sids; $reentry=false;
 	foreach($lines as $temp){
@@ -1968,6 +1991,7 @@ function write_new_session(){
 		if($U['status']>=3 && !$U['incognito']){
 			add_system_message(sprintf(get_setting('msgenter'), style_this($U['nickname'], $U['style'])));
 		}
+		$P[$U['nickname']]=[$U['nickname'], $U['style'], $U['status']];
 	}
 }
 
@@ -2023,7 +2047,20 @@ function check_login(){
 	}elseif(!isSet($_REQUEST['nick']) || !isSet($_REQUEST['pass'])){
 		send_login();
 	}else{
+		if(!empty($_REQUEST['regpass']) && $_REQUEST['regpass']!==$_REQUEST['pass']){
+			send_error($I['noconfirm']);
+		}
 		create_session(false);
+		if(!empty($_REQUEST['regpass'])){
+			$guestreg=(int) get_setting('guestreg');
+			if($guestreg===1){
+				register_guest(2, $_REQUEST['nick']);
+				$U['status']=2;
+			}elseif($guestreg===2){
+				register_guest(3, $_REQUEST['nick']);
+				$U['status']=3;
+			}
+		}
 	}
 	if($U['status']==1){
 		if($ga===2 || $ga===3){
@@ -2221,27 +2258,24 @@ function read_members(){
 	}
 }
 
-function register_guest($status){
+function register_guest($status, $nick){
 	global $A, $I, $P, $U, $db;
-	if(empty($_REQUEST['name'])){
-		send_admin();
-	}
-	if(!isSet($P[$_REQUEST['name']])){
-		send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
+	if(!isSet($P[$nick])){
+		return sprintf($I['cantreg'], $nick);
 	}
 	read_members();
-	if(isSet($A[$_REQUEST['name']])){
-		send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
+	if(isSet($A[$nick])){
+		return sprintf($I['alreadyreged'], $nick);
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND status=1;');
-	$stmt->execute(array($_REQUEST['name']));
+	$stmt->execute(array($nick));
 	if($reg=$stmt->fetch(PDO::FETCH_ASSOC)){
 		$reg['status']=$status;
-		$P[$_REQUEST['name']][2]=$status;
+		$P[$nick][2]=$status;
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=? WHERE session=?;');
 		$stmt->execute(array($reg['status'], $reg['session']));
 	}else{
-		send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
+		return sprintf($I['cantreg'], $nick);
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, boxwidth, boxheight, regedby, timestamps, embed, style) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 	$stmt->execute(array($reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['style']));
@@ -2250,7 +2284,7 @@ function register_guest($status){
 	}else{
 		add_system_message(sprintf(get_setting('msgsureg'), style_this($reg['nickname'], $reg['style'])));
 	}
-	send_admin(sprintf($I['successreg'], $reg['nickname']));
+	return sprintf($I['successreg'], $reg['nickname']);
 }
 
 function register_new(){
@@ -3118,7 +3152,7 @@ function init_chat(){
 			$db->exec('CREATE INDEX IF NOT EXISTS lastpost ON ' . PREFIX . 'sessions (lastpost);');
 			$db->exec('CREATE TABLE IF NOT EXISTS ' . PREFIX . "settings (setting TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL);");
 		}
-		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('enablejs', '0'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'));
+		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('enablejs', '0'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'), array('guestreg', '0'));
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
 			$stmt->execute($pair);
@@ -3246,7 +3280,7 @@ function update_db(){
 			}
 		}
 		if($dbversion<15){
-			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('keeplimit', '3'), ('mailsender', 'www-data <www-data@localhost>'), ('mailreceiver', 'Webmaster <webmaster@localhost>'), ('sendmail', '0'), ('modfallback', '1');");
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('keeplimit', '3'), ('mailsender', 'www-data <www-data@localhost>'), ('mailreceiver', 'Webmaster <webmaster@localhost>'), ('sendmail', '0'), ('modfallback', '1'), ('guestreg', '0');");
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
