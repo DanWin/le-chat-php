@@ -180,7 +180,7 @@ $T=array(
 	'choosecol' => 'Gast, such dir eine Farbe aus:',
 	'randomcol' => 'Zufällige Farbe',
 	'enter' => 'Chat beitreten',
-	'error' => 'Fehler:',
+	'error' => 'Fehler',
 	'members' => 'Mitglieder',
 	'guests' => 'Gäste',
 	'approveguests' => '%d neue Gäste zum Hereinlassen',
@@ -327,6 +327,7 @@ $T=array(
 	'regpass' => 'Zum registrieren<br>Passwort wiederholen<br>(optional)',
 	'guestreg' => 'Gäste sich selbst registrieren lassen',
 	'asmember' => 'Als Mitglied',
-	'assuguest' => 'Als Anwerber'
+	'assuguest' => 'Als Anwerber',
+	'fatalerror' => 'Fataler Fehler'
 );
 ?>

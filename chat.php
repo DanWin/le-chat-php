@@ -62,7 +62,7 @@ if(!isSet($_REQUEST['action'])){
 	send_messages(true);
 }elseif($_REQUEST['action']==='jsrefresh'){
 	if(!extension_loaded('json')){
-		die($I['jsonextrequired']);
+		send_fatal_error($I['jsonextrequired']);
 	}
 	check_session();
 	ob_start();
@@ -271,7 +271,6 @@ if(!isSet($_REQUEST['action'])){
 }else{
 	send_login();
 }
-exit;
 
 //  html output subs
 function print_stylesheet(){
@@ -1305,7 +1304,7 @@ function send_notes($type){
 	if(isset($_REQUEST['text'])){
 		if(MSGENCRYPTED){
 			if(!extension_loaded('openssl')){
-				die($I['opensslextrequired']);
+				send_fatal_error($I['opensslextrequired']);
 			}
 			$_REQUEST['text']=openssl_encrypt($_REQUEST['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 		}
@@ -1339,7 +1338,7 @@ function send_notes($type){
 	}
 	if(MSGENCRYPTED){
 		if(!extension_loaded('openssl')){
-			die($I['opensslextrequired']);
+			send_fatal_error($I['opensslextrequired']);
 		}
 		$note['text']=openssl_decrypt($note['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 	}
@@ -1857,7 +1856,17 @@ function send_login(){
 function send_error($err){
 	global $H, $I;
 	print_start('error');
-	echo "<h2>$I[error] $err</h2>$H[backtologin]";
+	echo "<h2>$I[error]: $err</h2>$H[backtologin]";
+	print_end();
+}
+
+function send_fatal_error($err){
+	global $H, $I;
+	echo "<!DOCTYPE html><html><head>$H[meta_html]";
+	echo "<title>$I[fatalerror]</title>";
+	echo "<style type=\"text/css\">body{background-color:#000000;color:#FF0033;}</style>";
+	echo '</head><body>';
+	echo "<h2>$I[fatalerror]: $err</h2>";
 	print_end();
 }
 
@@ -2781,7 +2790,7 @@ function write_message($message){
 	global $db;
 	if(MSGENCRYPTED){
 		if(!extension_loaded('openssl')){
-			die($I['opensslextrequired']);
+			send_fatal_error($I['opensslextrequired']);
 		}
 		$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 	}
@@ -2876,7 +2885,7 @@ function print_messages($delstatus=''){
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 			if(MSGENCRYPTED){
 				if(!extension_loaded('openssl')){
-					die($I['opensslextrequired']);
+					send_fatal_error($I['opensslextrequired']);
 				}
 				$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 			}
@@ -2913,7 +2922,7 @@ function print_messages($delstatus=''){
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 			if(MSGENCRYPTED){
 				if(!extension_loaded('openssl')){
-					die($I['opensslextrequired']);
+					send_fatal_error($I['opensslextrequired']);
 				}
 				$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 			}
@@ -3285,7 +3294,7 @@ function update_db(){
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
 			if(!extension_loaded('openssl')){
-				die($I['opensslextrequired']);
+				send_fatal_error($I['opensslextrequired']);
 			}
 			$result=$db->query('SELECT id, text FROM ' . PREFIX . 'messages;');
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET text=? WHERE id=?;');
@@ -3344,17 +3353,17 @@ function check_db(){
 	try{
 		if(DBDRIVER===0){
 			if(!extension_loaded('pdo_mysql')){
-				die($I['pdo_mysqlextrequired']);
+				send_fatal_error($I['pdo_mysqlextrequired']);
 			}
 			$db=new PDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
 		}elseif(DBDRIVER===1){
 			if(!extension_loaded('pdo_pgsql')){
-				die($I['pdo_pgsqlextrequired']);
+				send_fatal_error($I['pdo_pgsqlextrequired']);
 			}
 			$db=new PDO('pgsql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
 		}else{
 			if(!extension_loaded('pdo_sqlite')){
-				die($I['pdo_sqliteextrequired']);
+				send_fatal_error($I['pdo_sqliteextrequired']);
 			}
 			$db=new PDO('sqlite:' . SQLITEDBFILE, NULL, NULL, $options);
 		}
@@ -3366,7 +3375,7 @@ function check_db(){
 				if(false!==$db->exec('CREATE DATABASE ' . DBNAME)){
 					$db=new PDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
 				}else{
-					die($I['nodbsetup']);
+					send_fatal_error($I['nodbsetup']);
 				}
 
 			}elseif(DBDRIVER===1){
@@ -3374,20 +3383,20 @@ function check_db(){
 				if(false!==$db->exec('CREATE DATABASE ' . DBNAME)){
 					$db=new PDO('pgsql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
 				}else{
-					die($I['nodbsetup']);
+					send_fatal_error($I['nodbsetup']);
 				}
 			}
 		}catch(PDOException $e){
 			if(isSet($_REQUEST['action']) && $_REQUEST['action']==='setup'){
-				die($I['nodbsetup']);
+				send_fatal_error($I['nodbsetup']);
 			}else{
-				die($I['nodb']);
+				send_fatal_error($I['nodb']);
 			}
 		}
 	}
 	if(MEMCACHED){
 		if(!extension_loaded('memcached')){
-			die($I['memcachedextrequired']);
+			send_fatal_error($I['memcachedextrequired']);
 		}
 		$memcached=new Memcached();
 		$memcached->addServer(MEMCACHEDHOST, MEMCACHEDPORT);

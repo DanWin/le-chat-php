@@ -180,7 +180,7 @@ $I=array(
 	'choosecol' => 'Guests, choose a colour:',
 	'randomcol' => 'Random Colour',
 	'enter' => 'Enter Chat',
-	'error' => 'Error:',
+	'error' => 'Error',
 	'members' => 'Members',
 	'guests' => 'Guests',
 	'approveguests' => '%d new guests to approve',
@@ -327,6 +327,7 @@ $I=array(
 	'regpass' => 'Repeat password<br>to register<br>(optional)',
 	'guestreg' => 'Let guests register themselves',
 	'asmember' => 'As member',
-	'assuguest' => 'As applicant'
+	'assuguest' => 'As applicant',
+	'fatalerror' => 'Fatal error'
 );
 ?>
