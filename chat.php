@@ -3323,7 +3323,7 @@ function update_db(){
 				}
 				$stmt->execute(array($message['text'], $message['id']));
 			}
-			update_setting('msgencrypted', (int)MSGENDCRYPTED);
+			update_setting('msgencrypted', (int) MSGENCRYPTED);
 		}
 		send_update();
 	}
@@ -3476,7 +3476,7 @@ function load_lang(){
 }
 
 function load_config(){
-	define('VERSION', '1.16'); // Script version
+	define('VERSION', '1.16.1'); // Script version
 	define('DBVERSION', 15); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages

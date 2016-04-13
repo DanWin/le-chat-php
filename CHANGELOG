@@ -1,3 +1,6 @@
+Version 1.16.1 - Apr. 13, 2016
+Fixed a typo
+
 Version 1.16 - Apr. 13, 2016
 Use constants for configuration
 Simplify extreme captcha code generation
