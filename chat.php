@@ -38,6 +38,7 @@ $U=array();// This user data
 $countmods=0;// Present moderators
 $db;// Database connection
 $memcached;// Memcached connection
+$language;// user selected language
 load_config();
 // set session variable to cookie if cookies are enabled
 if(!isSet($_REQUEST['session']) && isSet($_COOKIE[COOKIENAME])){
@@ -1246,20 +1247,20 @@ function send_linkfilter($arg=''){
 }
 
 function send_frameset(){
-	global $H, $I, $U;
+	global $H, $I, $U, $language;
 	echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\"><html><head>$H[meta_html]";
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
 	if(isSet($_COOKIE['test'])){
 		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	}else{
-		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$U[lang]\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$U[lang]\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$U[lang]\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
+		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	}
 	exit;
 }
 
 function send_messages($js){
-	global $I, $U;
+	global $I, $U, $language;
 	if(!$js){
 		if(isSet($_COOKIE[COOKIENAME])){
 			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view");
@@ -1267,9 +1268,9 @@ function send_messages($js){
 				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview');</script>";
 			}
 		}else{
-			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$U[lang]");
+			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language");
 			if(get_setting('enablejs')==1 && extension_loaded('json')){
-				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview&session=$U[session]&lang=$U[lang]');</script>";
+				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview&session=$U[session]&lang=$language');</script>";
 			}
 		}
 	}else{
@@ -1397,7 +1398,7 @@ function send_approve_waiting(){
 }
 
 function send_waiting_room(){
-	global $H, $I, $U, $countmods, $db;
+	global $H, $I, $U, $countmods, $db, $language;
 	parse_sessions();
 	$ga=(int) get_setting('guestaccess');
 	if($ga===3 && ($countmods>0 || !get_setting('modfallback'))){
@@ -1428,7 +1429,7 @@ function send_waiting_room(){
 			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait");
 		}else{
 			header("Refresh: $refresh; URL=$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]");
-			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&lang=$U[lang]");
+			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&lang=$language");
 		}
 		echo "<div style=\"text-align:center;\"><h2>$I[waitingroom]</h2><p>";
 		if($wait){
@@ -1614,7 +1615,7 @@ function send_help(){
 }
 
 function send_profile($arg=''){
-	global $F, $H, $I, $L, $P, $U, $db;
+	global $F, $H, $I, $L, $P, $U, $db, $language;
 	print_start('profile');
 	echo "<div style=\"text-align:center;\"><$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'save')."<h2>$I[profile]</h2><i>$arg</i><table style=\"margin-left:auto;margin-right:auto;\">";
 	thr();
@@ -1661,7 +1662,7 @@ function send_profile($arg=''){
 	echo "<input type=\"number\" name=\"refresh\" size=\"3\" maxlength=\"3\" min=\"5\" max=\"150\" value=\"$U[refresh]\"></td></tr></table></td></tr>";
 	thr();
 	if(!isSet($_COOKIE[COOKIENAME])){
-		$param="&session=$U[session]&lang=$U[lang]";
+		$param="&session=$U[session]&lang=$language";
 	}else{
 		$param='';
 	}
@@ -3077,7 +3078,7 @@ function check_init(){
 }
 
 function destroy_chat(){
-	global $C, $H, $I, $U, $db;
+	global $C, $H, $I, $db, $language;
 	setcookie(COOKIENAME, false);
 	print_start('destory');
 	$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
@@ -3100,7 +3101,7 @@ function destroy_chat(){
 		$memcached->delete(DBNAME . '-' . PREFIX . 'settings-msgencrypted');
 	}
 	echo "<div style=\"text-align:center;\"><h2>$I[destroyed]</h2><br><br><br>";
-	echo "<$H[form]>".hidden('lang', $U['lang']).hidden('action', 'setup').submit($I['init'])."</form>$H[credit]</div>";
+	echo "<$H[form]>".hidden('lang', $language).hidden('action', 'setup').submit($I['init'])."</form>$H[credit]</div>";
 	print_end();
 }
 
@@ -3430,24 +3431,24 @@ function load_fonts(){
 }
 
 function load_html(){
-	global $H, $I, $U;
+	global $H, $I, $language;
 	$H=array(// default HTML
 		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\"",
 		'meta_html'	=>"<meta name=\"robots\" content=\"noindex,nofollow\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"Pragma\" content=\"no-cache\"><meta http-equiv=\"Cache-Control\" content=\"no-cache\"><meta http-equiv=\"expires\" content=\"0\">",
 		'credit'	=>'<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>',
-		'commonform'	=>hidden('lang', $U['lang'])
+		'commonform'	=>hidden('lang', $language)
 	);
 	if(isSet($_REQUEST['session'])){
 		$H['commonform'].=hidden('session', $_REQUEST['session']);
 	}
 	$H=$H+array(
-		'backtologin'	=>"<$H[form] target=\"_parent\">".hidden('lang', $U['lang']).submit($I['backtologin'], 'class="backbutton"').'</form>',
+		'backtologin'	=>"<$H[form] target=\"_parent\">".hidden('lang', $language).submit($I['backtologin'], 'class="backbutton"').'</form>',
 		'backtochat'	=>"<$H[form]>$H[commonform]".hidden('action', 'view').submit($I['backtochat'], 'class="backbutton"').'</form>'
 	);
 }
 
 function load_lang(){
-	global $I, $L, $U;
+	global $I, $L, $U, $language;
 	$L=array(
 		'de'	=>'Deutsch',
 		'en'	=>'English',
@@ -3458,16 +3459,16 @@ function load_lang(){
 		'ru'	=>'Русский'
 	);
 	if(isSet($_REQUEST['lang']) && array_key_exists($_REQUEST['lang'], $L)){
-		$U['lang']=$_REQUEST['lang'];
-		setcookie('language', $U['lang']);
+		$language=$_REQUEST['lang'];
+		setcookie('language', $language);
 	}elseif(isSet($_COOKIE['language']) && array_key_exists($_COOKIE['language'], $L)){
-		$U['lang']=$_COOKIE['language'];
+		$language=$_COOKIE['language'];
 	}else{
-		$U['lang']=LANG;
+		$language=LANG;
 	}
 	include('lang_en.php'); //always include English
-	if($U['lang']!=='en'){
-		include("lang_$U[lang].php"); //replace with translation if available
+	if($language!=='en'){
+		include("lang_$language.php"); //replace with translation if available
 		foreach($T as $name=>$translation){
 			$I[$name]=$translation;
 		}
@@ -3475,7 +3476,7 @@ function load_lang(){
 }
 
 function load_config(){
-	define('VERSION', '1.15.3'); // Script version
+	define('VERSION', '1.16'); // Script version
 	define('DBVERSION', 15); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
