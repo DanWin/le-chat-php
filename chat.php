@@ -73,7 +73,7 @@ if(!isSet($_REQUEST['action'])){
 	$chatters=ob_get_clean();
 	echo json_encode(array($_REQUEST['id'], $msgs, $chatters, get_setting('topic')));
 }elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
-	send_redirect();
+	send_redirect($_GET['url']);
 }elseif($_REQUEST['action']==='wait'){
 	send_waiting_room();
 }elseif($_REQUEST['action']==='post'){
@@ -110,10 +110,11 @@ if(!isSet($_REQUEST['action'])){
 	send_post();
 }elseif($_REQUEST['action']==='profile'){
 	check_session();
+	$arg='';
 	if(isSet($_REQUEST['do']) && $_REQUEST['do']==='save'){
-		save_profile();
+		$arg=save_profile();
 	}
-	send_profile();
+	send_profile($arg);
 }elseif($_REQUEST['action']==='logout'){
 	kill_session();
 	send_logout();
@@ -149,13 +150,12 @@ if(!isSet($_REQUEST['action'])){
 			del_all_messages($_REQUEST['nickname'], $U['status'], 0);
 		}
 	}elseif($_REQUEST['do']==='kick'){
-		if(!isSet($_REQUEST['name'])){
-			send_admin();
-		}
-		if(isSet($_REQUEST['what']) && $_REQUEST['what']==='purge'){
-			kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], true);
-		}else{
-			kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], false);
+		if(isSet($_REQUEST['name'])){
+			if(isSet($_REQUEST['what']) && $_REQUEST['what']==='purge'){
+				kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], true);
+			}else{
+				kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], false);
+			}
 		}
 	}elseif($_REQUEST['do']==='logout'){
 		if(isSet($_REQUEST['name'])){
@@ -171,9 +171,9 @@ if(!isSet($_REQUEST['action'])){
 	}elseif($_REQUEST['do']==='superguest'){
 		send_admin(register_guest(2, $_REQUEST['name']));
 	}elseif($_REQUEST['do']==='status'){
-		change_status();
+		send_admin(change_status($_REQUEST['name'], $_REQUEST['set']));
 	}elseif($_REQUEST['do']==='regnew'){
-		register_new();
+		send_admin(register_new($_REQUEST['name'], $_REQUEST['pass']));
 	}elseif($_REQUEST['do']==='approve'){
 		approve_session();
 		send_approve_waiting();
@@ -192,7 +192,7 @@ if(!isSet($_REQUEST['action'])){
 			update_setting('topic', htmlspecialchars($_REQUEST['topic']));
 		}
 	}elseif($_REQUEST['do']==='passreset'){
-		passreset();
+		send_admin(passreset($_REQUEST['name'], $_REQUEST['pass']));
 	}
 	send_admin();
 }elseif($_REQUEST['action']==='setup'){
@@ -331,16 +331,18 @@ function print_start($class='',  $ref=0, $url=''){
 	echo "</head><body$style class=\"$class\">";
 }
 
-function send_redirect(){
+function send_redirect($url){
 	global $I;
-	if(preg_match('~^http(s)?://~', $_GET['url'])){
-		print_start('redirect', 0, $_GET['url']);
-		echo "<p>$I[redirectto] <a href=\"$_GET[url]\">".htmlspecialchars($_GET['url']).'</a>.</p>';
+	preg_match('~^(.*)://~', $url, $match);
+	$url=preg_replace('~^(.*)://~', '', $url);
+	$escaped=htmlspecialchars($url);
+	if(isSet($match[1]) && ($match[1]==='http' || $match[1]==='https')){
+		print_start('redirect', 0, $match[0].$escaped);
+		echo "<p>$I[redirectto] <a href=\"$match[0]"."$escaped\">$match[0]"."$escaped</a>.</p>";
 	}else{
 		print_start('redirect');
-		$url=preg_replace('~(.*)://~', 'http://', $_GET['url']);
-		echo "<p>$I[nonhttp] <a href=\"$_GET[url]\">".htmlspecialchars($_GET['url']).'</a>.</p>';
-		echo "<p>$I[httpredir] <a href=\"$url\">".htmlspecialchars($url).'</a>.</p>';
+		echo "<p>$I[nonhttp] <a href=\"$match[0]"."$escaped\">$match[0]"."$escaped</a>.</p>";
+		echo "<p>$I[httpredir] <a href=\"http://$escaped\">http://$escaped</a>.</p>";
 	}
 	print_end();
 }
@@ -2296,25 +2298,25 @@ function register_guest($status, $nick){
 	return sprintf($I['successreg'], $reg['nickname']);
 }
 
-function register_new(){
+function register_new($nick, $pass){
 	global $A, $I, $P, $U, $db;
-	$_REQUEST['name']=preg_replace('/\s+/', '', $_REQUEST['name']);
-	if(empty($_REQUEST['name'])){
-		send_admin();
-	}elseif(isSet($P[$_REQUEST['name']])){
-		send_admin(sprintf($I['cantreg'], $_REQUEST['name']));
-	}elseif(!valid_nick($_REQUEST['name'])){
-		send_admin(sprintf($I['invalnick'], get_setting('maxname')));
-	}elseif(!valid_pass($_REQUEST['pass'])){
-		send_admin(sprintf($I['invalpass'], get_setting('minpass')));
+	$nick=preg_replace('/\s+/', '', $nick);
+	if(empty($nick)){
+		return '';
+	}elseif(isSet($P[$nick])){
+		return sprintf($I['cantreg'], $nick);
+	}elseif(!valid_nick($nick)){
+		return sprintf($I['invalnick'], get_setting('maxname'));
+	}elseif(!valid_pass($pass)){
+		return sprintf($I['invalpass'], get_setting('minpass'));
 	}
 	read_members();
-	if(isSet($A[$_REQUEST['name']])){
-		send_admin(sprintf($I['alreadyreged'], $_REQUEST['name']));
+	if(isSet($A[$nick])){
+		return sprintf($I['alreadyreged'], $nick);
 	}
 	$reg=array(
-		'nickname'	=>$_REQUEST['name'],
-		'passhash'	=>md5(sha1(md5($_REQUEST['name'].$_REQUEST['pass']))),
+		'nickname'	=>$nick,
+		'passhash'	=>md5(sha1(md5($nick.$pass))),
 		'status'	=>3,
 		'refresh'	=>get_setting('defaultrefresh'),
 		'bgcolour'	=>get_setting('colbg'),
@@ -2324,59 +2326,59 @@ function register_new(){
 	);
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, timestamps, style) VALUES (?, ?, ?, ?, ?, ?, ?, ?);');
 	$stmt->execute(array($reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['regedby'], $reg['timestamps'], $reg['style']));
-	send_admin(sprintf($I['successreg'], $reg['nickname']));
+	return sprintf($I['successreg'], $reg['nickname']);
 }
 
-function change_status(){
+function change_status($nick, $status){
 	global $I, $P, $U, $db;
-	if(empty($_REQUEST['name'])){
-		send_admin();
-	}elseif($U['status']<=$_REQUEST['set'] || !preg_match('/^[023567\-]$/', $_REQUEST['set'])){
-		send_admin(sprintf($I['cantchgstat'], $_REQUEST['name']));
+	if(empty($nick)){
+		return '';
+	}elseif($U['status']<=$status || !preg_match('/^[023567\-]$/', $status)){
+		return sprintf($I['cantchgstat'], $nick);
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
-	$stmt->execute(array($_REQUEST['name'], $U['status']));
+	$stmt->execute(array($nick, $U['status']));
 	if($stmt->fetch(PDO::FETCH_ASSOC)){
 		if($_REQUEST['set']==='-'){
 			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
-			$stmt->execute(array($_REQUEST['name']));
+			$stmt->execute(array($nick));
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1 WHERE nickname=?;');
-			$stmt->execute(array($_REQUEST['name']));
-			if(isSet($P[$_REQUEST['name']])){
-				$P[$_REQUEST['name']][2]=1;
+			$stmt->execute(array($nick));
+			if(isSet($P[$nick])){
+				$P[$nick][2]=1;
 			}
-			send_admin(sprintf($I['succdel'], $_REQUEST['name']));
+			return sprintf($I['succdel'], $nick);
 		}else{
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET status=? WHERE nickname=?;');
-			$stmt->execute(array($_REQUEST['set'], $_REQUEST['name']));
+			$stmt->execute(array($status, $nick));
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=? WHERE nickname=?;');
-			$stmt->execute(array($_REQUEST['set'], $_REQUEST['name']));
-			if(isSet($P[$_REQUEST['name']])){
-				$P[$_REQUEST['name']][2]=$_REQUEST['set'];
+			$stmt->execute(array($status, $nick));
+			if(isSet($P[$nick])){
+				$P[$nick][2]=$status;
 			}
-			send_admin(sprintf($I['succchg'], $_REQUEST['name']));
+			return sprintf($I['succchg'], $nick);
 		}
 	}else{
-		send_admin(sprintf($I['cantchgstat'], $_REQUEST['name']));
+		return sprintf($I['cantchgstat'], $nick);
 	}
 }
 
-function passreset(){
+function passreset($nick, $pass){
 	global $I, $U, $db;
-	if(empty($_REQUEST['name'])){
-		send_admin();
+	if(empty($nick)){
+		return '';
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
-	$stmt->execute(array($_REQUEST['name'], $U['status']));
+	$stmt->execute(array($nick, $U['status']));
 	if($stmt->fetch(PDO::FETCH_ASSOC)){
-		$passhash=md5(sha1(md5($_REQUEST['name'].$_REQUEST['pass'])));
+		$passhash=md5(sha1(md5($nick.$pass)));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
-		$stmt->execute(array($passhash, $_REQUEST['name']));
+		$stmt->execute(array($passhash, $nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE nickname=?;');
-		$stmt->execute(array($passhash, $_REQUEST['name']));
-		send_admin(sprintf($I['succpassreset'], $_REQUEST['name']));
+		$stmt->execute(array($passhash, $nick));
+		return sprintf($I['succpassreset'], $nick);
 	}else{
-		send_admin(sprintf($I['cantresetpass'], $_REQUEST['name']));
+		return sprintf($I['cantresetpass'], $nick);
 	}
 }
 
@@ -2453,7 +2455,7 @@ function save_profile(){
 		$_REQUEST['confirmpass']='';
 	}
 	if($_REQUEST['newpass']!==$_REQUEST['confirmpass']){
-		send_profile($I['noconfirm']);
+		return $I['noconfirm'];
 	}elseif(!empty($_REQUEST['newpass']) && valid_pass($_REQUEST['newpass'])){
 		$U['oldhash']=md5(sha1(md5($U['nickname'].$_REQUEST['oldpass'])));
 		$U['newhash']=md5(sha1(md5($U['nickname'].$_REQUEST['newpass'])));
@@ -2461,7 +2463,7 @@ function save_profile(){
 		$U['oldhash']=$U['newhash']=$U['passhash'];
 	}
 	if($U['passhash']!==$U['oldhash']){
-		send_profile($I['wrongpass']);
+		return $I['wrongpass'];
 	}
 	$U['passhash']=$U['newhash'];
 	amend_profile();
@@ -2480,27 +2482,30 @@ function save_profile(){
 		$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
 	}
 	if($U['status']>1 && !empty($_REQUEST['newnickname'])){
-		set_new_nickname();
+		$msg=set_new_nickname();
+		if($msg!==''){
+			return $msg;
+		}
 	}
 	if(!empty($_REQUEST['newpass']) && !valid_pass($_REQUEST['newpass'])){
-		send_profile(sprintf($I['invalpass'], get_setting('minpass')));
+		return sprintf($I['invalpass'], get_setting('minpass'));
 	}
-	send_profile($I['succprofile']);
+	return $I['succprofile'];
 }
 
 function set_new_nickname(){
 	global $I, $U, $db;
 	if(!isSet($_REQUEST['new_pass']) || !valid_pass($_REQUEST['new_pass'])){
-		send_profile(sprintf($I['nopass'], get_setting('minpass')));
+		return sprintf($I['nopass'], get_setting('minpass'));
 	}
 	if(!valid_nick($_REQUEST['newnickname'])){
-		send_profile(sprintf($I['invalnick'], get_setting('maxname')));
+		return sprintf($I['invalnick'], get_setting('maxname'));
 	}
 	$U['passhash']=md5(sha1(md5($_REQUEST['newnickname'].$_REQUEST['new_pass'])));
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'sessions WHERE nickname=? UNION SELECT id FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute(array($_REQUEST['newnickname'], $_REQUEST['newnickname']));
 	if($stmt->fetch(PDO::FETCH_NUM)){
-		send_profile($I['nicknametaken']);
+		return $I['nicknametaken'];
 	}else{
 		if($U['status']>1){
 			$entry=0;
@@ -2521,6 +2526,7 @@ function set_new_nickname(){
 		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
 		$U['nickname']=$_REQUEST['newnickname'];
 	}
+	return '';
 }
 
 function add_user_defaults(){
@@ -2714,7 +2720,7 @@ function apply_linkfilter(){
 	if(get_setting('forceredirect')){
 		$U['message']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
 			function ($matched) use($redirect){
-				return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
+				return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
 			}
 		, $U['message']);
 	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/', $U['message'], $matches)){
@@ -2722,7 +2728,7 @@ function apply_linkfilter(){
 			if(!preg_match('~^http(s)?://~', $match)){
 				$U['message']=preg_replace_callback('/<a href="('.str_replace('/', '\/', $match).')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/',
 					function ($matched) use($redirect){
-						return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
+						return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
 					}
 				, $U['message']);
 			}
@@ -2787,7 +2793,7 @@ function add_system_message($mes){
 }
 
 function write_message($message){
-	global $db;
+	global $I, $db;
 	if(MSGENCRYPTED){
 		if(!extension_loaded('openssl')){
 			send_fatal_error($I['opensslextrequired']);
@@ -2892,7 +2898,7 @@ function print_messages($delstatus=''){
 			if($injectRedirect){
 				$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
 					function ($matched) use ($redirect){
-						return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
+						return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
 					}
 				, $message['text']);
 			}
@@ -2929,7 +2935,7 @@ function print_messages($delstatus=''){
 			if($injectRedirect){
 				$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
 					function ($matched) use($redirect) {
-						return "<a href=\"$redirect".urlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
+						return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
 					}
 				, $message['text']);
 			}
