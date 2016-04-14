@@ -339,10 +339,13 @@ function send_redirect($url){
 	$escaped=htmlspecialchars($url);
 	if(isSet($match[1]) && ($match[1]==='http' || $match[1]==='https')){
 		print_start('redirect', 0, $match[0].$escaped);
-		echo "<p>$I[redirectto] <a href=\"$match[0]"."$escaped\">$match[0]"."$escaped</a>.</p>";
+		echo "<p>$I[redirectto] <a href=\"$match[0]$escaped\">$match[0]$escaped</a>.</p>";
 	}else{
 		print_start('redirect');
-		echo "<p>$I[nonhttp] <a href=\"$match[0]"."$escaped\">$match[0]"."$escaped</a>.</p>";
+		if(!isSet($match[0])){
+			$match[0]='';
+		}
+		echo "<p>$I[nonhttp] <a href=\"$match[0]$escaped\">$match[0]$escaped</a>.</p>";
 		echo "<p>$I[httpredir] <a href=\"http://$escaped\">http://$escaped</a>.</p>";
 	}
 	print_end();
@@ -3487,7 +3490,7 @@ function load_lang(){
 }
 
 function load_config(){
-	define('VERSION', '1.16.2'); // Script version
+	define('VERSION', '1.16.3'); // Script version
 	define('DBVERSION', 16); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages

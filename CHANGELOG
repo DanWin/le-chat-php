@@ -1,3 +1,6 @@
+Version 1.16.3 - Apr. 14, 2016
+Fix warning on redirection of links without a scheme
+
 Version 1.16.2 - Apr. 14, 2016
 Add CSS classes and move more css to the database
 Allow extreme captcha to be solved in both directions
