@@ -1140,18 +1140,8 @@ function manage_linkfilter(){
 	}
 }
 
-function send_filter($arg=''){
-	global $H, $I, $U, $db, $memcached;
-	print_start('filter');
-	echo "<h2>$I[filter]</h2><i>$arg</i><table class=\"center-table\">";
-	thr();
-	echo "<tr><th><table style=\"width:100%;\"><tr><td style=\"width:8em;\">$I[fid]</td>";
-	echo "<td style=\"width:12em;\">$I[match]</td>";
-	echo "<td style=\"width:12em;\">$I[replace]</td>";
-	echo "<td style=\"width:9em;\">$I[allowpm]</td>";
-	echo "<td style=\"width:5em;\">$I[regex]</td>";
-	echo "<td style=\"width:5em;\">$I[kick]</td>";
-	echo "<td style=\"width:5em;\">$I[apply]</td></tr></table></th></tr>";
+function get_filters(){
+	global $db, $memcached;
 	if(MEMCACHED){
 		$filters=$memcached->get(DBNAME . '-' . PREFIX . 'filter');
 	}
@@ -1165,6 +1155,40 @@ function send_filter($arg=''){
 			$memcached->set(DBNAME . '-' . PREFIX . 'filter', $filters);
 		}
 	}
+	return $filters;
+}
+
+function get_linkfilters(){
+	global $db, $memcached;
+	if(MEMCACHED){
+		$filters=$memcached->get(DBNAME . '-' . PREFIX . 'linkfilter');
+	}
+	if(!MEMCACHED || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
+		$filters=array();
+		$result=$db->query('SELECT id, filtermatch, filterreplace, regex FROM ' . PREFIX . 'linkfilter;');
+		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
+			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
+		}
+		if(MEMCACHED){
+			$memcached->set(DBNAME . '-' . PREFIX . 'linkfilter', $filters);
+		}
+	}
+	return $filters;
+}
+
+function send_filter($arg=''){
+	global $H, $I, $U;
+	print_start('filter');
+	echo "<h2>$I[filter]</h2><i>$arg</i><table class=\"center-table\">";
+	thr();
+	echo "<tr><th><table style=\"width:100%;\"><tr><td style=\"width:8em;\">$I[fid]</td>";
+	echo "<td style=\"width:12em;\">$I[match]</td>";
+	echo "<td style=\"width:12em;\">$I[replace]</td>";
+	echo "<td style=\"width:9em;\">$I[allowpm]</td>";
+	echo "<td style=\"width:5em;\">$I[regex]</td>";
+	echo "<td style=\"width:5em;\">$I[kick]</td>";
+	echo "<td style=\"width:5em;\">$I[apply]</td></tr></table></th></tr>";
+	$filters=get_filters();
 	foreach($filters as $filter){
 		if($filter['allowinpm']==1){
 			$check=' checked';
@@ -1208,7 +1232,7 @@ function send_filter($arg=''){
 }
 
 function send_linkfilter($arg=''){
-	global $H, $I, $U, $db, $memcached;
+	global $H, $I, $U;
 	print_start('linkfilter');
 	echo "<h2>$I[linkfilter]</h2><i>$arg</i><table class=\"center-table\">";
 	thr();
@@ -1217,19 +1241,7 @@ function send_linkfilter($arg=''){
 	echo "<td style=\"width:12em;\">$I[replace]</td>";
 	echo "<td style=\"width:5em;\">$I[regex]</td>";
 	echo "<td style=\"width:5em;\">$I[apply]</td></tr></table></th></tr>";
-	if(MEMCACHED){
-		$filters=$memcached->get(DBNAME . '-' . PREFIX . 'linkfilter');
-	}
-	if(!MEMCACHED || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
-		$filters=array();
-		$result=$db->query('SELECT id, filtermatch, filterreplace, regex FROM ' . PREFIX . 'linkfilter;');
-		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
-		}
-		if(MEMCACHED){
-			$memcached->set(DBNAME . '-' . PREFIX . 'linkfilter', $filters);
-		}
-	}
+	$filters=get_linkfilters();
 	foreach($filters as $filter){
 		if($filter['regex']==1){
 			$checked=' checked';
@@ -2652,7 +2664,7 @@ function validate_input(){
 }
 
 function apply_filter(){
-	global $I, $U, $db, $memcached;
+	global $I, $U;
 	if($U['poststatus']!==9 && preg_match('~^/me~i', $U['message'])){
 		$U['displaysend']=substr($U['displaysend'], 0, -3);
 		$U['message']=preg_replace("~^/me~i", '', $U['message']);
@@ -2679,17 +2691,7 @@ function apply_filter(){
 		}
 		return "$matched[0]";
 	}, $U['message']);
-	if(MEMCACHED){
-		$filters=$memcached->get(DBNAME . '-' . PREFIX . 'filter');
-	}
-	if(!MEMCACHED || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
-		$filters=array();
-		$result=$db->query('SELECT id, filtermatch, filterreplace, allowinpm, regex, kick FROM ' . PREFIX . 'filter;');
-		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick']);
-		}
-		if(MEMCACHED) $memcached->set(DBNAME . '-' . PREFIX . 'filter', $filters);
-	}
+	$filters=get_filters();
 	foreach($filters as $filter){
 		if($U['poststatus']!==9){
 			$U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
@@ -2704,20 +2706,8 @@ function apply_filter(){
 }
 
 function apply_linkfilter(){
-	global $U, $db, $memcached;
-	if(MEMCACHED){
-		$filters=$memcached->get(DBNAME . '-' . PREFIX . 'linkfilter');
-	}
-	if(!MEMCACHED || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
-		$filters=array();
-		$result=$db->query('SELECT id, filtermatch, filterreplace, regex FROM ' . PREFIX . 'linkfilter;');
-		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
-		}
-		if(MEMCACHED){
-			$memcached->set(DBNAME . '-' . PREFIX . 'linkfilter', $filters);
-		}
-	}
+	global $U;
+	$filters=get_linkfilters();
 	foreach($filters as $filter){
 		$U['message']=preg_replace_callback("/<a href=\"([^\"]+)\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/i",
 			function ($matched) use(&$filter){
