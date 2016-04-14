@@ -1,4 +1,6 @@
+Version 1.16.2 - Apr. 14, 2016
 Add CSS classes and move more css to the database
+Allow extreme captcha to be solved in both directions
 
 Version 1.16.1 - Apr. 13, 2016
 Fixed a typo

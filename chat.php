@@ -1920,7 +1920,8 @@ function create_session($setup){
 	if($setup){
 		$U['incognito']=1;
 	}
-	if(get_setting('captcha')>0 && ($U['status']==1 || get_setting('dismemcaptcha')==0)){
+	$captcha=(int) get_setting('captcha');
+	if($captcha!==0 && ($U['status']==1 || get_setting('dismemcaptcha')==0)){
 		if(!isSet($_REQUEST['challenge'])){
 			send_error($I['wrongcaptcha']);
 		}
@@ -1940,8 +1941,10 @@ function create_session($setup){
 			}
 			$memcached->delete(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]");
 		}
-		if($_REQUEST['captcha']!=$code){
-			send_error($I['wrongcaptcha']);
+		if($_REQUEST['captcha']!==$code){
+			if($captcha!==3 || strrev($_REQUEST['captcha'])!==$code){
+				send_error($I['wrongcaptcha']);
+			}
 		}
 	}
 	if($U['status']==1){
@@ -3484,7 +3487,7 @@ function load_lang(){
 }
 
 function load_config(){
-	define('VERSION', '1.16.1'); // Script version
+	define('VERSION', '1.16.2'); // Script version
 	define('DBVERSION', 16); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
