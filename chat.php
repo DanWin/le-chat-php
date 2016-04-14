@@ -219,8 +219,15 @@ if(!isSet($_REQUEST['action'])){
 		foreach($C['number_settings'] as $setting){
 			settype($_REQUEST[$setting], 'int');
 		}
+		settype($_REQUEST['guestaccess'], 'int');
+		settype($_REQUEST['englobalpass'], 'int');
+		settype($_REQUEST['captcha'], 'int');
+		settype($_REQUEST['dismemcaptcha'], 'int');
+		settype($_REQUEST['guestreg'], 'int');
 		$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $_REQUEST['rulestxt']);
 		$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
+		$_REQUEST['redirect']=htmlspecialchars($_REQUEST['redirect']);
+		$_REQUEST['css']=htmlspecialchars($_REQUEST['css']);
 		if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colbg'])){
 			unset($_REQUEST['colbg']);
 		}
@@ -252,7 +259,9 @@ if(!isSet($_REQUEST['action'])){
 			$_REQUEST['numnotes']=1;
 		}
 		foreach($C['settings'] as $setting){
-			if(isSet($_REQUEST[$setting])) update_setting($setting, $_REQUEST[$setting]);
+			if(isSet($_REQUEST[$setting])){
+				update_setting($setting, $_REQUEST[$setting]);
+			}
 		}
 	}elseif($_REQUEST['do']==='backup' && $U['status']==8){
 		send_backup();
@@ -806,7 +815,7 @@ function send_init(){
 	echo '</table></td></tr><tr><td><br>'.submit($I['initbtn']).'</td></tr></table></form>';
 	echo "<p>$I[changelang]";
 	foreach($L as $lang=>$name){
-		echo " <a href=\"$_SERVER[SCRIPT_NAME]?action=setup&lang=$lang\">$name</a>";
+		echo " <a href=\"$_SERVER[SCRIPT_NAME]?action=setup&amp;lang=$lang\">$name</a>";
 	}
 	echo "</p>$H[credit]";
 	print_end();
@@ -829,7 +838,7 @@ function send_alogin(){
 	echo '<tr><td colspan="2" class="right">'.submit($I['login']).'</td></tr></table></form>';
 	echo "<p>$I[changelang]";
 	foreach($L as $lang=>$name){
-		echo " <a href=\"$_SERVER[SCRIPT_NAME]?action=setup&lang=$lang\">$name</a>";
+		echo " <a href=\"$_SERVER[SCRIPT_NAME]?action=setup&amp;lang=$lang\">$name</a>";
 	}
 	echo "</p>$H[credit]";
 	print_end();
@@ -1668,7 +1677,7 @@ function send_profile($arg=''){
 	echo "<input type=\"number\" name=\"refresh\" size=\"3\" maxlength=\"3\" min=\"5\" max=\"150\" value=\"$U[refresh]\"></td></tr></table></td></tr>";
 	thr();
 	if(!isSet($_COOKIE[COOKIENAME])){
-		$param="&session=$U[session]&lang=$language";
+		$param="&amp;session=$U[session]&amp;lang=$language";
 	}else{
 		$param='';
 	}
@@ -1757,7 +1766,7 @@ function send_profile($arg=''){
 	echo '<tr><td>'.submit($I['savechanges']).'</td></tr></table></form>';
 	echo "<br><p>$I[changelang]";
 	foreach($L as $lang=>$name){
-		echo " <a href=\"$_SERVER[SCRIPT_NAME]?lang=$lang&session=$U[session]&action=controls\" target=\"controls\">$name</a>";
+		echo " <a href=\"$_SERVER[SCRIPT_NAME]?lang=$lang&amp;session=$U[session]&amp;action=controls\" target=\"controls\">$name</a>";
 	}
 	echo '</p></td></tr>';
 	echo "<br>$H[backtochat]";
@@ -2725,7 +2734,7 @@ function apply_linkfilter(){
 		, $U['message']);
 	}
 	if(empty($redirect)){
-		$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&url=";
+		$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
 	}
 	if(get_setting('forceredirect')){
 		$U['message']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
@@ -2876,7 +2885,7 @@ function print_messages($delstatus=''){
 		$injectRedirect=true;
 		$redirect=get_setting('redirect');
 		if(empty($redirect)){
-			$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&url=";
+			$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
 		}
 	}else{
 		$injectRedirect=false;

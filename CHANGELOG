@@ -1,3 +1,5 @@
+Properly escape some parameters
+
 Version 1.16.3 - Apr. 14, 2016
 Fix warning on redirection of links without a scheme
 
