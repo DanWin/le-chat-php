@@ -325,6 +325,7 @@ function thr(){
 function print_start($class='',  $ref=0, $url=''){
 	global $H, $I;
 	if(!empty($url)){
+		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers!
 		header("Refresh: $ref; URL=$url");
 	}
 	echo "<!DOCTYPE html><html><head>$H[meta_html]";
@@ -1287,12 +1288,12 @@ function send_messages($js){
 	global $I, $U, $language;
 	if(!$js){
 		if(isSet($_COOKIE[COOKIENAME])){
-			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view");
+			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&nocache=".substr(time(),-6));
 			if(get_setting('enablejs')==1 && extension_loaded('json')){
 				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview');</script>";
 			}
 		}else{
-			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language");
+			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language&nocache=".substr(time(),-6));
 			if(get_setting('enablejs')==1 && extension_loaded('json')){
 				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview&session=$U[session]&lang=$language');</script>";
 			}
@@ -1449,11 +1450,9 @@ function send_waiting_room(){
 	}else{
 		$refresh=(int) get_setting('defaultrefresh');
 		if(isSet($_COOKIE['test'])){
-			header("Refresh: $refresh; URL=$_SERVER[SCRIPT_NAME]?action=wait");
-			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait");
+			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&nocache=".substr(time(),-6));
 		}else{
-			header("Refresh: $refresh; URL=$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]");
-			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&lang=$language");
+			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&lang=$language&nocache=".substr(time(),-6));
 		}
 		echo "<h2>$I[waitingroom]</h2><p>";
 		if($wait){
