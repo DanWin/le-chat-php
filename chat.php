@@ -366,7 +366,7 @@ function send_access_denied(){
 	echo "<h1>$I[accessdenied]</h1>".sprintf($I['loggedinas'], style_this($U['nickname'], $U['style']));
 	echo "<br><$H[form]>$H[commonform]".hidden('action', 'logout');
 	if(!isSet($_REQUEST['session'])){
-		hidden('session', $U['session']);
+		echo hidden('session', $U['session']);
 	}
 	echo submit($I['logout'], 'id="exitbutton"')."</form>";
 	print_end();
@@ -652,18 +652,18 @@ function send_setup(){
 		echo '<table class="center-table"><tr>';
 		echo "<td><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'backup');
 		if(!isSet($_REQUEST['session'])){
-			hidden('session', $U['session']);
+			echo hidden('session', $U['session']);
 		}
 		echo submit($I['backuprestore']).'</form></td>';
 		echo "<td><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'destroy');
 		if(!isSet($_REQUEST['session'])){
-			hidden('session', $U['session']);
+			echo hidden('session', $U['session']);
 		}
 		echo submit($I['destroy'], 'class="delbutton"').'</form></td></tr></table><br>';
 	}
 	echo "<$H[form]>$H[commonform]".hidden('action', 'logout');
 	if(!isSet($_REQUEST['session'])){
-		hidden('session', $U['session']);
+		echo hidden('session', $U['session']);
 	}
 	echo submit($I['logout'], 'id="exitbutton"')."</form>$H[credit]";
 	print_end();
@@ -1468,12 +1468,12 @@ function send_waiting_room(){
 		echo '</p><br><br>';
 		echo "<hr><$H[form]>$H[commonform]";
 		if(!isSet($_REQUEST['session'])){
-			hidden('session', $U['session']);
+			echo hidden('session', $U['session']);
 		}
-		echo hidden('action', 'wait').submit($I['reload']).'</form><br>';
+		echo hidden('nocache', substr(time(), -6)).hidden('action', 'wait').submit($I['reload']).'</form><br>';
 		echo "<$H[form]>$H[commonform]";
 		if(!isSet($_REQUEST['session'])){
-			hidden('session', $U['session']);
+			echo hidden('session', $U['session']);
 		}
 		echo hidden('action', 'logout').submit($I['exit'], 'id="exitbutton"').'</form>';
 		$rulestxt=get_setting('rulestxt');
@@ -3493,7 +3493,7 @@ function load_lang(){
 }
 
 function load_config(){
-	define('VERSION', '1.16.3'); // Script version
+	define('VERSION', '1.16.4'); // Script version
 	define('DBVERSION', 16); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages

@@ -1,6 +1,8 @@
+Version 1.16.4 - Apr. 15, 2016
 Properly escape some parameters
 Add caching hack for aggressively caching browsers (e.g. links)
 Improve invalid filter handling + allow new line match with \n
+Fix a few forms to be used cookie-less
 
 Version 1.16.3 - Apr. 14, 2016
 Fix warning on redirection of links without a scheme
