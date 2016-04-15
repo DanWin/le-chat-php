@@ -183,11 +183,9 @@ if(!isSet($_REQUEST['action'])){
 			update_setting('guestaccess', $_REQUEST['guestaccess']);
 		}
 	}elseif($_REQUEST['do']==='filter'){
-		manage_filter();
-		send_filter();
+		send_filter(manage_filter());
 	}elseif($_REQUEST['do']==='linkfilter'){
-		manage_linkfilter();
-		send_linkfilter();
+		send_linkfilter(manage_linkfilter());
 	}elseif($_REQUEST['do']==='topic'){
 		if(isSet($_REQUEST['topic'])){
 			update_setting('topic', htmlspecialchars($_REQUEST['topic']));
@@ -1057,18 +1055,30 @@ function send_sessions(){
 	print_end();
 }
 
+function check_filter_match(&$reg){
+	global $I;
+	$_REQUEST['match']=htmlspecialchars($_REQUEST['match']);
+	if(isSet($_REQUEST['regex']) && $_REQUEST['regex']==1){
+		$_REQUEST['match']=preg_replace('~(^|[^\\\\])/~', "$1\/", $_REQUEST['match']); // Escape "/" if not yet escaped
+		if(@preg_match("/$_REQUEST[match]/", '')===false){
+			return "$I[incorregex]<br>$I[prevmatch]: $_REQUEST[match]";
+		}
+		$reg=1;
+	}else{
+		$_REQUEST['match']=preg_replace('/([^\w\d])/', "\\\\$1", $_REQUEST['match']);
+		$reg=0;
+	}
+	if(strlen($_REQUEST['match'])>255){
+		return "$I[matchtoolong]<br>$I[prevmatch]: $_REQUEST[match]";
+	}
+	return false;
+}
+
 function manage_filter(){
-	global $I, $db, $memcached;
+	global $db, $memcached;
 	if(isSet($_REQUEST['id'])){
-		$_REQUEST['match']=htmlspecialchars($_REQUEST['match']);
-		if(isSet($_REQUEST['regex']) && $_REQUEST['regex']==1){
-			if(@preg_match("/$_REQUEST[match]/", '')===false){
-				send_filter($I['incorregex']);
-			}
-			$reg=1;
-		}else{
-			$_REQUEST['match']=preg_replace('/([^\w\d])/', "\\\\$1", $_REQUEST['match']);
-			$reg=0;
+		if($tmp=check_filter_match($reg)){
+			return $tmp;
 		}
 		if(isSet($_REQUEST['allowinpm']) && $_REQUEST['allowinpm']==1){
 			$pm=1;
@@ -1105,17 +1115,10 @@ function manage_filter(){
 }
 
 function manage_linkfilter(){
-	global $I, $db, $memcached;
+	global $db, $memcached;
 	if(isSet($_REQUEST['id'])){
-		$_REQUEST['match']=htmlspecialchars($_REQUEST['match']);
-		if(isSet($_REQUEST['regex']) && $_REQUEST['regex']==1){
-			if(@preg_match("/$_REQUEST[match]/", '')===false){
-				send_linkfilter($I['incorregex']);
-			}
-			$reg=1;
-		}else{
-			$_REQUEST['match']=preg_replace('/([^\w\d])/', "\\\\$1", $_REQUEST['match']);
-			$reg=0;
+		if($tmp=check_filter_match($reg)){
+			return $tmp;
 		}
 		if(preg_match('/^[0-9]*$/', $_REQUEST['id'])){
 			if(empty($_REQUEST['match'])){
@@ -2690,6 +2693,7 @@ function apply_filter(){
 		}
 		return "$matched[0]";
 	}, $U['message']);
+	$U['message']=str_replace('<br>', "\n", $U['message']);
 	$filters=get_filters();
 	foreach($filters as $filter){
 		if($U['poststatus']!==9){
@@ -2702,6 +2706,7 @@ function apply_filter(){
 			send_error("$I[kicked]");
 		}
 	}
+	$U['message']=str_replace("\n", '<br>', $U['message']);
 }
 
 function apply_linkfilter(){

@@ -328,6 +328,8 @@ $T=array(
 	'guestreg' => 'Gäste sich selbst registrieren lassen',
 	'asmember' => 'Als Mitglied',
 	'assuguest' => 'Als Anwerber',
-	'fatalerror' => 'Fataler Fehler'
+	'fatalerror' => 'Fataler Fehler',
+	'prevmatch' => 'Ihr regex war folgender',
+	'matchtoolong' => 'Ihr Match war zu lang. Sie können max. 255 Zeichen benutzen. Versuchen Sie diesen aufzuteilen.'
 );
 ?>

@@ -328,6 +328,8 @@ $I=array(
 	'guestreg' => 'Let guests register themselves',
 	'asmember' => 'As member',
 	'assuguest' => 'As applicant',
-	'fatalerror' => 'Fatal error'
+	'fatalerror' => 'Fatal error',
+	'prevmatch' => 'Your match was as follows',
+	'matchtoolong' => 'Your match was too long. You can use max. 255 characters. Try splitting it up.'
 );
 ?>
