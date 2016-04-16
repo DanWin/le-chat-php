@@ -18,15 +18,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-header('Content-Type: text/html; charset=UTF-8');
-header('Pragma: no-cache');
-header('Cache-Control: no-cache');
-header('Expires: 0');
-if($_SERVER['REQUEST_METHOD']==='HEAD'){
-	exit; // headers sent, no further processing needed
-}
+send_headers();
 // initialize and load variables/configuration
-date_default_timezone_set('UTC');
 $A=array();// All registered members
 $C=array();// Configuration
 $F=array();// Fonts
@@ -48,98 +41,104 @@ load_fonts();
 load_lang();
 load_html();
 check_db();
+route();
 
 //  main program: decide what to do based on queries
-if(!isSet($_REQUEST['action'])){
-	if(!check_init()){
-		send_init();
-	}
-	send_login();
-}elseif($_REQUEST['action']==='view'){
-	check_session();
-	send_messages(false);
-}elseif($_REQUEST['action']==='jsview'){
-	check_session();
-	send_messages(true);
-}elseif($_REQUEST['action']==='jsrefresh'){
-	if(!extension_loaded('json')){
-		send_fatal_error($I['jsonextrequired']);
-	}
-	check_session();
-	ob_start();
-	print_messages();
-	$msgs=ob_get_clean();
-	ob_start();
-	print_chatters();
-	$chatters=ob_get_clean();
-	echo json_encode(array($_REQUEST['id'], $msgs, $chatters, get_setting('topic')));
-}elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
-	send_redirect($_GET['url']);
-}elseif($_REQUEST['action']==='wait'){
-	send_waiting_room();
-}elseif($_REQUEST['action']==='post'){
-	check_session();
-	if(isSet($_REQUEST['kick']) && isSet($_REQUEST['sendto']) && valid_nick($_REQUEST['sendto'])){
-		if($U['status']>=5 || ($U['status']>=3 && $countmods===0 && get_setting('memkick'))){
-			if(isSet($_REQUEST['what']) && $_REQUEST['what']==='purge'){
-				kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], true);
-			}else{
-				kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], false);
+function route(){
+	global $U, $countmods;
+	if(!isSet($_REQUEST['action'])){
+		if(!check_init()){
+			send_init();
+		}
+		send_login();
+	}elseif($_REQUEST['action']==='view'){
+		check_session();
+		send_messages(false);
+	}elseif($_REQUEST['action']==='jsview'){
+		check_session();
+		send_messages(true);
+	}elseif($_REQUEST['action']==='jsrefresh'){
+		send_jsrefresh();
+	}elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
+		send_redirect($_GET['url']);
+	}elseif($_REQUEST['action']==='wait'){
+		send_waiting_room();
+	}elseif($_REQUEST['action']==='post'){
+		check_session();
+		if(isSet($_REQUEST['kick']) && isSet($_REQUEST['sendto']) && valid_nick($_REQUEST['sendto'])){
+			if($U['status']>=5 || ($U['status']>=3 && $countmods===0 && get_setting('memkick'))){
+				if(isSet($_REQUEST['what']) && $_REQUEST['what']==='purge'){
+					kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], true);
+				}else{
+					kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], false);
+				}
 			}
+		}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto'])){
+			validate_input();
 		}
-	}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto'])){
-		validate_input();
-	}
-	send_post();
-}elseif($_REQUEST['action']==='login'){
-	check_login();
-	send_frameset();
-}elseif($_REQUEST['action']==='controls'){
-	check_session();
-	send_controls();
-}elseif($_REQUEST['action']==='delete'){
-	check_session();
-	if($_REQUEST['what']==='all'){
-		if(isSet($_REQUEST['confirm'])){
-			del_all_messages($U['nickname'], 10, $U['entry']);
-		}else{
-			send_del_confirm();
+		send_post();
+	}elseif($_REQUEST['action']==='login'){
+		check_login();
+		send_frameset();
+	}elseif($_REQUEST['action']==='controls'){
+		check_session();
+		send_controls();
+	}elseif($_REQUEST['action']==='delete'){
+		check_session();
+		if($_REQUEST['what']==='all'){
+			if(isSet($_REQUEST['confirm'])){
+				del_all_messages($U['nickname'], 10, $U['entry']);
+			}else{
+				send_del_confirm();
+			}
+		}elseif($_REQUEST['what']==='last'){
+			del_last_message();
 		}
-	}elseif($_REQUEST['what']==='last'){
-		del_last_message();
+		send_post();
+	}elseif($_REQUEST['action']==='profile'){
+		check_session();
+		$arg='';
+		if(isSet($_REQUEST['do']) && $_REQUEST['do']==='save'){
+			$arg=save_profile();
+		}
+		send_profile($arg);
+	}elseif($_REQUEST['action']==='logout'){
+		kill_session();
+		send_logout();
+	}elseif($_REQUEST['action']==='colours'){
+		check_session();
+		send_colours();
+	}elseif($_REQUEST['action']==='notes'){
+		check_session();
+		if(isSet($_REQUEST['do']) && $_REQUEST['do']==='admin' && $U['status']>6){
+			send_notes('admin');
+		}
+		if($U['status']<5){
+			send_access_denied();
+		}
+		send_notes('staff');
+	}elseif($_REQUEST['action']==='help'){
+		check_session();
+		send_help();
+	}elseif($_REQUEST['action']==='admin'){
+		check_session();
+		send_admin(route_admin());
+	}elseif($_REQUEST['action']==='setup'){
+		route_setup();
+		send_setup();
+	}elseif($_REQUEST['action']==='init'){
+		init_chat();
+	}else{
+		send_login();
 	}
-	send_post();
-}elseif($_REQUEST['action']==='profile'){
-	check_session();
-	$arg='';
-	if(isSet($_REQUEST['do']) && $_REQUEST['do']==='save'){
-		$arg=save_profile();
-	}
-	send_profile($arg);
-}elseif($_REQUEST['action']==='logout'){
-	kill_session();
-	send_logout();
-}elseif($_REQUEST['action']==='colours'){
-	check_session();
-	send_colours();
-}elseif($_REQUEST['action']==='notes'){
-	check_session();
-	if(!empty($_REQUEST['do']) && $_REQUEST['do']==='admin' && $U['status']>6){
-		send_notes('admin');
-	}
+}
+
+function route_admin(){
+	global $U;
 	if($U['status']<5){
 		send_access_denied();
 	}
-	send_notes('staff');
-}elseif($_REQUEST['action']==='help'){
-	check_session();
-	send_help();
-}elseif($_REQUEST['action']==='admin'){
-	check_session();
-	if($U['status']<5){
-		send_access_denied();
-	}
-	if(empty($_REQUEST['do'])){
+	if(!isSet($_REQUEST['do'])){
 	}elseif($_REQUEST['do']==='clean'){
 		if($_REQUEST['what']==='choose'){
 			send_choose_messages();
@@ -168,13 +167,13 @@ if(!isSet($_REQUEST['action'])){
 		}
 		send_sessions();
 	}elseif($_REQUEST['do']==='register'){
-		send_admin(register_guest(3, $_REQUEST['name']));
+		return register_guest(3, $_REQUEST['name']);
 	}elseif($_REQUEST['do']==='superguest'){
-		send_admin(register_guest(2, $_REQUEST['name']));
+		return register_guest(2, $_REQUEST['name']);
 	}elseif($_REQUEST['do']==='status'){
-		send_admin(change_status($_REQUEST['name'], $_REQUEST['set']));
+		return change_status($_REQUEST['name'], $_REQUEST['set']);
 	}elseif($_REQUEST['do']==='regnew'){
-		send_admin(register_new($_REQUEST['name'], $_REQUEST['pass']));
+		return register_new($_REQUEST['name'], $_REQUEST['pass']);
 	}elseif($_REQUEST['do']==='approve'){
 		approve_session();
 		send_approve_waiting();
@@ -191,10 +190,12 @@ if(!isSet($_REQUEST['action'])){
 			update_setting('topic', htmlspecialchars($_REQUEST['topic']));
 		}
 	}elseif($_REQUEST['do']==='passreset'){
-		send_admin(passreset($_REQUEST['name'], $_REQUEST['pass']));
+		return passreset($_REQUEST['name'], $_REQUEST['pass']);
 	}
-	send_admin();
-}elseif($_REQUEST['action']==='setup'){
+}
+
+function route_setup(){
+	global $C, $U;
 	if(!check_init()){
 		send_init();
 	}
@@ -209,58 +210,9 @@ if(!isSet($_REQUEST['action'])){
 	$C['textarea_settings']=array('rulestxt', 'css');
 	$C['text_settings']=array('dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver');
 	$C['settings']=array_merge(array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg'), $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
-	if(empty($_REQUEST['do'])){
+	if(!isSet($_REQUEST['do'])){
 	}elseif($_REQUEST['do']==='save'){
-		foreach($C['msg_settings'] as $setting){
-			$_REQUEST[$setting]=htmlspecialchars($_REQUEST[$setting]);
-		}
-		foreach($C['number_settings'] as $setting){
-			settype($_REQUEST[$setting], 'int');
-		}
-		settype($_REQUEST['guestaccess'], 'int');
-		settype($_REQUEST['englobalpass'], 'int');
-		settype($_REQUEST['captcha'], 'int');
-		settype($_REQUEST['dismemcaptcha'], 'int');
-		settype($_REQUEST['guestreg'], 'int');
-		$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $_REQUEST['rulestxt']);
-		$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
-		$_REQUEST['redirect']=htmlspecialchars($_REQUEST['redirect']);
-		$_REQUEST['css']=htmlspecialchars($_REQUEST['css']);
-		if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colbg'])){
-			unset($_REQUEST['colbg']);
-		}
-		if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['coltxt'])){
-			unset($_REQUEST['coltxt']);
-		}
-		if($_REQUEST['memberexpire']<5){
-			$_REQUEST['memberexpire']=5;
-		}
-		if($_REQUEST['captchatime']<30){
-			$_REQUEST['memberexpire']=30;
-		}
-		if($_REQUEST['defaultrefresh']<5){
-			$_REQUEST['defaultrefresh']=5;
-		}elseif($_REQUEST['defaultrefresh']>150){
-			$_REQUEST['defaultrefresh']=150;
-		}
-		if($_REQUEST['maxname']<1){
-			$_REQUEST['maxname']=1;
-		}elseif($_REQUEST['maxname']>50){
-			$_REQUEST['maxname']=50;
-		}
-		if($_REQUEST['maxmessage']<1){
-			$_REQUEST['maxmessage']=1;
-		}elseif($_REQUEST['maxmessage']>20000){
-			$_REQUEST['maxmessage']=20000;
-		}
-		if($_REQUEST['numnotes']<1){
-			$_REQUEST['numnotes']=1;
-		}
-		foreach($C['settings'] as $setting){
-			if(isSet($_REQUEST[$setting])){
-				update_setting($setting, $_REQUEST[$setting]);
-			}
-		}
+		save_setup();
 	}elseif($_REQUEST['do']==='backup' && $U['status']==8){
 		send_backup();
 	}elseif($_REQUEST['do']==='restore' && $U['status']==8){
@@ -273,11 +225,6 @@ if(!isSet($_REQUEST['action'])){
 			send_destroy_chat();
 		}
 	}
-	send_setup();
-}elseif($_REQUEST['action']==='init'){
-	init_chat();
-}else{
-	send_login();
 }
 
 //  html output subs
@@ -661,7 +608,7 @@ function send_setup(){
 		}
 		echo submit($I['destroy'], 'class="delbutton"').'</form></td></tr></table><br>';
 	}
-	echo "<$H[form]>$H[commonform]".hidden('action', 'logout');
+	echo "<$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'logout');
 	if(!isSet($_REQUEST['session'])){
 		echo hidden('session', $U['session']);
 	}
@@ -1319,6 +1266,21 @@ function send_messages($js){
 	echo "<a id=\"bottom\"></a><a style=\"position:fixed;bottom:0.5em;right:0.5em\" href=\"#top\">$I[top]</a>";
 	echo '</div>';
 	print_end();
+}
+
+function send_jsrefresh(){
+	global $I;
+	if(!extension_loaded('json')){
+		send_fatal_error($I['jsonextrequired']);
+	}
+	check_session();
+	ob_start();
+	print_messages();
+	$msgs=ob_get_clean();
+	ob_start();
+	print_chatters();
+	$chatters=ob_get_clean();
+	echo json_encode(array($_REQUEST['id'], $msgs, $chatters, get_setting('topic')));
 }
 
 function send_notes($type){
@@ -2973,6 +2935,70 @@ function print_messages($delstatus=''){
 
 // this and that
 
+function send_headers(){
+	header('Content-Type: text/html; charset=UTF-8');
+	header('Pragma: no-cache');
+	header('Cache-Control: no-cache');
+	header('Expires: 0');
+	if($_SERVER['REQUEST_METHOD']==='HEAD'){
+		exit; // headers sent, no further processing needed
+	}
+}
+
+function save_setup(){
+	global $C;
+	foreach($C['msg_settings'] as $setting){
+		$_REQUEST[$setting]=htmlspecialchars($_REQUEST[$setting]);
+	}
+	foreach($C['number_settings'] as $setting){
+		settype($_REQUEST[$setting], 'int');
+	}
+	settype($_REQUEST['guestaccess'], 'int');
+	settype($_REQUEST['englobalpass'], 'int');
+	settype($_REQUEST['captcha'], 'int');
+	settype($_REQUEST['dismemcaptcha'], 'int');
+	settype($_REQUEST['guestreg'], 'int');
+	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $_REQUEST['rulestxt']);
+	$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
+	$_REQUEST['redirect']=htmlspecialchars($_REQUEST['redirect']);
+	$_REQUEST['css']=htmlspecialchars($_REQUEST['css']);
+	if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colbg'])){
+		unset($_REQUEST['colbg']);
+	}
+	if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['coltxt'])){
+		unset($_REQUEST['coltxt']);
+	}
+	if($_REQUEST['memberexpire']<5){
+		$_REQUEST['memberexpire']=5;
+	}
+		if($_REQUEST['captchatime']<30){
+		$_REQUEST['memberexpire']=30;
+	}
+	if($_REQUEST['defaultrefresh']<5){
+		$_REQUEST['defaultrefresh']=5;
+	}elseif($_REQUEST['defaultrefresh']>150){
+		$_REQUEST['defaultrefresh']=150;
+	}
+	if($_REQUEST['maxname']<1){
+		$_REQUEST['maxname']=1;
+	}elseif($_REQUEST['maxname']>50){
+		$_REQUEST['maxname']=50;
+	}
+	if($_REQUEST['maxmessage']<1){
+		$_REQUEST['maxmessage']=1;
+	}elseif($_REQUEST['maxmessage']>20000){
+		$_REQUEST['maxmessage']=20000;
+	}
+		if($_REQUEST['numnotes']<1){
+		$_REQUEST['numnotes']=1;
+	}
+	foreach($C['settings'] as $setting){
+		if(isSet($_REQUEST[$setting])){
+			update_setting($setting, $_REQUEST[$setting]);
+		}
+	}
+}
+
 function get_ignored(){
 	global $db;
 	$ignored=array();
@@ -3493,6 +3519,7 @@ function load_lang(){
 }
 
 function load_config(){
+	date_default_timezone_set('UTC');
 	define('VERSION', '1.16.4'); // Script version
 	define('DBVERSION', 16); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
