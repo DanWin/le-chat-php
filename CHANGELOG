@@ -1,3 +1,5 @@
+Remove nocache hack from message reload again (scrolls back to top every time)
+
 Version 1.16.4 - Apr. 15, 2016
 Properly escape some parameters
 Add caching hack for aggressively caching browsers (e.g. links)

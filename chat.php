@@ -1238,12 +1238,12 @@ function send_messages($js){
 	global $I, $U, $language;
 	if(!$js){
 		if(isSet($_COOKIE[COOKIENAME])){
-			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&nocache=".substr(time(),-6));
+			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view");
 			if(get_setting('enablejs')==1 && extension_loaded('json')){
 				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview');</script>";
 			}
 		}else{
-			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language&nocache=".substr(time(),-6));
+			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language");
 			if(get_setting('enablejs')==1 && extension_loaded('json')){
 				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview&session=$U[session]&lang=$language');</script>";
 			}
