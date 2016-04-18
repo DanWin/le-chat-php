@@ -1,4 +1,4 @@
-Remove nocache hack from message reload again (scrolls back to top every time)
+Make nocache refresh hack configurable in profile
 
 Version 1.16.4 - Apr. 15, 2016
 Properly escape some parameters

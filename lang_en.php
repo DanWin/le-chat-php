@@ -330,6 +330,7 @@ $I=array(
 	'assuguest' => 'As applicant',
 	'fatalerror' => 'Fatal error',
 	'prevmatch' => 'Your match was as follows',
-	'matchtoolong' => 'Your match was too long. You can use max. 255 characters. Try splitting it up.'
+	'matchtoolong' => 'Your match was too long. You can use max. 255 characters. Try splitting it up.',
+	'nocache' => 'Add refresh hack for old browsers.<br>Enable, if refreshing doesn\'t work.'
 );
 ?>

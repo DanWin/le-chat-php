@@ -330,6 +330,7 @@ $T=array(
 	'assuguest' => 'Als Anwerber',
 	'fatalerror' => 'Fataler Fehler',
 	'prevmatch' => 'Ihr regex war folgender',
-	'matchtoolong' => 'Ihr Match war zu lang. Sie können max. 255 Zeichen benutzen. Versuchen Sie diesen aufzuteilen.'
+	'matchtoolong' => 'Ihr Match war zu lang. Sie können max. 255 Zeichen benutzen. Versuchen Sie diesen aufzuteilen.',
+	'nocache' => 'Neulade-Hack für alte Browser hinzufügen.<br>Aktiviere dies, falls Neuladen nicht funktioniert.'
 );
 ?>
