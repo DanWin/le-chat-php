@@ -3428,6 +3428,12 @@ function check_db(){
 				}else{
 					send_fatal_error($I['nodbsetup']);
 				}
+			}else{
+				if(isSet($_REQUEST['action']) && $_REQUEST['action']==='setup'){
+					send_fatal_error($I['nodbsetup']);
+				}else{
+					send_fatal_error($I['nodb']);
+				}
 			}
 		}catch(PDOException $e){
 			if(isSet($_REQUEST['action']) && $_REQUEST['action']==='setup'){
