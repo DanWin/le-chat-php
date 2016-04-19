@@ -203,7 +203,7 @@ function route_setup(){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'enablejs', 'sendmail', 'modfallback');
+	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'enablejs', 'sendmail', 'modfallback', 'disablepm');
 	$C['colour_settings']=array('colbg', 'coltxt');
 	$C['msg_settings']=array('msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv');
 	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'keeplimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes');
@@ -1537,28 +1537,31 @@ function send_post(){
 		}
 		echo "value=\"&\">-$I[toadmin]-</option>";
 	}
-	$ignored=array();
-	$ignore=get_ignored();
-	foreach($ignore as $ign){
-		if($ign['ignored']===$U['nickname']){
-			$ignored[]=$ign['by'];
-		}
-		if($ign['by']===$U['nickname']){
-			$ignored[]=$ign['ignored'];
-		}
-	}
-	array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
-	foreach($P as $user){
-		if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
-			echo '<option ';
-			if($_REQUEST['sendto']===$user[0]){
-				echo 'selected ';
+	$disablepm=(bool) get_setting('disablepm');
+	if(!$disablepm){
+		$ignored=array();
+		$ignore=get_ignored();
+		foreach($ignore as $ign){
+			if($ign['ignored']===$U['nickname']){
+				$ignored[]=$ign['by'];
 			}
-			echo "value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
+			if($ign['by']===$U['nickname']){
+				$ignored[]=$ign['ignored'];
+			}
+		}
+		array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
+		foreach($P as $user){
+			if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
+				echo '<option ';
+				if($_REQUEST['sendto']===$user[0]){
+					echo 'selected ';
+				}
+				echo "value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
+			}
 		}
 	}
 	echo '</select>';
-	if($U['status']>=5 || ($U['status']>=3 && $countmods===0 && get_setting('memkick'))){
+	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && $countmods===0 && get_setting('memkick')))){
 		echo "<input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\"><label for=\"kick\">&nbsp;$I[kick]</label>";
 		echo "<input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked><label for=\"what\">&nbsp;$I[alsopurge]</label>";
 	}
@@ -2597,6 +2600,9 @@ function validate_input(){
 		$U['poststatus']='6';
 		$U['displaysend']=sprintf(get_setting('msgsendadm'), style_this($U['nickname'], $U['style']));
 	}else{// known nick in room?
+		if(get_setting('disablepm')){
+			return;
+		}
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'ignored WHERE (ignby=? AND ign=?) OR (ignby=? AND ign=?);');
 		$stmt->execute(array($U['nickname'], $_REQUEST['sendto'], $_REQUEST['sendto'], $U['nickname']));
 		if(!$stmt->fetch(PDO::FETCH_NUM)){
@@ -2615,18 +2621,16 @@ function validate_input(){
 		}else{// nick left already or ignores us
 			$U['message']='';
 			$U['rejected']='';
+			return;
 		}
 	}
-	if(isSet($U['poststatus'])){
-		apply_filter();
-		create_hotlinks();
-		apply_linkfilter();
-		if(add_message()){
-			$U['lastpost']=time();
-			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
-			$stmt->execute(array($U['lastpost'], $_REQUEST['postid'], $U['session']));
-		}
-
+	apply_filter();
+	create_hotlinks();
+	apply_linkfilter();
+	if(add_message()){
+		$U['lastpost']=time();
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
+		$stmt->execute(array($U['lastpost'], $_REQUEST['postid'], $U['session']));
 	}
 }
 
@@ -3196,7 +3200,7 @@ function init_chat(){
 			$db->exec('CREATE INDEX lastpost ON ' . PREFIX . 'sessions (lastpost);');
 			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(20000) NOT NULL);");
 		}
-		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} .center-table{margin-left:auto;margin-right:auto;} body{text-align:center;} .left-table{width:100%;text-align:left;} .right{text-align:right;} .left{text-align:left;} .right-table{border-spacing:0px;margin-left:auto;} .padded{padding:5px;} #chatters{max-height:100px;overflow-y:auto;} .center{text-align:center;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('enablejs', '0'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'), array('guestreg', '0'));
+		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} .center-table{margin-left:auto;margin-right:auto;} body{text-align:center;} .left-table{width:100%;text-align:left;} .right{text-align:right;} .left{text-align:left;} .right-table{border-spacing:0px;margin-left:auto;} .padded{padding:5px;} #chatters{max-height:100px;overflow-y:auto;} .center{text-align:center;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('enablejs', '0'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'), array('guestreg', '0'), array('disablepm', '0'));
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
 			$stmt->execute($pair);
@@ -3333,6 +3337,9 @@ function update_db(){
 		if($dbversion<17){
 			$db->exec('ALTER TABLE ' . PREFIX . 'sessions ADD COLUMN nocache smallint UNSIGNED NOT NULL DEFAULT 0;');
 			$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN nocache smallint UNSIGNED NOT NULL DEFAULT 0;');
+		}
+		if($dbversion<18){
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('disablepm', '0');");
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
@@ -3520,7 +3527,7 @@ function load_lang(){
 function load_config(){
 	date_default_timezone_set('UTC');
 	define('VERSION', '1.16.4'); // Script version
-	define('DBVERSION', 17); // Database version
+	define('DBVERSION', 18); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host

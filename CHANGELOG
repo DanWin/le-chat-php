@@ -1,4 +1,5 @@
 Make nocache refresh hack configurable in profile
+Add disable PM option
 
 Version 1.16.4 - Apr. 15, 2016
 Properly escape some parameters
