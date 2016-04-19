@@ -3107,19 +3107,8 @@ function style_this($text, $styleinfo){
 }
 
 function check_init(){
-	global $db, $memcached;
-	if(!MEMCACHED || !$found=$memcached->get(DBNAME . '-' . PREFIX . 'num-tables')){
-		if(DBDRIVER===0){
-			$result=$db->query("SHOW TABLES LIKE '" . PREFIX . "settings';");
-			$found=($result->fetch(PDO::FETCH_ASSOC)!==false);
-		}else{
-			$found=$db->query('SELECT * FROM ' . PREFIX . 'settings LIMIT 1;');
-		}
-		if(MEMCACHED){
-			$memcached->set(DBNAME . '-' . PREFIX . 'num-tables', $found);
-		}
-	}
-	return $found;
+	global $db;
+	return @$db->query('SELECT * FROM ' . PREFIX . 'settings LIMIT 1;');
 }
 
 function destroy_chat(){
@@ -3136,7 +3125,6 @@ function destroy_chat(){
 	$db->exec('DROP TABLE ' . PREFIX . 'sessions;');
 	$db->exec('DROP TABLE ' . PREFIX . 'settings;');
 	if(MEMCACHED){
-		$memcached->delete(DBNAME . '-' . PREFIX . 'num-tables');
 		$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
 		$memcached->delete(DBANEM . '-' . PREFIX . 'linkfilter');
 		foreach($C['settings'] as $setting){
@@ -3151,7 +3139,7 @@ function destroy_chat(){
 }
 
 function init_chat(){
-	global $H, $I, $db, $memcached;
+	global $H, $I, $db;
 	$suwrite='';
 	if(check_init()){
 		$suwrite=$I['initdbexist'];
@@ -3204,9 +3192,6 @@ function init_chat(){
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
 			$stmt->execute($pair);
-		}
-		if(MEMCACHED){
-			$memcached->delete(DBNAME . '-' . PREFIX . 'num-tables');
 		}
 		$reg=array(
 			'nickname'	=>$_REQUEST['sunick'],
