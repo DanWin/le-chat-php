@@ -1,5 +1,7 @@
+Version 1.17 - Apr. 20, 2016
 Make nocache refresh hack configurable in profile
 Add disable PM option
+Allow disabling the chat completely
 
 Version 1.16.4 - Apr. 15, 2016
 Properly escape some parameters

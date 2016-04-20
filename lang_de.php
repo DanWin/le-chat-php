@@ -332,6 +332,9 @@ $T=array(
 	'prevmatch' => 'Ihr regex war folgender',
 	'matchtoolong' => 'Ihr Match war zu lang. Sie können max. 255 Zeichen benutzen. Versuchen Sie diesen aufzuteilen.',
 	'nocache' => 'Neulade-Hack für alte Browser hinzufügen.<br>Aktiviere dies, falls Neuladen nicht funktioniert.',
-	'disablepm' => 'Private Nachrichten deaktivieren'
+	'disablepm' => 'Private Nachrichten deaktivieren',
+	'disablechat' => 'Chat deaktivieren',
+	'disabletext' => 'Chat deaktiviert Nachricht (html)',
+	'disabledtext' => 'Kurzzeitig deaktiviert'
 );
 ?>

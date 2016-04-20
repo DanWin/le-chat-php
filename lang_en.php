@@ -332,6 +332,9 @@ $I=array(
 	'prevmatch' => 'Your match was as follows',
 	'matchtoolong' => 'Your match was too long. You can use max. 255 characters. Try splitting it up.',
 	'nocache' => 'Add refresh hack for old browsers.<br>Enable, if refreshing doesn\'t work.',
-	'disablepm' => 'Disable private messages'
+	'disablepm' => 'Disable private messages',
+	'disablechat' => 'Disable chat',
+	'disabletext' => 'Chat disabled message (html)',
+	'disabledtext' => 'Temporarily disabled'
 );
 ?>
