@@ -978,8 +978,12 @@ function send_admin($arg=''){
 }
 
 function send_sessions(){
-	global $H, $I, $U;
-	$lines=parse_sessions();
+	global $H, $I, $U, $db;
+	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE status!=0 AND entry!=0 AND (incognito=0 OR status<?) ORDER BY status DESC, lastpost DESC;');
+	$stmt->execute(array($U['status']));
+	if(!$lines=$stmt->fetchAll(PDO::FETCH_ASSOC)){
+		$lines=array();
+	}
 	print_start('sessions');
 	echo "<h1>$I[sessact]</h1><table class=\"center-table\">";
 	echo "<tr><th class=\"padded\">$I[sessnick]</th><th class=\"padded\">$I[sesstimeout]</th><th class=\"padded\">$I[sessua]</th>";
@@ -989,42 +993,40 @@ function send_sessions(){
 	if($trackip) echo "<th class=\"padded\">$I[sesip]</th>";
 	echo "<th class=\"padded\">$I[actions]</th></tr>";
 	foreach($lines as $temp){
-		if($temp['status']!=0 && $temp['entry']!=0 && (!$temp['incognito'] || $temp['status']<$U['status'])){
-			if($temp['status']<=2){
-				$s='&nbsp;(G)';
-			}elseif($temp['status']==3){
-				$s='';
-			}elseif($temp['status']==5){
-				$s='&nbsp;(M)';
-			}elseif($temp['status']==6){
-				$s='&nbsp;(SM)';
-			}elseif($temp['status']==7){
-				$s='&nbsp;(A)';
-			}elseif($temp['status']==8){
-				$s='&nbsp;(SA)';
+		if($temp['status']<=2){
+			$s='&nbsp;(G)';
+		}elseif($temp['status']==3){
+			$s='';
+		}elseif($temp['status']==5){
+			$s='&nbsp;(M)';
+		}elseif($temp['status']==6){
+			$s='&nbsp;(SM)';
+		}elseif($temp['status']==7){
+			$s='&nbsp;(A)';
+		}elseif($temp['status']==8){
+			$s='&nbsp;(SA)';
+		}
+		echo '<tr class="left"><td class="padded">'.style_this($temp['nickname'].$s, $temp['style']).'</td><td class="padded">';
+		if($temp['status']>2){
+			get_timeout($temp['lastpost'], $memexpire);
+		}else{
+			get_timeout($temp['lastpost'], $guestexpire);
+		}
+		echo '</td>';
+		if($U['status']>$temp['status'] || $U['nickname']===$temp['nickname']){
+			echo "<td class=\"padded\">$temp[useragent]</td>";
+			if($trackip){
+				echo "<td class=\"padded\">$temp[ip]</td>";
 			}
-			echo '<tr class="left"><td class="padded">'.style_this($temp['nickname'].$s, $temp['style']).'</td><td class="padded">';
-			if($temp['status']>2){
-				get_timeout($temp['lastpost'], $memexpire);
-			}else{
-				get_timeout($temp['lastpost'], $guestexpire);
-			}
-			echo '</td>';
-			if($U['status']>$temp['status'] || $U['session']===$temp['session']){
-				echo "<td class=\"padded\">$temp[useragent]</td>";
-				if($trackip){
-					echo "<td class=\"padded\">$temp[ip]</td>";
-				}
-				echo '<td class="padded">';
-				frmadm('sessions');
-				echo hidden('nick', $temp['nickname']).submit($I['kick']).'</form></td></tr>';
-			}else{
+			echo '<td class="padded">';
+			frmadm('sessions');
+			echo hidden('nick', $temp['nickname']).submit($I['kick']).'</form></td></tr>';
+		}else{
+			echo '<td class="padded">-</td>';
+			if($trackip){
 				echo '<td class="padded">-</td>';
-				if($trackip){
-					echo '<td class="padded">-</td>';
-				}
-				echo '<td class="padded">-</td></tr>';
 			}
+			echo '<td class="padded">-</td></tr>';
 		}
 	}
 	echo "</table><br>$H[backtochat]";
@@ -2154,18 +2156,17 @@ function kill_session(){
 function kick_chatter($names, $mes, $purge){
 	global $P, $U, $db;
 	$lonick='';
-	$lines=parse_sessions();
 	$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
-	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE session=? AND status!=0;');
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status!=0;');
 	$i=0;
 	foreach($names as $name){
-		foreach($lines as $temp){
-			if(($temp['nickname']===$U['nickname'] && $U['nickname']===$name) || ($U['status']>$temp['status'] && (($temp['nickname']===$name && $temp['status']>0) || ($name==='&' && $temp['status']==1)))){
-				$stmt->execute(array($time, $mes, $temp['session']));
+		foreach($P as $temp){
+			if(($temp[0]===$U['nickname'] && $U['nickname']===$name) || ($U['status']>$temp[2] && (($temp[0]===$name && $temp[2]>0) || ($name==='&' && $temp[2]==1)))){
+				$stmt->execute(array($time, $mes, $name));
 				if($purge){
-					del_all_messages($temp['nickname'], 10, 0);
+					del_all_messages($name, 10, 0);
 				}
-				$lonick.=style_this($temp['nickname'], $temp['style']).', ';
+				$lonick.=style_this($name, $temp[1]).', ';
 				++$i;
 				unset($P[$name]);
 			}
@@ -2191,19 +2192,18 @@ function kick_chatter($names, $mes, $purge){
 
 function logout_chatter($names){
 	global $P, $U, $db;
-	$lines=parse_sessions();
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=? AND status<? AND status!=0;');
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<? AND status!=0;');
 	$stmt1=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
 	$stmt2=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");
 	$stmt3=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
 	foreach($names as $name){
-		foreach($lines as $temp){
-			if($temp['nickname']===$name || ($name==='&' && $temp['status']==1)){
-				$stmt->execute(array($temp['session'], $U['status']));
-				if($temp['status']==1){
-					$stmt1->execute(array($temp['nickname']));
-					$stmt2->execute(array($temp['nickname']));
-					$stmt3->execute(array($temp['nickname'], $temp['nickname']));
+		foreach($P as $temp){
+			if($temp[0]===$name || ($name==='&' && $temp[2]==1)){
+				$stmt->execute(array($name, $U['status']));
+				if($temp[2]==1){
+					$stmt1->execute(array($name));
+					$stmt2->execute(array($name));
+					$stmt3->execute(array($name, $name));
 				}
 				unset($P[$name]);
 			}
