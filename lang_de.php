@@ -335,6 +335,8 @@ $T=array(
 	'disablepm' => 'Private Nachrichten deaktivieren',
 	'disablechat' => 'Chat deaktivieren',
 	'disabletext' => 'Chat deaktiviert Nachricht (html)',
-	'disabledtext' => 'Kurzzeitig deaktiviert'
+	'disabledtext' => 'Kurzzeitig deaktiviert',
+	'defaulttz' => 'Default timezone',
+	'tz' => 'Timezone'
 );
 ?>

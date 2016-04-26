@@ -335,6 +335,8 @@ $I=array(
 	'disablepm' => 'Disable private messages',
 	'disablechat' => 'Disable chat',
 	'disabletext' => 'Chat disabled message (html)',
-	'disabledtext' => 'Temporarily disabled'
+	'disabledtext' => 'Temporarily disabled',
+	'defaulttz' => 'Default timezone',
+	'tz' => 'Timezone'
 );
 ?>
