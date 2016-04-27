@@ -309,7 +309,6 @@ $T=array(
 	'newer' => 'Neuer',
 	'accessdenied' => 'Zugriff verweigert',
 	'loggedinas' => 'Du bist als %s angemeldet und hast keinen Zugriff auf diesen Bereich.',
-	'changenickname' => 'Nickname ändern',
 	'newnickname' => 'Neuer Nickname:',
 	'nicknametaken' => 'Nickname ist bereits vergeben',
 	'nopass' => 'Ungültiges Passwort (Mindestens %d Zeichen), Nickname nicht geändert',
@@ -324,7 +323,7 @@ $T=array(
 	'mailsender' => 'E-Mail mit dieser Adresse versenden',
 	'mailreceiver' => 'E-Mail and diese Adresse senden',
 	'modfallback' => 'Auf Warteraum rückgreifen, falls kein Moderator anwesend ist, um Gäste hereinzulassen',
-	'regpass' => 'Zum registrieren<br>Passwort wiederholen<br>(optional)',
+	'regpass' => 'Zum registrieren<br>Passwort wiederholen',
 	'guestreg' => 'Gäste sich selbst registrieren lassen',
 	'asmember' => 'Als Mitglied',
 	'assuguest' => 'Als Anwerber',
@@ -337,6 +336,7 @@ $T=array(
 	'disabletext' => 'Chat deaktiviert Nachricht (html)',
 	'disabledtext' => 'Kurzzeitig deaktiviert',
 	'defaulttz' => 'Standard Zeitzone',
-	'tz' => 'Zeitzone'
+	'tz' => 'Zeitzone',
+	'optional' => '(optional)'
 );
 ?>

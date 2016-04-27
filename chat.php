@@ -1769,12 +1769,7 @@ function send_profile($arg=''){
 		echo "<tr><td>&nbsp;</td><td>$I[oldpass]</td><td><input type=\"password\" name=\"oldpass\" size=\"20\"></td></tr>";
 		echo "<tr><td>&nbsp;</td><td>$I[newpass]</td><td><input type=\"password\" name=\"newpass\" size=\"20\"></td></tr>";
 		echo "<tr><td>&nbsp;</td><td>$I[confirmpass]</td><td><input type=\"password\" name=\"confirmpass\" size=\"20\"></td></tr>";
-		echo '</table></td></tr></table></td></tr>';
-		thr();
-		echo "<tr><td><table class=\"left-table\"><tr><th>$I[changenickname]</th></tr>";
-		echo '<tr><td><table class="right-table">';
-		echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\"></td></tr>";
-		echo "<tr><td>&nbsp;</td><td>$I[newpass]</td><td><input type=\"password\" name=\"new_pass\" size=\"20\"></td></tr>";
+		echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\" placeholder=\"$I[optional]\"></td></tr>";
 		echo '</table></td></tr></table></td></tr>';
 		thr();
 	}
@@ -1854,7 +1849,7 @@ function send_login(){
 		send_captcha();
 		if($ga!==0){
 			if(get_setting('guestreg')!=0){
-				echo "<tr><td class=\"left\">$I[regpass]</td><td class=\"right\"><input type=\"password\" name=\"regpass\" size=\"15\"></td></tr>";
+				echo "<tr><td class=\"left\">$I[regpass]</td><td class=\"right\"><input type=\"password\" name=\"regpass\" size=\"15\" placeholder=\"$I[optional]\"></td></tr>";
 			}
 			if($englobal===2){
 				echo "<tr><td class=\"left\">$I[globalloginpass]</td><td class=\"right\"><input type=\"password\" name=\"globalpass\" size=\"15\"></td></tr>";
@@ -2506,33 +2501,12 @@ function amend_profile(){
 
 function save_profile(){
 	global $I, $U, $db;
-	if(!isSet($_REQUEST['oldpass'])){
-		$_REQUEST['oldpass']='';
-	}
-	if(!isSet($_REQUEST['newpass'])){
-		$_REQUEST['newpass']='';
-	}
-	if(!isSet($_REQUEST['confirmpass'])){
-		$_REQUEST['confirmpass']='';
-	}
-	if($_REQUEST['newpass']!==$_REQUEST['confirmpass']){
-		return $I['noconfirm'];
-	}elseif(!empty($_REQUEST['newpass']) && valid_pass($_REQUEST['newpass'])){
-		$U['oldhash']=md5(sha1(md5($U['nickname'].$_REQUEST['oldpass'])));
-		$U['newhash']=md5(sha1(md5($U['nickname'].$_REQUEST['newpass'])));
-	}else{
-		$U['oldhash']=$U['newhash']=$U['passhash'];
-	}
-	if($U['passhash']!==$U['oldhash']){
-		return $I['wrongpass'];
-	}
-	$U['passhash']=$U['newhash'];
 	amend_profile();
-	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET refresh=?, style=?, passhash=?, boxwidth=?, boxheight=?, bgcolour=?, notesboxwidth=?, notesboxheight=?, timestamps=?, embed=?, incognito=?, nocache=?, tz=? WHERE session=?;');
-	$stmt->execute(array($U['refresh'], $U['style'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['session']));
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET refresh=?, style=?, boxwidth=?, boxheight=?, bgcolour=?, notesboxwidth=?, notesboxheight=?, timestamps=?, embed=?, incognito=?, nocache=?, tz=? WHERE session=?;');
+	$stmt->execute(array($U['refresh'], $U['style'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['session']));
 	if($U['status']>=2){
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, refresh=?, bgcolour=?, boxwidth=?, boxheight=?, notesboxwidth=?, notesboxheight=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=? WHERE nickname=?;');
-		$stmt->execute(array($U['passhash'], $U['refresh'], $U['bgcolour'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['nickname']));
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET refresh=?, bgcolour=?, boxwidth=?, boxheight=?, notesboxwidth=?, notesboxheight=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=? WHERE nickname=?;');
+		$stmt->execute(array($U['refresh'], $U['bgcolour'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['nickname']));
 	}
 	if(!empty($_REQUEST['unignore'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? AND ignby=?;');
@@ -2542,45 +2516,59 @@ function save_profile(){
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
 		$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
 	}
-	if($U['status']>1 && !empty($_REQUEST['newnickname'])){
-		$msg=set_new_nickname();
-		if($msg!==''){
-			return $msg;
+	if($U['status']>1 && !empty($_REQUEST['newpass'])){
+		if(!valid_pass($_REQUEST['newpass'])){
+			return sprintf($I['invalpass'], get_setting('minpass'));
 		}
-	}
-	if(!empty($_REQUEST['newpass']) && !valid_pass($_REQUEST['newpass'])){
-		return sprintf($I['invalpass'], get_setting('minpass'));
+		if(!isSet($_REQUEST['oldpass'])){
+			$_REQUEST['oldpass']='';
+		}
+		if(!isSet($_REQUEST['confirmpass'])){
+			$_REQUEST['confirmpass']='';
+		}
+		if($_REQUEST['newpass']!==$_REQUEST['confirmpass']){
+			return $I['noconfirm'];
+		}else{
+			$U['oldhash']=md5(sha1(md5($U['nickname'].$_REQUEST['oldpass'])));
+			$U['newhash']=md5(sha1(md5($U['nickname'].$_REQUEST['newpass'])));
+		}
+		if($U['passhash']!==$U['oldhash']){
+			return $I['wrongpass'];
+		}
+		$U['passhash']=$U['newhash'];
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE session=?;');
+		$stmt->execute(array($U['passhash'], $U['session']));
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
+		$stmt->execute(array($U['passhash'], $U['nickname']));
+		if(!empty($_REQUEST['newnickname'])){
+			$msg=set_new_nickname();
+			if($msg!==''){
+				return $msg;
+			}
+		}
 	}
 	return $I['succprofile'];
 }
 
 function set_new_nickname(){
 	global $I, $U, $db;
-	if(!isSet($_REQUEST['new_pass']) || !valid_pass($_REQUEST['new_pass'])){
-		return sprintf($I['nopass'], get_setting('minpass'));
-	}
 	if(!valid_nick($_REQUEST['newnickname'])){
 		return sprintf($I['invalnick'], get_setting('maxname'));
 	}
-	$U['passhash']=md5(sha1(md5($_REQUEST['newnickname'].$_REQUEST['new_pass'])));
+	$U['passhash']=md5(sha1(md5($_REQUEST['newnickname'].$_REQUEST['newpass'])));
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'sessions WHERE nickname=? UNION SELECT id FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute(array($_REQUEST['newnickname'], $_REQUEST['newnickname']));
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return $I['nicknametaken'];
 	}else{
-		if($U['status']>1){
-			$entry=0;
-		}else{
-			$entry=$U['entry'];
-		}
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET nickname=?, passhash=? WHERE nickname=?;');
 		$stmt->execute(array($_REQUEST['newnickname'], $U['passhash'], $U['nickname']));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET nickname=?, passhash=? WHERE nickname=?;');
 		$stmt->execute(array($_REQUEST['newnickname'], $U['passhash'], $U['nickname']));
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET poster=? WHERE poster=? AND postdate>?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname'], $entry));
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET recipient=? WHERE recipient=? AND postdate>?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname'], $entry));
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET poster=? WHERE poster=?;');
+		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET recipient=? WHERE recipient=?;');
+		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'ignored SET ignby=? WHERE ignby=?;');
 		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'ignored SET ign=? WHERE ign=?;');

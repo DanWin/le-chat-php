@@ -309,7 +309,6 @@ $I=array(
 	'newer' => 'Newer',
 	'accessdenied' => 'Access denied',
 	'loggedinas' => 'You are logged in as %s and don\'t have access to this section.',
-	'changenickname' => 'Change nickname',
 	'newnickname' => 'New nickname:',
 	'nicknametaken' => 'Nickname is already taken',
 	'nopass' => 'Invalid password (At least %d characters), not changing nickname',
@@ -324,7 +323,7 @@ $I=array(
 	'mailsender' => 'Send mail using this address',
 	'mailreceiver' => 'Send mail to this address',
 	'modfallback' => 'Fallback to waiting room, if no moderator is present to approve guests',
-	'regpass' => 'Repeat password<br>to register<br>(optional)',
+	'regpass' => 'Repeat password<br>to register',
 	'guestreg' => 'Let guests register themselves',
 	'asmember' => 'As member',
 	'assuguest' => 'As applicant',
@@ -337,6 +336,7 @@ $I=array(
 	'disabletext' => 'Chat disabled message (html)',
 	'disabledtext' => 'Temporarily disabled',
 	'defaulttz' => 'Default time zone',
-	'tz' => 'Time zone'
+	'tz' => 'Time zone',
+	'optional' => '(optional)'
 );
 ?>

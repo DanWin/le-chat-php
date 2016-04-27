@@ -308,7 +308,6 @@ $T=array(
 	'newer' => 'Nouveau',
 	'accessdenied' => 'Accès interdit',
 	'loggedinas' => 'Vous êtes connecté en tant que %s et vous n\'avez pas accès à cette section.',
-	'changenickname' => 'Changer de Pseudo',
 	'newnickname' => 'Nouveau Pseudo:',
 	'nicknametaken' => 'Pseudo déjà pris',
 	'nopass' => 'Mot de passe invalide (au moins % caractères), ne pas changer le pseudo',

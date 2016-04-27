@@ -308,7 +308,6 @@ $T=array(
 	'newer' => 'Baru',
 	'accessdenied' => 'Akses ditolak',
 	'loggedinas' => 'Anda masuk sebagai %s dan tak dapat mengakses bagian ini.',
-	'changenickname' => 'Ubah nama',
 	'newnickname' => 'Nama baru:',
 	'nicknametaken' => 'Nama sudah ada',
 	'nopass' => 'Kata sandi salah (Minimal %d karakter), tak merubah nama'

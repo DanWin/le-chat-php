@@ -308,7 +308,6 @@ $T=array(
 	'newer' => 'Newer',
 	'accessdenied' => 'Acceso no permitido',
 	'loggedinas' => 'Estás identificado como %s y no tenés acceso a esta sección.',
-	'changenickname' => 'Cambiar apodo',
 	'newnickname' => 'Nuevo apodo:',
 	'nicknametaken' => 'Ese apodo ya fue tomado',
 	'nopass' => 'Constraseña incorrecta (al menos %d caracteres), no se cambia apodo'
