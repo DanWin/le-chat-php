@@ -567,8 +567,8 @@ function send_setup(){
 	echo '</table></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[defaulttz]</th><td class=\"right\">";
-	echo "<select name=\"defaulttz\" id=\"tz\">";
-	$tzs=[-12=>'-12', -11=>'-11', -10=>'-10', -9=>'-9', -8=>'-8', -7=>'-7', -6=>'-6', -5=>'-5', -4=>'-4', -3=>'-3', -2=>'-2', -1=>'-1', 0=>'', 1=>'+1', 2=>'+2', 3=>'+3', 4=>'+4', 5=>'+5', 6=>'+6', 7=>'+7', 8=>'+8', 9=>'+9', 10=>'+10', 11=>'+11', 12=>'+12'];
+	echo "<select name=\"defaulttz\" id=\"defaulttz\">";
+	$tzs=[-12=>'-12', -11=>'-11', -10=>'-10', -9=>'-9', -8=>'-8', -7=>'-7', -6=>'-6', -5=>'-5', -4=>'-4', -3=>'-3', -2=>'-2', -1=>'-1', 0=>'', 1=>'+1', 2=>'+2', 3=>'+3', 4=>'+4', 5=>'+5', 6=>'+6', 7=>'+7', 8=>'+8', 9=>'+9', 10=>'+10', 11=>'+11', 12=>'+12', 13=>'+13', 14=>'+14'];
 	$defaulttz=get_setting('defaulttz');
 	foreach($tzs as $tz=>$name){
 		$select = $defaulttz==$tz ? ' selected' : '';
@@ -1744,7 +1744,7 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[tz]</th><td class=\"right\">";
 	echo "<select name=\"tz\" id=\"tz\">";
-	$tzs=[-12=>'-12', -11=>'-11', -10=>'-10', -9=>'-9', -8=>'-8', -7=>'-7', -6=>'-6', -5=>'-5', -4=>'-4', -3=>'-3', -2=>'-2', -1=>'-1', 0=>'', 1=>'+1', 2=>'+2', 3=>'+3', 4=>'+4', 5=>'+5', 6=>'+6', 7=>'+7', 8=>'+8', 9=>'+9', 10=>'+10', 11=>'+11', 12=>'+12'];
+	$tzs=[-12=>'-12', -11=>'-11', -10=>'-10', -9=>'-9', -8=>'-8', -7=>'-7', -6=>'-6', -5=>'-5', -4=>'-4', -3=>'-3', -2=>'-2', -1=>'-1', 0=>'', 1=>'+1', 2=>'+2', 3=>'+3', 4=>'+4', 5=>'+5', 6=>'+6', 7=>'+7', 8=>'+8', 9=>'+9', 10=>'+10', 11=>'+11', 12=>'+12', 13=>'+13', 14=>'+14'];
 	foreach($tzs as $tz=>$name){
 		$select = $U['tz']==$tz ? ' selected' : '';
 		echo "<option value=\"$tz\"$select>UTC $name</option>";
@@ -2498,7 +2498,7 @@ function amend_profile(){
 	}
 	if(isSet($_REQUEST['tz'])){
 		settype($_REQUEST['tz'], 'int');
-		if($_REQUEST['tz']>=-12 && $_REQUEST['tz']<=12){
+		if($_REQUEST['tz']>=-12 && $_REQUEST['tz']<=14){
 			$U['tz']=$_REQUEST['tz'];
 		}
 	}
@@ -3034,7 +3034,7 @@ function save_setup(){
 	settype($_REQUEST['dismemcaptcha'], 'int');
 	settype($_REQUEST['guestreg'], 'int');
 	settype($_REQUEST['defaulttz'], 'int');
-	if($_REQUEST['defaulttz']<-12 || $_REQUEST['defaulttz']>12){
+	if($_REQUEST['defaulttz']<-12 || $_REQUEST['defaulttz']>14){
 		unset($_REQUEST['defaulttz']);
 	}
 	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $_REQUEST['rulestxt']);

@@ -336,7 +336,7 @@ $T=array(
 	'disablechat' => 'Chat deaktivieren',
 	'disabletext' => 'Chat deaktiviert Nachricht (html)',
 	'disabledtext' => 'Kurzzeitig deaktiviert',
-	'defaulttz' => 'Default timezone',
-	'tz' => 'Timezone'
+	'defaulttz' => 'Standard Zeitzone',
+	'tz' => 'Zeitzone'
 );
 ?>
