@@ -2000,27 +2000,28 @@ function create_session($setup){
 
 function write_new_session(){
 	global $I, $P, $U, $db;
-	$lines=parse_sessions();
-	$sids; $reentry=false;
-	foreach($lines as $temp){
-		$sids[$temp['session']]=true;// collect all existing ids
-		if($temp['nickname']===$U['nickname']){// nick already here?
-			if($U['passhash']===$temp['passhash']){
-				$U=$temp;
-				if($U['status']==0){
-					setcookie(COOKIENAME, false);
-					send_error("$I[kicked]<br>$U[kickmessage]");
-				}
-				setcookie(COOKIENAME, $U['session']);
-				$reentry=true;
-				break;
-			}else{
-				send_error("$I[userloggedin]<br>$I[wrongpass]");
+	parse_sessions();
+	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
+	$stmt->execute(array($U['nickname']));
+	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if($U['passhash']===$temp['passhash']){
+			$U=$temp;
+			if($U['status']==0){
+				setcookie(COOKIENAME, false);
+				send_error("$I[kicked]<br>$U[kickmessage]");
 			}
+			setcookie(COOKIENAME, $U['session']);
+			$reentry=true;
+		}else{
+			send_error("$I[userloggedin]<br>$I[wrongpass]");
 		}
-	}
-	// create new session:
-	if(!$reentry){
+	}else{
+		$sids=[];
+		// create new session
+		$stmt=$db->query('SELECT session FROM ' . PREFIX . 'sessions;');
+		while($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
+			$sids[$temp['session']]=true;// collect all existing ids
+		}
 		do{
 			$U['session']=md5(time().mt_rand().$U['nickname']);
 		}while(isSet($sids[$U['session']]));// check for hash collision
@@ -2234,6 +2235,7 @@ function get_nowchatting(){
 
 function parse_sessions(){
 	global $P, $U, $countmods, $db;
+	// delete old sessions
 	$guestexpire=time()-60*get_setting('guestexpire');
 	$memberexpire=time()-60*get_setting('memberexpire');
 	$result=$db->prepare('SELECT nickname, status FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<?) OR (status>2 AND lastpost<?);');
@@ -2253,31 +2255,26 @@ function parse_sessions(){
 		}
 		$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
 	}
-	$result=$db->query('SELECT * FROM ' . PREFIX . 'sessions ORDER BY status DESC, lastpost DESC;');
-	if(!$lines=$result->fetchAll(PDO::FETCH_ASSOC)){
-		$lines=array();
-	}
+	// look for our session
 	if(isSet($_REQUEST['session'])){
-		foreach($lines as $temp){
-			if($temp['session']===$_REQUEST['session']){
-				$U=$temp;
-				break;
-			}
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
+		$stmt->execute(array($_REQUEST['session']));
+		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+			$U=$tmp;
 		}
 	}
+	// load other sessions
 	$countmods=0;
 	$P=array();
-	foreach($lines as $temp){
-		if($temp['entry']!=0 && $temp['status']>0){
-			if(!$temp['incognito']){
-				$P[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
-			}
-			if($temp['status']>=5){
-				++$countmods;
-			}
+	$stmt=$db->query('SELECT nickname, style, status, incognito FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 ORDER BY status DESC, lastpost DESC;');
+	while($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if(!$temp['incognito']){
+			$P[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
+		}
+		if($temp['status']>=5){
+			++$countmods;
 		}
 	}
-	return $lines;
 }
 
 //  member handling
