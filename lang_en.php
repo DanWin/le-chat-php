@@ -337,6 +337,8 @@ $I=array(
 	'disabledtext' => 'Temporarily disabled',
 	'defaulttz' => 'Default time zone',
 	'tz' => 'Time zone',
-	'optional' => '(optional)'
+	'optional' => '(optional)',
+	'userloggedin' => 'A user with this nickname is already logged in.',
+	'regednick' => 'This nickname is a registered member.'
 );
 ?>

@@ -337,6 +337,8 @@ $T=array(
 	'disabledtext' => 'Kurzzeitig deaktiviert',
 	'defaulttz' => 'Standard Zeitzone',
 	'tz' => 'Zeitzone',
-	'optional' => '(optional)'
+	'optional' => '(optional)',
+	'userloggedin' => 'Ein Nutzer mit diesem Nicknamen ist bereits angemeldet.',
+	'regednick' => 'Dieser Nickname ist ein registeriertes Mitglied.'
 );
 ?>

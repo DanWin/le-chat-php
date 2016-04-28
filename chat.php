@@ -2015,7 +2015,7 @@ function write_new_session(){
 				$reentry=true;
 				break;
 			}else{
-				send_error($I['wrongpass']);
+				send_error("$I[userloggedin]<br>$I[wrongpass]");
 			}
 		}
 	}
@@ -2294,7 +2294,7 @@ function check_member(){
 			$stmt->execute(array($time, $U['nickname']));
 			return true;
 		}else{
-			send_error($I['wrongpass']);
+			send_error("$I[regednick]<br>$I[wrongpass]");
 		}
 	}
 	return false;
