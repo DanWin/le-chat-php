@@ -3575,7 +3575,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.17'); // Script version
+	define('VERSION', '1.18'); // Script version
 	define('DBVERSION', 20); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
