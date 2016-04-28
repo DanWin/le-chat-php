@@ -1432,14 +1432,8 @@ function send_waiting_room(){
 	}else{
 		$wait=true;
 	}
-	if(!isSet($U['session'])){
-		setcookie(COOKIENAME, false);
-		send_error($I['expire']);
-	}
-	if($U['status']==0){
-		setcookie(COOKIENAME, false);
-		send_error("$I[kicked]<br>$U[kickmessage]");
-	}
+	check_expired();
+	check_kicked();
 	$timeleft=get_setting('entrywait')-(time()-$U['lastpost']);
 	if($wait && ($timeleft<=0 || $ga===1)){
 		$U['entry']=$U['lastpost'];
@@ -2006,12 +2000,8 @@ function write_new_session(){
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		if($U['passhash']===$temp['passhash']){
 			$U=$temp;
-			if($U['status']==0){
-				setcookie(COOKIENAME, false);
-				send_error("$I[kicked]<br>$U[kickmessage]");
-			}
+			check_kicked();
 			setcookie(COOKIENAME, $U['session']);
-			$reentry=true;
 		}else{
 			send_error("$I[userloggedin]<br>$I[wrongpass]");
 		}
@@ -2081,12 +2071,8 @@ function check_login(){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
 		$stmt->execute(array($_POST['session']));
 		if($U=$stmt->fetch(PDO::FETCH_ASSOC)){
-			if($U['status']==0){
-				setcookie(COOKIENAME, false);
-				send_error("$I[kicked]<br>$U[kickmessage]");
-			}else{
-				setcookie(COOKIENAME, $U['session']);
-			}
+			check_kicked();
+			setcookie(COOKIENAME, $U['session']);
 		}else{
 			setcookie(COOKIENAME, false);
 			send_error($I['expire']);
@@ -2125,15 +2111,11 @@ function check_login(){
 }
 
 function kill_session(){
-	global $I, $U, $db;
+	global $U, $db;
 	parse_sessions();
+	check_expired();
+	check_kicked();
 	setcookie(COOKIENAME, false);
-	if(!isSet($U['session'])){
-		send_error($I['expire']);
-	}
-	if($U['status']==0){
-		send_error("$I[kicked]<br>$U[kickmessage]");
-	}
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
 	$stmt->execute(array($U['session']));
 	if($U['status']==1){
@@ -2209,18 +2191,28 @@ function logout_chatter($names){
 }
 
 function check_session(){
-	global $I, $U;
+	global $U;
 	parse_sessions();
+	check_expired();
+	check_kicked();
+	if($U['entry']==0){
+		send_waiting_room();
+	}
+}
+
+function check_expired(){
+	global $I, $U;
 	if(!isSet($U['session'])){
 		setcookie(COOKIENAME, false);
 		send_error($I['expire']);
 	}
+}
+
+function check_kicked(){
+	global $I, $U;
 	if($U['status']==0){
 		setcookie(COOKIENAME, false);
 		send_error("$I[kicked]<br>$U[kickmessage]");
-	}
-	if($U['entry']==0){
-		send_waiting_room();
 	}
 }
 
@@ -2719,6 +2711,7 @@ function apply_filter(){
 		}
 		if(isSet($count) && $count>0 && $filter['kick']){
 			kick_chatter(array($U['nickname']), '', false);
+			setcookie(COOKIENAME, false);
 			send_error("$I[kicked]");
 		}
 	}
