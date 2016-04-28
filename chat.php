@@ -1257,7 +1257,7 @@ function send_frameset(){
 	echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\"><html><head>$H[meta_html]";
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
-	if(isSet($_COOKIE['test'])){
+	if(isSet($_COOKIE['language'])){
 		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	}else{
 		echo "</head><frameset rows=\"100,*,60\" border=\"3\" frameborder=\"3\" framespacing=\"3\"><frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\"><frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language\"><frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language\"><noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
@@ -1444,7 +1444,7 @@ function send_waiting_room(){
 		send_frameset();
 	}else{
 		$refresh=(int) get_setting('defaultrefresh');
-		if(isSet($_COOKIE['test'])){
+		if(isSet($_COOKIE['language'])){
 			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&nc=".substr(time(),-6));
 		}else{
 			print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&lang=$language&nc=".substr(time(),-6));
@@ -1828,7 +1828,6 @@ function send_login(){
 	if($ga===4){
 		send_chat_disabled();
 	}
-	setcookie('test', '1');
 	print_start('login');
 	$englobal=(int) get_setting('englobalpass');
 	echo '<h1>'.get_setting('chatname').'</h1>';
@@ -3554,13 +3553,16 @@ function load_lang(){
 		'id'	=>'Bahasa Indonesia',
 		'ru'	=>'Русский'
 	);
-	if(isSet($_REQUEST['lang']) && array_key_exists($_REQUEST['lang'], $L)){
+	if(isSet($_REQUEST['lang']) && isSet($L[$_REQUEST['lang']])){
 		$language=$_REQUEST['lang'];
-		setcookie('language', $language);
-	}elseif(isSet($_COOKIE['language']) && array_key_exists($_COOKIE['language'], $L)){
+		if(!isSet($_COOKIE['language']) || $_COOKIE['language']!==$language){
+			setcookie('language', $language);
+		}
+	}elseif(isSet($_COOKIE['language']) && isSet($L[$_COOKIE['language']])){
 		$language=$_COOKIE['language'];
 	}else{
 		$language=LANG;
+		setcookie('language', $language);
 	}
 	include('lang_en.php'); //always include English
 	if($language!=='en'){
