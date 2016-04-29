@@ -828,7 +828,7 @@ function send_update(){
 function send_alogin(){
 	global $H, $I, $L;
 	print_start('alogin');
-	echo "<$H[form]>$H[commonform]".hidden('action', 'setup').'<table class="center-table" class="left">';
+	echo "<$H[form]>$H[commonform]".hidden('action', 'setup').'<table class="center-table left">';
 	echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autofocus></td></tr>";
 	echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 	send_captcha();
@@ -1503,12 +1503,12 @@ function send_approve_waiting(){
 	$result=$db->query('SELECT * FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1 ORDER BY id;');
 	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
 		frmadm('approve');
-		echo '<table class="center-table" class="left">';
+		echo '<table class="center-table left">';
 		echo "<tr><th class=\"padded\">$I[sessnick]</th><th class=\"padded\">$I[sessua]</th></tr>";
 		foreach($tmp as $temp){
 			echo '<tr>'.hidden('alls[]', $temp['nickname'])."<td class=\"padded\"><input type=\"checkbox\" name=\"csid[]\" id=\"$temp[nickname]]\" value=\"$temp[nickname]\"><label for=\"$temp[nickname]\"> ".style_this($temp['nickname'], $temp['style'])."</label></td><td class=\"padded\">$temp[useragent]</td></tr>";
 		}
-		echo "</table><br><table class=\"center-table\" class=\"left\"><tr><td><input type=\"radio\" name=\"what\" value=\"allowchecked\" id=\"allowchecked\" checked><label for=\"allowchecked\">$I[allowchecked]</label></td>";
+		echo "</table><br><table class=\"center-table left\"><tr><td><input type=\"radio\" name=\"what\" value=\"allowchecked\" id=\"allowchecked\" checked><label for=\"allowchecked\">$I[allowchecked]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"allowall\" id=\"allowall\"><label for=\"allowall\">$I[allowall]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"denychecked\" id=\"denychecked\"><label for=\"denychecked\">$I[denychecked]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"denyall\" id=\"denyall\"><label for=\"denyall\">$I[denyall]</label></td></tr><tr><td colspan=\"8\" class=\"center\">$I[denymessage] <input type=\"text\" name=\"kickmessage\" size=\"45\"></td>";
@@ -3375,7 +3375,7 @@ function init_chat(){
 			$db->exec('CREATE TABLE ' . PREFIX . "captcha (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, time integer unsigned NOT NULL, code char(5) NOT NULL) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(20000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "ignored (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL, INDEX(ign), INDEX(ignby)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
-			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, postid integer unsingned NOT NULL, postdate integer unsigned NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, INDEX(postid), INDEX(poster), INDEX(recipient)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, postid integer unsigned NOT NULL, postdate integer unsigned NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, INDEX(postid), INDEX(poster), INDEX(recipient)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "members (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, nickname varchar(50) NOT NULL UNIQUE, passhash char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, status smallint unsigned NOT NULL, refresh smallint unsigned NOT NULL, bgcolour char(6) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, boxwidth smallint unsigned NOT NULL DEFAULT 40, boxheight smallint unsigned NOT NULL DEFAULT 3, notesboxheight smallint unsigned NOT NULL DEFAULT 30, notesboxwidth smallint unsigned NOT NULL DEFAULT 80, regedby varchar(50) NOT NULL, lastlogin integer unsigned NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, postdate integer unsigned NOT NULL, poststatus smallint unsigned NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, delstatus smallint unsigned NOT NULL, INDEX(poster), INDEX(recipient), INDEX(postdate), INDEX(poststatus)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
@@ -3571,7 +3571,7 @@ function update_db(){
 			$db->exec('ALTER TABLE ' . PREFIX . 'sessions ADD COLUMN eninbox smallint NOT NULL DEFAULT 0;');
 			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('eninbox', '0');");
 			if(DBDRIVER===0){
-				$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, postid integer unsingned NOT NULL, postdate integer unsigned NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, INDEX(postid), INDEX(poster), INDEX(recipient)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+				$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, postid integer unsigned NOT NULL, postdate integer unsigned NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, INDEX(postid), INDEX(poster), INDEX(recipient)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			}else{
 				$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL);");
 				$db->exec('CREATE INDEX ' . PREFIX . 'inbox_postid ON ' . PREFIX . 'inbox(postid);');
@@ -3767,7 +3767,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.18'); // Script version
+	define('VERSION', '1.19'); // Script version
 	define('DBVERSION', 21); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
