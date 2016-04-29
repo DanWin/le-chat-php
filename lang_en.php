@@ -339,6 +339,9 @@ $I=array(
 	'tz' => 'Time zone',
 	'optional' => '(optional)',
 	'userloggedin' => 'A user with this nickname is already logged in.',
-	'regednick' => 'This nickname is a registered member.'
+	'regednick' => 'This nickname is a registered member.',
+	'eninbox' => 'Enable offline inbox',
+	'inboxmsgs' => 'Read %d messages in your inbox',
+	'offline' => '(offline)'
 );
 ?>

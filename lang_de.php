@@ -339,6 +339,9 @@ $T=array(
 	'tz' => 'Zeitzone',
 	'optional' => '(optional)',
 	'userloggedin' => 'Ein Nutzer mit diesem Nicknamen ist bereits angemeldet.',
-	'regednick' => 'Dieser Nickname ist ein registeriertes Mitglied.'
+	'regednick' => 'Dieser Nickname ist ein registeriertes Mitglied.',
+	'eninbox' => 'Offline Posteingang aktivieren',
+	'inboxmsgs' => '%d Nachrichten im Posteingang lesen',
+	'offline' => '(offline)'
 );
 ?>
