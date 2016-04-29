@@ -98,8 +98,15 @@ function route(){
 	}elseif($_REQUEST['action']==='profile'){
 		check_session();
 		$arg='';
-		if(isSet($_REQUEST['do']) && $_REQUEST['do']==='save'){
+		if(!isSet($_REQUEST['do'])){
+		}elseif($_REQUEST['do']==='save'){
 			$arg=save_profile();
+		}elseif($_REQUEST['do']==='delete'){
+			if(isSet($_REQUEST['confirm'])){
+				delete_account();
+			}else{
+				send_delete_account();
+			}
 		}
 		send_profile($arg);
 	}elseif($_REQUEST['action']==='logout'){
@@ -782,6 +789,15 @@ function send_destroy_chat(){
 	echo "<table class=\"center-table\"><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>";
 	echo "<$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'setup').hidden('do', 'destroy').hidden('confirm', 'yes').submit($I['yes'], 'class="delbutton"').'</form></td><td>';
 	echo "<$H[form]>$H[commonform]".hidden('action', 'setup').submit($I['no'], 'class="backbutton"').'</form></td><tr></table>';
+	print_end();
+}
+
+function send_delete_account(){
+	global $H, $I;
+	print_start('delete_account');
+	echo "<table class=\"center-table\"><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>";
+	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'delete').hidden('confirm', 'yes').submit($I['yes'], 'class="delbutton"').'</form></td><td>';
+	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').submit($I['no'], 'class="backbutton"').'</form></td><tr></table>';
 	print_end();
 }
 
@@ -1857,6 +1873,9 @@ function send_profile($arg=''){
 		thr();
 	}
 	echo '<tr><td>'.submit($I['savechanges']).'</td></tr></table></form>';
+	if($U['status']>1 && $U['status']<8){
+		echo "<br><$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'delete').submit($I['deleteacc'], 'class="delbutton"').'</form>';
+	}
 	echo "<br><p>$I[changelang]";
 	foreach($L as $lang=>$name){
 		echo " <a href=\"$_SERVER[SCRIPT_NAME]?lang=$lang&amp;session=$U[session]&amp;action=controls\" target=\"controls\">$name</a>";
@@ -2390,6 +2409,17 @@ function read_members(){
 		$A[$temp['nickname']][0]=$temp['nickname'];
 		$A[$temp['nickname']][1]=$temp['status'];
 		$A[$temp['nickname']][2]=$temp['style'];
+	}
+}
+
+function delete_account(){
+	global $U, $db;
+	if($U['status']<8){
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1 WHERE nickname=?;');
+		$stmt->execute(array($U['nickname']));
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute(array($U['nickname']));
+		$U['status']=1;
 	}
 }
 

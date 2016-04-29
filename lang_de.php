@@ -342,6 +342,7 @@ $T=array(
 	'regednick' => 'Dieser Nickname ist ein registeriertes Mitglied.',
 	'eninbox' => 'Offline Posteingang aktivieren',
 	'inboxmsgs' => '%d Nachrichten im Posteingang lesen',
-	'offline' => '(offline)'
+	'offline' => '(offline)',
+	'deleteacc' => 'Konto löschen'
 );
 ?>

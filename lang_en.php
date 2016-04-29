@@ -342,6 +342,7 @@ $I=array(
 	'regednick' => 'This nickname is a registered member.',
 	'eninbox' => 'Enable offline inbox',
 	'inboxmsgs' => 'Read %d messages in your inbox',
-	'offline' => '(offline)'
+	'offline' => '(offline)',
+	'deleteacc' => 'Delete account'
 );
 ?>
