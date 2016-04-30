@@ -1354,6 +1354,7 @@ function send_inbox(){
 		}
 	}else{
 		$injectRedirect=false;
+		$redirect='';
 	}
 	if(get_setting('imgembed') && (!$U['embed'] || !isSet($_COOKIE[COOKIENAME]))){
 		$removeEmbed=true;
@@ -1373,23 +1374,7 @@ function send_inbox(){
 	$stmt=$db->prepare('SELECT id, postdate, text FROM ' . PREFIX . 'inbox WHERE recipient=? ORDER BY id DESC;');
 	$stmt->execute(array($U['nickname']));
 	while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
-		if(MSGENCRYPTED){
-			$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
-		}
-		if($injectRedirect){
-			$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
-				function ($matched) use ($redirect){
-					return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
-				}
-			, $message['text']);
-		}
-		if($removeEmbed){
-			$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/',
-				function ($matched){
-					return "$matched[1]</a>";
-				}
-			, $message['text']);
-		}
+		prepare_message_print($message, $injectRedirect, $redirect, $removeEmbed);
 		echo "<div class=\"msg\"><input type=\"checkbox\" name=\"mid[]\" id=\"$message[id]\" value=\"$message[id]\"><label for=\"$message[id]\">";
 		if($timestamps){
 			echo ' <small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
@@ -3060,6 +3045,7 @@ function print_messages($delstatus=''){
 		}
 	}else{
 		$injectRedirect=false;
+		$redirect='';
 	}
 	if(get_setting('imgembed') && (!$U['embed'] || !isSet($_COOKIE[COOKIENAME]))){
 		$removeEmbed=true;
@@ -3084,23 +3070,7 @@ function print_messages($delstatus=''){
 		'OR (poststatus>1 AND (poststatus<? OR poster=? OR recipient=?) ) ORDER BY id DESC;');
 		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
-			if(MSGENCRYPTED){
-				$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
-			}
-			if($injectRedirect){
-				$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
-					function ($matched) use ($redirect){
-						return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
-					}
-				, $message['text']);
-			}
-			if($removeEmbed){
-				$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/',
-					function ($matched){
-						return "$matched[1]</a>";
-					}
-				, $message['text']);
-			}
+			prepare_message_print($message, $injectRedirect, $redirect, $removeEmbed);
 			echo "<div class=\"msg\"><input type=\"checkbox\" name=\"mid[]\" id=\"$message[id]\" value=\"$message[id]\"><label for=\"$message[id]\">";
 			if($timestamps){
 				echo ' <small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
@@ -3118,23 +3088,7 @@ function print_messages($delstatus=''){
 		') AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND id>? ORDER BY id DESC;');
 		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname'], $_REQUEST['id']));
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
-			if(MSGENCRYPTED){
-				$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
-			}
-			if($injectRedirect){
-				$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
-					function ($matched) use($redirect) {
-						return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
-					}
-				, $message['text']);
-			}
-			if($removeEmbed){
-				$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/',
-					function ($matched){
-						return "$matched[1]</a>";
-					}
-				, $message['text']);
-			}
+			prepare_message_print($message, $injectRedirect, $redirect, $removeEmbed);
 			echo '<div class="msg">';
 			if($timestamps){
 				echo '<small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
@@ -3144,6 +3098,26 @@ function print_messages($delstatus=''){
 				$_REQUEST['id']=$message['id'];
 			}
 		}
+	}
+}
+
+function prepare_message_print(&$message, $injectRedirect, $redirect, $removeEmbed){
+	if(MSGENCRYPTED){
+		$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
+	}
+	if($injectRedirect){
+		$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
+			function ($matched) use($redirect) {
+				return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
+			}
+		, $message['text']);
+	}
+	if($removeEmbed){
+		$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/',
+			function ($matched){
+				return "$matched[1]</a>";
+			}
+		, $message['text']);
 	}
 }
 
