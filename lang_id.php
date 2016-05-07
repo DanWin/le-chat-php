@@ -276,7 +276,6 @@ $T=array(
 	'restore' => 'Pulihkan',
 	'settings' => 'Pengaturan',
 	'linkfilter' => 'penyaring-tautan',
-	'enablejs' => 'Izinkan javascript agar pemuatan pesan lebih baik',
 	'chatname' => 'Nama obrolan',
 	'destroy' => 'Musnahkan obrolan',
 	'destroyed' => 'Berhasil memusnahkan obrolan',

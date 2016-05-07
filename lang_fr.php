@@ -276,7 +276,6 @@ $T=array(
 	'restore' => 'Récupérer',
 	'settings' => 'Paramètres',
 	'linkfilter' => 'Lien filtré',
-	'enablejs' => 'Autoriser JavaScript permet un meilleur chargement des messages ',
 	'chatname' => 'Nom du chat',
 	'destroy' => 'Destruction du chat',
 	'destroyed' => 'Chat supprimé',

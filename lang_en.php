@@ -277,7 +277,6 @@ $I=array(
 	'restore' => 'Restore',
 	'settings' => 'Settings',
 	'linkfilter' => 'Linkfilter',
-	'enablejs' => 'Allow JavaScript for better message loading',
 	'chatname' => 'Chat name',
 	'destroy' => 'Destroy chat',
 	'destroyed' => 'Successfully destroyed chat',

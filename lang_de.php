@@ -277,7 +277,6 @@ $T=array(
 	'restore' => 'Wiederherstellen',
 	'settings' => 'Einstellungen',
 	'linkfilter' => 'Linkfilter',
-	'enablejs' => 'JavaScript für besseres Nachrichtenladen erlauben',
 	'chatname' => 'Chatname',
 	'destroy' => 'Chat zerstören',
 	'destroyed' => 'Chat erfolgreich zerstört',

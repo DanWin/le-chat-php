@@ -53,12 +53,7 @@ function route(){
 		send_login();
 	}elseif($_REQUEST['action']==='view'){
 		check_session();
-		send_messages(false);
-	}elseif($_REQUEST['action']==='jsview'){
-		check_session();
-		send_messages(true);
-	}elseif($_REQUEST['action']==='jsrefresh'){
-		send_jsrefresh();
+		send_messages();
 	}elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
 		send_redirect($_GET['url']);
 	}elseif($_REQUEST['action']==='wait'){
@@ -216,7 +211,7 @@ function route_setup(){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'enablejs', 'sendmail', 'modfallback', 'disablepm', 'eninbox');
+	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox');
 	$C['colour_settings']=array('colbg', 'coltxt');
 	$C['msg_settings']=array('msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv');
 	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'keeplimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes');
@@ -283,12 +278,14 @@ function thr(){
 function print_start($class='',  $ref=0, $url=''){
 	global $H, $I;
 	if(!empty($url)){
-		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers!
+		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers and js refresh!
 		header("Refresh: $ref; URL=$url");
 	}
 	echo "<!DOCTYPE html><html><head>$H[meta_html]";
 	if(!empty($url)){
 		echo "<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
+		$ref*=1000;
+		echo "<script type=\"text/javascript\">setTimeout(function(){window.location.replace(\"$url\");}, $ref);</script>";
 	}
 	if($class==='init'){
 		echo "<title>$I[init]</title>";
@@ -617,9 +614,6 @@ function send_setup(){
 		}
 		echo ">$I[enabled]</option>";
 		echo '</select></td></tr>';
-		if($setting==='enablejs' && !extension_loaded('json')){
-			echo "<tr><td colspan=\"2\">$I[jsonextrequired]</td></tr>";
-		}
 		echo '</table></td></tr>';
 	}
 	thr();
@@ -1291,27 +1285,17 @@ function send_frameset(){
 	exit;
 }
 
-function send_messages($js){
+function send_messages(){
 	global $H, $I, $U, $db, $language;
-	if(!$js){
-		if($U['nocache']){
-			$nocache='&nc='.substr(time(), -6);
-		}else{
-			$nocache='';
-		}
-		if(isSet($_COOKIE[COOKIENAME])){
-			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view$nocache");
-			if(get_setting('enablejs')==1 && extension_loaded('json')){
-				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview');</script>";
-			}
-		}else{
-			print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$nocache");
-			if(get_setting('enablejs')==1 && extension_loaded('json')){
-				echo "<script type=\"text/javascript\">window.location.assign('$_SERVER[SCRIPT_NAME]?action=jsview&session=$U[session]&lang=$language');</script>";
-			}
-		}
+	if($U['nocache']){
+		$nocache='&nc='.substr(time(), -6);
 	}else{
-		print_start('messages');
+		$nocache='';
+	}
+	if(isSet($_COOKIE[COOKIENAME])){
+		print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view$nocache");
+	}else{
+		print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$nocache");
 	}
 	echo '<div class="left">';
 	echo '<a id="top"></a>';
@@ -1331,9 +1315,6 @@ function send_messages($js){
 	}
 	print_messages();
 	echo '</div>';
-	if($js){
-		echo "<script type=\"text/javascript\">var id=$_REQUEST[id]; setInterval(function (){xmlhttp=new XMLHttpRequest(); xmlhttp.onreadystatechange=function(){if(xmlhttp.readyState==4 && xmlhttp.status==200){if(xmlhttp.responseText.match(/^</)){document.write(xmlhttp.responseText);}else{var obj=JSON.parse(xmlhttp.responseText); id=obj[0]; document.getElementById(\"messages\").innerHTML=obj[1]+document.getElementById(\"messages\").innerHTML; document.getElementById(\"chatters\").innerHTML=obj[2]; document.getElementById(\"topic\").innerHTML=obj[3];}}}; xmlhttp.open('POST','$_SERVER[SCRIPT_NAME]?action=jsrefresh&session=$U[session]&id='+id,true); xmlhttp.send();}, $U[refresh]000);</script>";
-	}
 	echo "<a id=\"bottom\"></a><a style=\"position:fixed;bottom:0.5em;right:0.5em\" href=\"#top\">$I[top]</a>";
 	echo '</div>';
 	print_end();
@@ -1384,21 +1365,6 @@ function send_inbox(){
 	echo "</form><br>$H[backtochat]";
 	echo '</div>';
 	print_end();
-}
-
-function send_jsrefresh(){
-	global $I;
-	if(!extension_loaded('json')){
-		send_fatal_error($I['jsonextrequired']);
-	}
-	check_session();
-	ob_start();
-	print_messages();
-	$msgs=ob_get_clean();
-	ob_start();
-	print_chatters();
-	$chatters=ob_get_clean();
-	echo json_encode(array($_REQUEST['id'], $msgs, $chatters, get_setting('topic')));
 }
 
 function send_notes($type){
@@ -3385,7 +3351,7 @@ function init_chat(){
 			$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
 			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(20000) NOT NULL);");
 		}
-		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} .center-table{margin-left:auto;margin-right:auto;} body{text-align:center;} .left-table{width:100%;text-align:left;} .right{text-align:right;} .left{text-align:left;} .right-table{border-spacing:0px;margin-left:auto;} .padded{padding:5px;} #chatters{max-height:100px;overflow-y:auto;} .center{text-align:center;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('enablejs', '0'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'), array('guestreg', '0'), array('disablepm', '0'), array('disabletext', "<h1>$I[disabledtext]</h1>"), array('defaulttz', '0'), array('eninbox', '0'));
+		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} .center-table{margin-left:auto;margin-right:auto;} body{text-align:center;} .left-table{width:100%;text-align:left;} .right{text-align:right;} .left{text-align:left;} .right-table{border-spacing:0px;margin-left:auto;} .padded{padding:5px;} #chatters{max-height:100px;overflow-y:auto;} .center{text-align:center;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('keeplimit', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'), array('guestreg', '0'), array('disablepm', '0'), array('disabletext', "<h1>$I[disabledtext]</h1>"), array('defaulttz', '0'), array('eninbox', '0'));
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
 			$stmt->execute($pair);
@@ -3501,7 +3467,7 @@ function update_db(){
 			$db->exec('ALTER TABLE ' . PREFIX . 'sessions ENGINE=MEMORY;');
 			$db->exec('ALTER TABLE ' . PREFIX . 'settings MODIFY id integer unsigned NOT NULL, MODIFY setting varchar(50) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, MODIFY value varchar(20000) NOT NULL;');
 			$db->exec('ALTER TABLE ' . PREFIX . 'settings DROP PRIMARY KEY, DROP id, ADD PRIMARY KEY(setting);');
-			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('enablejs', '0'), ('chatname', 'My Chat'), ('topic', ''), ('msgsendall', '$I[sendallmsg]'), ('msgsendmem', '$I[sendmemmsg]'), ('msgsendmod', '$I[sendmodmsg]'), ('msgsendadm', '$I[sendadmmsg]'), ('msgsendprv', '$I[sendprvmsg]'), ('numnotes', '3');");
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('chatname', 'My Chat'), ('topic', ''), ('msgsendall', '$I[sendallmsg]'), ('msgsendmem', '$I[sendmemmsg]'), ('msgsendmod', '$I[sendmodmsg]'), ('msgsendadm', '$I[sendadmmsg]'), ('msgsendprv', '$I[sendprvmsg]'), ('numnotes', '3');");
 		}
 		if($dbversion<13){
 			$db->exec('ALTER TABLE ' . PREFIX . 'filter CHANGE `match` filtermatch varchar(255) NOT NULL, CHANGE `replace` filterreplace varchar(20000) NOT NULL;');
@@ -3556,6 +3522,12 @@ function update_db(){
 		}
 		if($dbversion<22){
 			$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
+		}
+		if($dbversion<23){
+			$db->exec('DELETE FROM ' . PREFIX . "settings WHERE setting='enablejs';");
+			if(MEMCACHED){
+				$memcached->delete(DBNAME . '-' . PREFIX . "settings-enablejs");
+			}
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
@@ -3745,8 +3717,8 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.19.1'); // Script version
-	define('DBVERSION', 22); // Database version
+	define('VERSION', '1.19.2'); // Script version
+	define('DBVERSION', 23); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host

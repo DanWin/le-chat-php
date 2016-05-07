@@ -276,7 +276,6 @@ $T=array(
 	'restore' => 'Restablacer copia',
 	'settings' => 'Configuración',
 	'linkfilter' => 'Filtro de enlaces',
-	'enablejs' => 'Permitir  JavaScript para mejorar la carga de mensajes',
 	'chatname' => 'Nombre de la sala',
 	'destroy' => 'Destruir sala',
 	'destroyed' => 'Sala destruida satisfactoriamente',
