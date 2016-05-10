@@ -64,6 +64,7 @@ When you are done, you have to edit the chat script, to include your translation
 		'lang_code'	=>'Language name',
 to the $L array in the load_lang() function at the bottom, similar to what I did for the German translation.
 Please share your translation with me, so I can add it to the official version.
+To update your translation, you can copy each new string to your translation file or edit the automated lang_update.php script to reflect you language and run it.
 
 Regex:
 ------
