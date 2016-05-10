@@ -284,7 +284,8 @@ function print_start($class='',  $ref=0, $url=''){
 	echo "<!DOCTYPE html><html><head>$H[meta_html]";
 	if(!empty($url)){
 		echo "<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
-		$ref*=1000;
+		$ref+=5;//only use js if browser refresh stopped working
+		$ref*=1000;//js uses milliseconds
 		echo "<script type=\"text/javascript\">setTimeout(function(){window.location.replace(\"$url\");}, $ref);</script>";
 	}
 	if($class==='init'){
