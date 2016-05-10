@@ -342,6 +342,9 @@ $T=array(
 	'eninbox' => 'Offline Posteingang aktivieren',
 	'inboxmsgs' => '%d Nachrichten im Posteingang lesen',
 	'offline' => '(offline)',
-	'deleteacc' => 'Konto löschen'
+	'deleteacc' => 'Konto löschen',
+	'eninall' => 'Für jeden',
+	'eninmem' => 'Nur für Mitglieder',
+	'eninstaff' => 'Nur für Moderatoren'
 );
 ?>

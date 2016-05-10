@@ -1305,7 +1305,7 @@ function send_messages(){
 	echo '</div><div id="chatters">';
 	print_chatters();
 	echo "</div><a style=\"position:fixed;top:0.5em;right:0.5em\" href=\"#bottom\">$I[bottom]</a><div id=\"messages\">";
-	if($U['status']>=2 && $U['eninbox']==1){
+	if($U['status']>=2 && $U['eninbox']!=0){
 		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
 		$stmt->execute(array($U['nickname']));
 		$tmp=$stmt->fetch(PDO::FETCH_NUM);
@@ -1621,8 +1621,8 @@ function send_post(){
 				$ignored[]=$ign['ignored'];
 			}
 		}
-		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox=1 AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-		$stmt->execute(array($U['nickname'], $U['nickname']));
+		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
+		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$P[$tmp['nickname']]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['status']];
 		}
@@ -1781,9 +1781,6 @@ function send_profile($arg=''){
 	if($U['status']>=5 && get_setting('incognito')){
 		$bool_settings[]='incognito';
 	}
-	if($U['status']>=2 && get_setting('eninbox')){
-		$bool_settings[]='eninbox';
-	}
 	foreach($bool_settings as $setting){
 		echo '<tr><td><table class="left-table"><tr><th>'.$I[$setting].'</th><td class="right">';
 		echo "<input type=\"checkbox\" name=\"$setting\" id=\"$setting\" value=\"on\"";
@@ -1791,6 +1788,32 @@ function send_profile($arg=''){
 			echo ' checked';
 		}
 		echo "><label for=\"$setting\"><b>$I[enabled]</b></label></td></tr></table></td></tr>";
+		thr();
+	}
+	if($U['status']>=2 && get_setting('eninbox')){
+		echo "<tr><td><table class=\"left-table\"><tr><th>$I[eninbox]</th><td class=\"right\">";
+		echo "<select name=\"eninbox\" id=\"eninbox\">";
+		echo '<option value="0"';
+		if($U['eninbox']==0){
+			echo ' selected';
+		}
+		echo ">$I[disabled]</option>";
+		echo '<option value="1"';
+		if($U['eninbox']==1){
+			echo ' selected';
+		}
+		echo ">$I[eninall]</option>";
+		echo '<option value="3"';
+		if($U['eninbox']==3){
+			echo ' selected';
+		}
+		echo ">$I[eninmem]</option>";
+		echo '<option value="5"';
+		if($U['eninbox']==5){
+			echo ' selected';
+		}
+		echo ">$I[eninstaff]</option>";
+		echo '</select></td></tr></table></td></tr>';
 		thr();
 	}
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[tz]</th><td class=\"right\">";
@@ -2565,10 +2588,8 @@ function amend_profile(){
 			$U['tz']=$_REQUEST['tz'];
 		}
 	}
-	if(isSet($_REQUEST['eninbox'])){
-		$U['eninbox']=1;
-	}else{
-		$U['eninbox']=0;
+	if(isSet($_REQUEST['eninbox']) && $_REQUEST['eninbox']>=0 && $_REQUEST['eninbox']<=5){
+		$U['eninbox']=$_REQUEST['eninbox'];
 	}
 }
 
@@ -2731,8 +2752,8 @@ function validate_input(){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'ignored WHERE (ignby=? AND ign=?) OR (ignby=? AND ign=?);');
 		$stmt->execute(array($U['nickname'], $_REQUEST['sendto'], $_REQUEST['sendto'], $U['nickname']));
 		if(!$stmt->fetch(PDO::FETCH_NUM)){
-			$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox=1 AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-			$stmt->execute(array($U['nickname'], $U['nickname']));
+			$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
+			$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
 			while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 				$P[$tmp['nickname']]=[$tmp['nickname'], $tmp['style'], $tmp['status']];
 				$inboxes[$tmp['nickname']]=true;
@@ -3733,7 +3754,7 @@ function load_config(){
 		define('MEMCACHEDHOST', 'localhost'); // Memcached host
 		define('MEMCACHEDPORT', '11211'); // Memcached port
 	}
-	define('DBDRIVER', 0); // Selects the database driver to use - 0=MySQL, 1=PostgreSQL, 2=sqlite
+	define('DBDRIVER', 2); // Selects the database driver to use - 0=MySQL, 1=PostgreSQL, 2=sqlite
 	if(DBDRIVER===2){
 		define('SQLITEDBFILE', 'public_chat.sqlite'); // Filepath of the sqlite database, if sqlite is used - make sure it is writable for the webserver user
 	}

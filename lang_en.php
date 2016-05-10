@@ -342,6 +342,9 @@ $I=array(
 	'eninbox' => 'Enable offline inbox',
 	'inboxmsgs' => 'Read %d messages in your inbox',
 	'offline' => '(offline)',
-	'deleteacc' => 'Delete account'
+	'deleteacc' => 'Delete account',
+	'eninall' => 'For everyone',
+	'eninmem' => 'For members only',
+	'eninstaff' => 'For staff only'
 );
 ?>
