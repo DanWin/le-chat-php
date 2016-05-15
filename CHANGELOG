@@ -1,4 +1,6 @@
+Version 1.20 - May 15, 2016
 Add setting in profile to allow offline inbox for: staff, members or everyone
+Completely fix link-redirection
 
 Version 1.19.2 - May 7, 2016
 Remove JavaScript "load only new messages" feature

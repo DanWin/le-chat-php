@@ -275,7 +275,7 @@ function thr(){
 	echo '<tr><td><hr></td></tr>';
 }
 
-function print_start($class='',  $ref=0, $url=''){
+function print_start($class='', $ref=0, $url=''){
 	global $H, $I;
 	if(!empty($url)){
 		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers and js refresh!
@@ -300,6 +300,7 @@ function print_start($class='',  $ref=0, $url=''){
 
 function send_redirect($url){
 	global $I;
+	$url=htmlspecialchars_decode(rawurldecode($url));
 	preg_match('~^(.*)://~', $url, $match);
 	$url=preg_replace('~^(.*)://~', '', $url);
 	$escaped=htmlspecialchars($url);
@@ -2868,7 +2869,7 @@ function apply_linkfilter(){
 	if(get_setting('forceredirect')){
 		$U['message']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
 			function ($matched) use($redirect){
-				return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
+				return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
 			}
 		, $U['message']);
 	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/', $U['message'], $matches)){
@@ -2876,7 +2877,7 @@ function apply_linkfilter(){
 			if(!preg_match('~^http(s)?://~', $match)){
 				$U['message']=preg_replace_callback('/<a href="('.str_replace('/', '\/', $match).')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/',
 					function ($matched) use($redirect){
-						return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
+						return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
 					}
 				, $U['message']);
 			}
@@ -3096,7 +3097,7 @@ function prepare_message_print(&$message, $injectRedirect, $redirect, $removeEmb
 	if($injectRedirect){
 		$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
 			function ($matched) use($redirect) {
-				return "<a href=\"$redirect".$matched[1]."\" target=\"_blank\">$matched[2]</a>";
+				return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
 			}
 		, $message['text']);
 	}
@@ -3739,7 +3740,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.19.2'); // Script version
+	define('VERSION', '1.20'); // Script version
 	define('DBVERSION', 23); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
