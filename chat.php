@@ -1776,7 +1776,7 @@ function send_profile($arg=''){
 	echo '<tr><td>'.style_this("$U[nickname] : $I[fontexample]", $U['style']).'</td></tr>';
 	thr();
 	$bool_settings=['timestamps', 'nocache'];
-	if(get_setting('imgembed') && isSet($_COOKIE[COOKIENAME])){
+	if(get_setting('imgembed')){
 		$bool_settings[]='embed';
 	}
 	if($U['status']>=5 && get_setting('incognito')){
