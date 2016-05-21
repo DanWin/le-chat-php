@@ -2268,7 +2268,7 @@ function logout_chatter($names){
 					$stmt1->execute(array($name));
 					$stmt2->execute(array($name));
 					$stmt3->execute(array($name, $name));
-					$stmt4->execute(array($name, $name));
+					$stmt4->execute(array($name));
 				}
 				unset($P[$name]);
 			}
