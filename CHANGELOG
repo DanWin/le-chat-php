@@ -1,3 +1,8 @@
+Version 1.20.1 - Jun. 13, 2016
+Bugfix when logging guests out via admin section
+Don't hide image embedding option in profile with cookies disabled
+Making a moderator to member now sets incognito back to disabled
+
 Version 1.20 - May 15, 2016
 Add setting in profile to allow offline inbox for: staff, members or everyone
 Completely fix link-redirection

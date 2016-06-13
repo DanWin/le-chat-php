@@ -2471,32 +2471,34 @@ function change_status($nick, $status){
 	}elseif($U['status']<=$status || !preg_match('/^[023567\-]$/', $status)){
 		return sprintf($I['cantchgstat'], $nick);
 	}
-	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
+	$stmt=$db->prepare('SELECT incognito FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
 	$stmt->execute(array($nick, $U['status']));
-	if($stmt->fetch(PDO::FETCH_ASSOC)){
-		if($_REQUEST['set']==='-'){
-			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
-			$stmt->execute(array($nick));
-			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
-			$stmt->execute(array($nick));
-			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1 WHERE nickname=?;');
-			$stmt->execute(array($nick));
-			if(isSet($P[$nick])){
-				$P[$nick][2]=1;
-			}
-			return sprintf($I['succdel'], $nick);
-		}else{
-			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET status=? WHERE nickname=?;');
-			$stmt->execute(array($status, $nick));
-			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=? WHERE nickname=?;');
-			$stmt->execute(array($status, $nick));
-			if(isSet($P[$nick])){
-				$P[$nick][2]=$status;
-			}
-			return sprintf($I['succchg'], $nick);
-		}
-	}else{
+	if(!$old=$stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['cantchgstat'], $nick);
+	}
+	if($_REQUEST['set']==='-'){
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
+		$stmt->execute(array($nick));
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute(array($nick));
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
+		$stmt->execute(array($nick));
+		if(isSet($P[$nick])){
+			$P[$nick][2]=1;
+		}
+		return sprintf($I['succdel'], $nick);
+	}else{
+		if($status<5){
+			$old[0]=0;
+		}
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET status=?, incognito=? WHERE nickname=?;');
+		$stmt->execute(array($status, $old[0], $nick));
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=?, incognito=? WHERE nickname=?;');
+		$stmt->execute(array($status, $old[0], $nick));
+		if(isSet($P[$nick])){
+			$P[$nick][2]=$status;
+		}
+		return sprintf($I['succchg'], $nick);
 	}
 }
 
@@ -3740,7 +3742,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.20'); // Script version
+	define('VERSION', '1.20.1'); // Script version
 	define('DBVERSION', 23); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
