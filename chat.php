@@ -843,7 +843,7 @@ function send_admin($arg=''){
 	print_start('admin');
 	$chlist="<select name=\"name[]\" size=\"5\" multiple><option value=\"\">$I[choose]</option>";
 	$chlist.="<option value=\"&\">$I[allguests]</option>";
-	array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
+	array_multisort(array_map('strtolower', (string) array_keys($P)), SORT_ASC, SORT_STRING, $P);
 	foreach($P as $user){
 		if($user[2]<$U['status']){
 			$chlist.="<option value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
@@ -940,7 +940,7 @@ function send_admin($arg=''){
 		frmadm('status');
 		echo "<table class=\"right-table\"><td class=\"right\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		read_members();
-		array_multisort(array_map('strtolower', array_keys($A)), SORT_ASC, SORT_STRING, $A);
+		array_multisort(array_map('strtolower', (string) array_keys($A)), SORT_ASC, SORT_STRING, $A);
 		foreach($A as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[2]\">$member[0]";
 			if($member[1]==0){
@@ -1459,7 +1459,7 @@ function send_approve_waiting(){
 		echo '<table class="center-table left">';
 		echo "<tr><th class=\"padded\">$I[sessnick]</th><th class=\"padded\">$I[sessua]</th></tr>";
 		foreach($tmp as $temp){
-			echo '<tr>'.hidden('alls[]', $temp['nickname'])."<td class=\"padded\"><input type=\"checkbox\" name=\"csid[]\" id=\"$temp[nickname]]\" value=\"$temp[nickname]\"><label for=\"$temp[nickname]\"> ".style_this($temp['nickname'], $temp['style'])."</label></td><td class=\"padded\">$temp[useragent]</td></tr>";
+			echo '<tr>'.hidden('alls[]', $temp['nickname'])."<td class=\"padded\"><input type=\"checkbox\" name=\"csid[]\" id=\"$temp[nickname]\" value=\"$temp[nickname]\"><label for=\"$temp[nickname]\"> ".style_this($temp['nickname'], $temp['style'])."</label></td><td class=\"padded\">$temp[useragent]</td></tr>";
 		}
 		echo "</table><br><table class=\"center-table left\"><tr><td><input type=\"radio\" name=\"what\" value=\"allowchecked\" id=\"allowchecked\" checked><label for=\"allowchecked\">$I[allowchecked]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"allowall\" id=\"allowall\"><label for=\"allowall\">$I[allowall]</label></td>";
@@ -1627,11 +1627,11 @@ function send_post(){
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$P[$tmp['nickname']]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['status']];
 		}
-		array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
+		array_multisort(array_map('strtolower', (string) array_keys($P)), SORT_ASC, SORT_STRING, $P);
 		foreach($P as $name => $user){
 			if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
 				echo '<option ';
-				if($_REQUEST['sendto']===$name){
+				if($_REQUEST['sendto']==$name){
 					echo 'selected ';
 				}
 				echo "value=\"$name\" style=\"$user[1]\">$user[0]</option>";
@@ -1698,7 +1698,7 @@ function send_profile($arg=''){
 	print_start('profile');
 	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'save')."<h2>$I[profile]</h2><i>$arg</i><table class=\"center-table\">";
 	thr();
-	array_multisort(array_map('strtolower', array_keys($P)), SORT_ASC, SORT_STRING, $P);
+	array_multisort(array_map('strtolower', (string) array_keys($P)), SORT_ASC, SORT_STRING, $P);
 	$ignored=array();
 	$ignore=get_ignored();
 	foreach($ignore as $ign){
@@ -3742,7 +3742,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.20.1'); // Script version
+	define('VERSION', '1.20.2'); // Script version
 	define('DBVERSION', 23); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages

@@ -1,3 +1,6 @@
+Version 1.20.2 - Jul. 9, 2016
+Fix bug preventing to send PMs to number-only nicknames
+
 Version 1.20.1 - Jun. 13, 2016
 Bugfix when logging guests out via admin section
 Don't hide image embedding option in profile with cookies disabled
