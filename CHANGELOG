@@ -1,3 +1,6 @@
+Version 1.20.3 - Jul. 10, 2016
+Yesterdays bugfix broke more than it fixed, refixed.
+
 Version 1.20.2 - Jul. 9, 2016
 Fix bug preventing to send PMs to number-only nicknames
 

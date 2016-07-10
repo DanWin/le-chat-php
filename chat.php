@@ -837,13 +837,21 @@ function send_alogin(){
 	print_end();
 }
 
+function sort_names(&$names){
+	$keys=[];
+	foreach($names as $k => $v){
+		$keys[]=(string) $k;
+	}
+	array_multisort(array_map('strtolower', $keys), SORT_ASC, SORT_STRING, $names);
+}
+
 function send_admin($arg=''){
 	global $A, $H, $I, $P, $U, $db;
 	$ga=(int) get_setting('guestaccess');
 	print_start('admin');
 	$chlist="<select name=\"name[]\" size=\"5\" multiple><option value=\"\">$I[choose]</option>";
 	$chlist.="<option value=\"&\">$I[allguests]</option>";
-	array_multisort(array_map('strtolower', (string) array_keys($P)), SORT_ASC, SORT_STRING, $P);
+	sort_names($P);
 	foreach($P as $user){
 		if($user[2]<$U['status']){
 			$chlist.="<option value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
@@ -940,7 +948,7 @@ function send_admin($arg=''){
 		frmadm('status');
 		echo "<table class=\"right-table\"><td class=\"right\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		read_members();
-		array_multisort(array_map('strtolower', (string) array_keys($A)), SORT_ASC, SORT_STRING, $A);
+		sort_names($A);
 		foreach($A as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[2]\">$member[0]";
 			if($member[1]==0){
@@ -1627,7 +1635,7 @@ function send_post(){
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$P[$tmp['nickname']]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['status']];
 		}
-		array_multisort(array_map('strtolower', (string) array_keys($P)), SORT_ASC, SORT_STRING, $P);
+		sort_names($P);
 		foreach($P as $name => $user){
 			if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
 				echo '<option ';
@@ -1698,7 +1706,7 @@ function send_profile($arg=''){
 	print_start('profile');
 	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'save')."<h2>$I[profile]</h2><i>$arg</i><table class=\"center-table\">";
 	thr();
-	array_multisort(array_map('strtolower', (string) array_keys($P)), SORT_ASC, SORT_STRING, $P);
+	sort_names($P);
 	$ignored=array();
 	$ignore=get_ignored();
 	foreach($ignore as $ign){
@@ -3742,7 +3750,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.20.2'); // Script version
+	define('VERSION', '1.20.3'); // Script version
 	define('DBVERSION', 23); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
