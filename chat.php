@@ -1621,12 +1621,11 @@ function send_post(){
 	$disablepm=(bool) get_setting('disablepm');
 	if(!$disablepm){
 		$ignored=array();
-		$ignore=get_ignored();
+		$ignore=get_ignored($U['nickname']);
 		foreach($ignore as $ign){
 			if($ign['ignored']===$U['nickname']){
 				$ignored[]=$ign['by'];
-			}
-			if($ign['by']===$U['nickname']){
+			}else{
 				$ignored[]=$ign['ignored'];
 			}
 		}
@@ -1708,7 +1707,7 @@ function send_profile($arg=''){
 	thr();
 	sort_names($P);
 	$ignored=array();
-	$ignore=get_ignored();
+	$ignore=get_ignored($U['nickname']);
 	foreach($ignore as $ign){
 		if($ign['by']===$U['nickname']){
 			$ignored[]=$ign['ignored'];
@@ -3193,12 +3192,13 @@ function save_setup(){
 	}
 }
 
-function get_ignored(){
+function get_ignored($name){
 	global $db;
 	$ignored=array();
-	$result=$db->query('SELECT ign, ignby FROM ' . PREFIX . 'ignored;');
-	while($tmp=$result->fetch(PDO::FETCH_ASSOC)){
-		$ignored[]=array('ignored'=>$tmp['ign'], 'by'=>$tmp['ignby']);
+	$stmt=$db->prepare('SELECT ign, ignby FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
+	$stmt->execute([$name, $name]);
+	while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		$ignored[]=['ignored'=>$tmp['ign'], 'by'=>$tmp['ignby']];
 	}
 	return $ignored;
 }
