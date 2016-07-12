@@ -950,18 +950,18 @@ function send_admin($arg=''){
 		read_members();
 		sort_names($A);
 		foreach($A as $member){
-			echo "<option value=\"$member[0]\" style=\"$member[2]\">$member[0]";
+			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]";
 			if($member[1]==0){
 				echo ' (!)';
-			}elseif($member[1]==2){
+			}elseif($member[2]==2){
 				echo ' (G)';
-			}elseif($member[1]==5){
+			}elseif($member[2]==5){
 				echo ' (M)';
-			}elseif($member[1]==6){
+			}elseif($member[2]==6){
 				echo ' (SM)';
-			}elseif($member[1]==7){
+			}elseif($member[2]==7){
 				echo ' (A)';
-			}elseif($member[1]==8){
+			}elseif($member[2]==8){
 				echo ' (SA)';
 			}
 			echo '</option>';
@@ -982,7 +982,7 @@ function send_admin($arg=''){
 		frmadm('passreset');
 		echo "<table class=\"right-table\"><td><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		foreach($A as $member){
-			echo "<option value=\"$member[0]\" style=\"$member[2]\">$member[0]</option>";
+			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]</option>";
 		}
 		echo '</select></td><td><input type="password" name="pass"></td><td>'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
@@ -2390,9 +2390,7 @@ function read_members(){
 	global $A, $db;
 	$result=$db->query('SELECT * FROM ' . PREFIX . 'members;');
 	while($temp=$result->fetch(PDO::FETCH_ASSOC)){
-		$A[$temp['nickname']][0]=$temp['nickname'];
-		$A[$temp['nickname']][1]=$temp['status'];
-		$A[$temp['nickname']][2]=$temp['style'];
+		$A[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
 	}
 }
 
@@ -2829,11 +2827,11 @@ function apply_filter(){
 		}
 		read_members();
 		if(isSet($A[$matched[1]])){
-			return style_this($matched[0], $A[$matched[1]][2]);
+			return style_this($matched[0], $A[$matched[1]][1]);
 		}
 		foreach($A as $user){
 			if(strtolower($user[0])===$nick){
-				return style_this($matched[0], $user[2]);
+				return style_this($matched[0], $user[1]);
 			}
 		}
 		return "$matched[0]";
