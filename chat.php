@@ -837,14 +837,6 @@ function send_alogin(){
 	print_end();
 }
 
-function sort_names(&$names){
-	$keys=[];
-	foreach($names as $k => $v){
-		$keys[]=(string) $k;
-	}
-	array_multisort(array_map('strtolower', $keys), SORT_ASC, SORT_STRING, $names);
-}
-
 function send_admin($arg=''){
 	global $A, $H, $I, $P, $U, $db;
 	$ga=(int) get_setting('guestaccess');
@@ -951,7 +943,7 @@ function send_admin($arg=''){
 		sort_names($A);
 		foreach($A as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]";
-			if($member[1]==0){
+			if($member[2]==0){
 				echo ' (!)';
 			}elseif($member[2]==2){
 				echo ' (G)';
@@ -1632,16 +1624,16 @@ function send_post(){
 		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
 		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-			$P[$tmp['nickname']]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['status']];
+			$P[$tmp['nickname']]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['status'], $tmp['nickname']];
 		}
 		sort_names($P);
-		foreach($P as $name => $user){
-			if($U['nickname']!==$user[0] && !in_array($user[0], $ignored)){
+		foreach($P as $user){
+			if($U['nickname']!==$user[3] && !in_array($user[3], $ignored)){
 				echo '<option ';
-				if($_REQUEST['sendto']==$name){
+				if($_REQUEST['sendto']==$user[3]){
 					echo 'selected ';
 				}
-				echo "value=\"$name\" style=\"$user[1]\">$user[0]</option>";
+				echo "value=\"$user[3]\" style=\"$user[1]\">$user[0]</option>";
 			}
 		}
 	}
@@ -2121,7 +2113,7 @@ function write_new_session(){
 		if($U['status']>=3 && !$U['incognito']){
 			add_system_message(sprintf(get_setting('msgenter'), style_this($U['nickname'], $U['style'])));
 		}
-		$P[$U['nickname']]=[$U['nickname'], $U['style'], $U['status']];
+		$P[$U['nickname']]=[$U['nickname'], $U['style'], $U['status'], $U['nickname']];
 	}
 }
 
@@ -2357,7 +2349,7 @@ function parse_sessions(){
 	$stmt=$db->query('SELECT nickname, style, status, incognito FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 ORDER BY status DESC, lastpost DESC;');
 	while($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		if(!$temp['incognito']){
-			$P[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
+			$P[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status'], $temp['nickname']];
 		}
 		if($temp['status']>=5){
 			++$countmods;
@@ -2389,7 +2381,7 @@ function read_members(){
 	global $A, $db;
 	$result=$db->query('SELECT * FROM ' . PREFIX . 'members;');
 	while($temp=$result->fetch(PDO::FETCH_ASSOC)){
-		$A[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
+		$A[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status'], $temp['nickname']];
 	}
 }
 
@@ -2763,7 +2755,7 @@ function validate_input(){
 			$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
 			$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
 			while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-				$P[$tmp['nickname']]=[$tmp['nickname'], $tmp['style'], $tmp['status']];
+				$P[$tmp['nickname']]=[$tmp['nickname'], $tmp['style'], $tmp['status'], $tmp['nickname']];
 				$inboxes[$tmp['nickname']]=true;
 			}
 			if(isSet($P[$_REQUEST['sendto']])){
@@ -3118,6 +3110,14 @@ function prepare_message_print(&$message, $injectRedirect, $redirect, $removeEmb
 }
 
 // this and that
+
+function sort_names(&$names){
+	$keys=[];
+	foreach($names as $v){
+		$keys[]=$v[3];
+	}
+	array_multisort(array_map('strtolower', $keys), SORT_ASC, SORT_STRING, $names);
+}
 
 function send_headers(){
 	header('Content-Type: text/html; charset=UTF-8');
@@ -3748,7 +3748,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.20.3'); // Script version
+	define('VERSION', '1.20.4'); // Script version
 	define('DBVERSION', 23); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
