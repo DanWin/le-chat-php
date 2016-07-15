@@ -2888,7 +2888,7 @@ function create_hotlinks(){
 	global $U;
 	//Make hotlinks for URLs, redirect through dereferrer script to prevent session leakage
 	// 1. all explicit schemes with whatever xxx://yyyyyyy
-	$U['message']=preg_replace('~(\w*://[^\s<>]+)~i', "<<$1>>", $U['message']);
+	$U['message']=preg_replace('~(\w+://[^\s<>]+)~i', "<<$1>>", $U['message']);
 	// 2. valid URLs without scheme:
 	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d*)?/[^\s<>]*)(?![^<>]*>)~i', "<<$1>>", $U['message']); // server/path given
 	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+:\d+)(?![^<>]*>)~i', "<<$1>>", $U['message']); // server:port given
