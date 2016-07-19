@@ -151,7 +151,7 @@ function route_admin(){
 		if($_REQUEST['what']==='choose'){
 			send_choose_messages();
 		}elseif($_REQUEST['what']==='selected'){
-			clean_selected();
+			clean_selected($U['status']);
 		}elseif($_REQUEST['what']==='room'){
 			clean_room();
 		}elseif($_REQUEST['what']==='nick'){
@@ -2935,7 +2935,7 @@ function add_system_message($mes){
 		'poster'	=>'',
 		'recipient'	=>'',
 		'text'		=>"<span class=\"sysmsg\">$mes</span>",
-		'delstatus'	=>9
+		'delstatus'	=>4
 	);
 	write_message($sysmessage);
 }
@@ -2971,12 +2971,12 @@ function clean_room(){
 	add_system_message(sprintf($msg, get_setting('chatname')));
 }
 
-function clean_selected(){
+function clean_selected($status){
 	global $db;
 	if(isSet($_REQUEST['mid'])){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=?;');
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (delstatus=9 OR delstatus<?);');
 		foreach($_REQUEST['mid'] as $mid){
-			$stmt->execute(array($mid));
+			$stmt->execute(array($mid, $status));
 		}
 	}
 }
@@ -3054,9 +3054,9 @@ function print_messages($delstatus=''){
 	$db->exec('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "messages WHERE postdate<$expire) AS t);");
 	if(!empty($delstatus)){
 		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
-		'id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT $messagelimit) AS t) ".
-		'OR (poststatus>1 AND (poststatus<? OR poster=? OR recipient=?) ) ORDER BY id DESC;');
-		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
+		'(id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT $messagelimit) AS t) ".
+		'OR (poststatus>1 AND (poststatus<? OR poster=? OR recipient=?) ) ) AND (poster=? OR recipient=? OR delstatus<?) ORDER BY id DESC;');
+		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname'], $delstatus));
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 			prepare_message_print($message, $injectRedirect, $redirect, $removeEmbed);
 			echo "<div class=\"msg\"><input type=\"checkbox\" name=\"mid[]\" id=\"$message[id]\" value=\"$message[id]\"><label for=\"$message[id]\">";
@@ -3748,7 +3748,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.20.4'); // Script version
+	define('VERSION', '1.20.5'); // Script version
 	define('DBVERSION', 23); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
