@@ -151,7 +151,7 @@ function route_admin(){
 		if($_REQUEST['what']==='choose'){
 			send_choose_messages();
 		}elseif($_REQUEST['what']==='selected'){
-			clean_selected($U['status']);
+			clean_selected($U['status'], $U['nickname']);
 		}elseif($_REQUEST['what']==='room'){
 			clean_room();
 		}elseif($_REQUEST['what']==='nick'){
@@ -2955,12 +2955,12 @@ function clean_room(){
 	add_system_message(sprintf($msg, get_setting('chatname')));
 }
 
-function clean_selected($status){
+function clean_selected($status, $nick){
 	global $db;
 	if(isSet($_REQUEST['mid'])){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (delstatus=9 OR delstatus<?);');
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR delstatus<?);');
 		foreach($_REQUEST['mid'] as $mid){
-			$stmt->execute(array($mid, $status));
+			$stmt->execute(array($mid, $nick, $nick, $status));
 		}
 	}
 }
