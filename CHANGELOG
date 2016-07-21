@@ -1,3 +1,5 @@
+Simplify ignore logic + disallow ignoring chatters with higher status
+
 Version 1.20.5 - Jul. 19, 2016
 Check permission before selectively deleting a message.
 

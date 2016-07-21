@@ -1612,15 +1612,6 @@ function send_post(){
 	}
 	$disablepm=(bool) get_setting('disablepm');
 	if(!$disablepm){
-		$ignored=array();
-		$ignore=get_ignored($U['nickname']);
-		foreach($ignore as $ign){
-			if($ign['ignored']===$U['nickname']){
-				$ignored[]=$ign['by'];
-			}else{
-				$ignored[]=$ign['ignored'];
-			}
-		}
 		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
 		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
@@ -1628,7 +1619,7 @@ function send_post(){
 		}
 		sort_names($P);
 		foreach($P as $user){
-			if($U['nickname']!==$user[3] && !in_array($user[3], $ignored)){
+			if($U['nickname']!==$user[3]){
 				echo '<option ';
 				if($_REQUEST['sendto']==$user[3]){
 					echo 'selected ';
@@ -1698,44 +1689,34 @@ function send_profile($arg=''){
 	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'save')."<h2>$I[profile]</h2><i>$arg</i><table class=\"center-table\">";
 	thr();
 	sort_names($P);
-	$ignored=array();
-	$ignore=get_ignored($U['nickname']);
-	foreach($ignore as $ign){
-		if($ign['by']===$U['nickname']){
-			$ignored[]=$ign['ignored'];
-		}
+	$ignored=[];
+	$stmt=$db->prepare('SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?;');
+	$stmt->execute([$U['nickname']]);
+	while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		$ignored[]=$tmp['ign'];
 	}
 	if(count($ignored)>0){
 		echo "<tr><td><table class=\"left-table\"><tr><th>$I[unignore]</th><td class=\"right\">";
 		echo "<select name=\"unignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		foreach($ignored as $ign){
-			$style='';
-			foreach($P as $user){
-				if($ign===$user[0]){
-					$style=" style=\"$user[1]\"";
-					break;
-				}
-			}
-			echo "<option value=\"$ign\"$style>$ign</option>";
+			echo "<option value=\"$ign\">$ign</option>";
 		}
 		echo '</select></td></tr></table></td></tr>';
 		thr();
 	}
-	if(count($P)-count($ignored)>1){
-		echo "<tr><td><table class=\"left-table\"><tr><th>$I[ignore]</th><td class=\"right\">";
-		echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-		$stmt=$db->query('SELECT poster FROM ' . PREFIX . 'messages GROUP BY poster;');
-		while($nick=$stmt->fetch(PDO::FETCH_NUM)){
-			$nicks[]=$nick[0];
-		}
-		foreach($P as $user){
-			if($U['nickname']!==$user[0] && !in_array($user[0], $ignored) && in_array($user[0], $nicks)){
-				echo "<option value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
-			}
-		}
-		echo '</select></td></tr></table></td></tr>';
-		thr();
+	echo "<tr><td><table class=\"left-table\"><tr><th>$I[ignore]</th><td class=\"right\">";
+	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
+	$stmt=$db->query('SELECT poster FROM ' . PREFIX . 'messages GROUP BY poster;');
+	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
+		$nicks[]=$nick[0];
 	}
+	foreach($P as $user){
+		if($U['nickname']!==$user[0] && in_array($user[0], $nicks) && $user[2]<=$U['status']){
+			echo "<option value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
+		}
+	}
+	echo '</select></td></tr></table></td></tr>';
+	thr();
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[refreshrate]</th><td class=\"right\">";
 	echo "<input type=\"number\" name=\"refresh\" size=\"3\" maxlength=\"3\" min=\"5\" max=\"150\" value=\"$U[refresh]\"></td></tr></table></td></tr>";
 	thr();
@@ -2346,7 +2327,12 @@ function parse_sessions(){
 	// load other sessions
 	$countmods=0;
 	$P=array();
-	$stmt=$db->query('SELECT nickname, style, status, incognito FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 ORDER BY status DESC, lastpost DESC;');
+	if(isSet($U['nickname'])){
+		$stmt=$db->prepare('SELECT nickname, style, status, incognito FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
+		$stmt->execute([$U['nickname'], $U['nickname']]);
+	}else{
+		$stmt=$db->query('SELECT nickname, style, status, incognito FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 ORDER BY status DESC, lastpost DESC;');
+	}
 	while($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		if(!$temp['incognito']){
 			$P[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status'], $temp['nickname']];
@@ -2594,7 +2580,7 @@ function amend_profile(){
 }
 
 function save_profile(){
-	global $I, $U, $db;
+	global $I, $P, $U, $db;
 	amend_profile();
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET refresh=?, style=?, boxwidth=?, boxheight=?, bgcolour=?, notesboxwidth=?, notesboxheight=?, timestamps=?, embed=?, incognito=?, nocache=?, tz=?, eninbox=? WHERE session=?;');
 	$stmt->execute(array($U['refresh'], $U['style'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['eninbox'], $U['session']));
@@ -2607,8 +2593,10 @@ function save_profile(){
 		$stmt->execute(array($_REQUEST['unignore'], $U['nickname']));
 	}
 	if(!empty($_REQUEST['ignore'])){
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
-		$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
+		if($_REQUEST['ignore']!==$U['nickname'] && $P[$_REQUEST['ignore']][2]<=$U['status']){
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
+			$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
+		}
 	}
 	if($U['status']>1 && !empty($_REQUEST['newpass'])){
 		if(!valid_pass($_REQUEST['newpass'])){
@@ -2701,7 +2689,7 @@ function add_user_defaults(){
 
 function validate_input(){
 	global $P, $U, $db;
-	$inboxes=[];
+	$inbox=false;
 	$maxmessage=get_setting('maxmessage');
 	$U['message']=substr($_REQUEST['message'], 0, $maxmessage);
 	$U['rejected']=substr($_REQUEST['message'], $maxmessage);
@@ -2749,22 +2737,18 @@ function validate_input(){
 		if(get_setting('disablepm')){
 			return;
 		}
-		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'ignored WHERE (ignby=? AND ign=?) OR (ignby=? AND ign=?);');
-		$stmt->execute(array($U['nickname'], $_REQUEST['sendto'], $_REQUEST['sendto'], $U['nickname']));
-		if(!$stmt->fetch(PDO::FETCH_NUM)){
-			$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-			$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
-			while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-				$P[$tmp['nickname']]=[$tmp['nickname'], $tmp['style'], $tmp['status'], $tmp['nickname']];
-				$inboxes[$tmp['nickname']]=true;
-			}
-			if(isSet($P[$_REQUEST['sendto']])){
-				$U['recipient']=$P[$_REQUEST['sendto']][0];
-				$U['displayrecp']=style_this($U['recipient'], $P[$_REQUEST['sendto']][1]);
-				$U['poststatus']='9';
-				$U['delstatus']='9';
-				$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this($U['nickname'], $U['style']), $U['displayrecp']);
-			}
+		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
+		$stmt->execute(array($_REQUEST['sendto'], $U['status'], $U['nickname'], $U['nickname']));
+		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+			$P[$tmp['nickname']]=[$tmp['nickname'], $tmp['style'], $tmp['status'], $tmp['nickname']];
+			$inbox=true;
+		}
+		if(isSet($P[$_REQUEST['sendto']])){
+			$U['recipient']=$P[$_REQUEST['sendto']][0];
+			$U['displayrecp']=style_this($U['recipient'], $P[$_REQUEST['sendto']][1]);
+			$U['poststatus']='9';
+			$U['delstatus']='9';
+			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this($U['nickname'], $U['style']), $U['displayrecp']);
 		}
 		if(empty($U['recipient'])){// nick left already or ignores us
 			$U['message']='';
@@ -2779,7 +2763,7 @@ function validate_input(){
 		$U['lastpost']=time();
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
 		$stmt->execute(array($U['lastpost'], $_REQUEST['postid'], $U['session']));
-		if(isSet($inboxes[$_REQUEST['sendto']])){
+		if($inbox){
 			$message=array(
 				'postdate'	=>time(),
 				'poster'	=>$U['nickname'],
@@ -3192,17 +3176,6 @@ function save_setup(){
 	}
 }
 
-function get_ignored($name){
-	global $db;
-	$ignored=array();
-	$stmt=$db->prepare('SELECT ign, ignby FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
-	$stmt->execute([$name, $name]);
-	while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-		$ignored[]=['ignored'=>$tmp['ign'], 'by'=>$tmp['ignby']];
-	}
-	return $ignored;
-}
-
 function valid_admin(){
 	global $U;
 	if(isSet($_REQUEST['session'])){
@@ -3560,6 +3533,9 @@ function update_db(){
 				$memcached->delete(DBNAME . '-' . PREFIX . "settings-enablejs");
 			}
 		}
+		if($dbversion<24){
+			$db->exec('DELETE FROM ' . PREFIX . 'ignored WHERE id IN (SELECT id FROM (SELECT ' . PREFIX . 'ignored.id, ign, ignby FROM ' . PREFIX . 'ignored, ' . PREFIX . 'members WHERE nickname=ignby AND status < (SELECT status FROM ' . PREFIX . 'members WHERE nickname=ign) ) AS t);');
+		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
 			if(!extension_loaded('openssl')){
@@ -3749,7 +3725,7 @@ function load_lang(){
 function load_config(){
 	date_default_timezone_set('UTC');
 	define('VERSION', '1.20.5'); // Script version
-	define('DBVERSION', 23); // Database version
+	define('DBVERSION', 24); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host
