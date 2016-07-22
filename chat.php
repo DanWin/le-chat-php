@@ -18,15 +18,29 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+* status codes
+* 0 - Kicked/Banned
+* 1 - Guest
+* 2 - Applicant
+* 3 - Member
+* 4 - System message
+* 5 - Moderator
+* 6 - Super-Moderator
+* 7 - Admin
+* 8 - Super-Admin
+* 9 - Private messages
+*/
+
 send_headers();
 // initialize and load variables/configuration
-$A=array();// All registered members
+$A=array();// All registered members [display name, style, status, nickname]
 $C=array();// Configuration
 $F=array();// Fonts
 $H=array();// HTML-stuff
 $I=array();// Translations
 $L=array();// Languages
-$P=array();// All present users
+$P=array();// All present users [display name, style, status, nickname]
 $U=array();// This user data
 $countmods=0;// Present moderators
 $db;// Database connection
@@ -2020,9 +2034,9 @@ function create_session($setup){
 			if(!$stmt->fetch(PDO::FETCH_BOUND)){
 				send_error($I['captchaexpire']);
 			}
-			$timeout=time()-get_setting('captchatime');
-			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'captcha WHERE id=? OR time<?;');
-			$stmt->execute(array($_REQUEST['challenge'], $timeout));
+			$time=time();
+			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'captcha WHERE id=? OR time<(?-(SELECT value FROM ' . PREFIX . "settings WHERE setting='captchatime'));");
+			$stmt->execute(array($_REQUEST['challenge'], $time));
 		}else{
 			if(!$code=$memcached->get(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]")){
 				send_error($I['captchaexpire']);
@@ -2295,10 +2309,9 @@ function get_nowchatting(){
 function parse_sessions(){
 	global $P, $U, $countmods, $db;
 	// delete old sessions
-	$guestexpire=time()-60*get_setting('guestexpire');
-	$memberexpire=time()-60*get_setting('memberexpire');
-	$result=$db->prepare('SELECT nickname, status FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<?) OR (status>2 AND lastpost<?);');
-	$result->execute(array($guestexpire, $memberexpire));
+	$time=time();
+	$result=$db->prepare('SELECT nickname, status FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='guestexpire'))) OR (status>2 AND lastpost<(?-60*(SELECT value FROM " . PREFIX . "settings WHERE setting='memberexpire')));");
+	$result->execute(array($time, $time));
 	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 		$stmt1=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
