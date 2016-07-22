@@ -254,7 +254,6 @@ $I=array(
 	'captchatime' => 'Captcha timeout (seconds)',
 	'messageexpire' => 'Message timeout (minutes)',
 	'messagelimit' => 'Message limit (public)',
-	'keeplimit' => 'Keep this times additional messages (PMs and Member chat)',
 	'maxmessage' => 'Maximal message length',
 	'confirm' => 'Are you sure?',
 	'yes' => 'Yes',

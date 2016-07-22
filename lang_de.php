@@ -254,7 +254,6 @@ $T=array(
 	'captchatime' => 'Captcha-Ablaufzeit (Sekunden)',
 	'messageexpire' => 'Nachrichten-Ablaufzeit (Minuten)',
 	'messagelimit' => 'Nachrichtenlimit (öffentliche)',
-	'keeplimit' => 'So viele Male zusätzliche Nachrichten behalten (PMs und Mitgliederchat)',
 	'maxmessage' => 'Maximale Nachrichenlänge',
 	'confirm' => 'Bist du sicher?',
 	'yes' => 'Ja',
