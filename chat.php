@@ -96,7 +96,7 @@ function route(){
 		check_session();
 		if($_REQUEST['what']==='all'){
 			if(isSet($_REQUEST['confirm'])){
-				del_all_messages($U['nickname'], 10, $U['entry']);
+				del_all_messages($U['nickname'], $U['status']==1 ? $U['entry'] : 0);
 			}else{
 				send_del_confirm();
 			}
@@ -156,7 +156,7 @@ function route(){
 }
 
 function route_admin(){
-	global $U;
+	global $U, $db;
 	if($U['status']<5){
 		send_access_denied();
 	}
@@ -169,7 +169,11 @@ function route_admin(){
 		}elseif($_REQUEST['what']==='room'){
 			clean_room();
 		}elseif($_REQUEST['what']==='nick'){
-			del_all_messages($_REQUEST['nickname'], $U['status'], 0);
+			$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status>=?;');
+			$stmt->execute([$_REQUEST['nickname'], $U['status']]);
+			if(!$stmt->fetch(PDO::FETCH_ASSOC)){
+				del_all_messages($_REQUEST['nickname'], 0);
+			}
 		}
 	}elseif($_REQUEST['do']==='kick'){
 		if(isSet($_REQUEST['name'])){
@@ -876,7 +880,7 @@ function send_admin($arg=''){
 	echo "<label for=\"room\">$I[room]</label></td><td>&nbsp;</td><td><input type=\"radio\" name=\"what\" id=\"choose\" value=\"choose\" checked>";
 	echo "<label for=\"choose\">$I[selection]</label></td><td>&nbsp;</td></tr><tr><td colspan=\"3\"><input type=\"radio\" name=\"what\" id=\"nick\" value=\"nick\">";
 	echo "<label for=\"nick\">$I[cleannick] </label><select name=\"nickname\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . 'messages WHERE poststatus<9 AND delstatus<? GROUP BY poster;');
+	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . 'messages WHERE delstatus<? GROUP BY poster;');
 	$stmt->execute(array($U['status']));
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo "<option value=\"$nick[0]\">$nick[0]</option>";
@@ -2221,7 +2225,7 @@ function kick_chatter($names, $mes, $purge){
 			if(($temp[0]===$U['nickname'] && $U['nickname']===$name) || ($U['status']>$temp[2] && (($temp[0]===$name && $temp[2]>0) || ($name==='&' && $temp[2]==1)))){
 				$stmt->execute(array($time, $mes, $name));
 				if($purge){
-					del_all_messages($name, 10, 0);
+					del_all_messages($name, 0);
 				}
 				$lonick.=style_this($name, $temp[1]).', ';
 				++$i;
@@ -2732,7 +2736,6 @@ function validate_input(){
 	}
 	$U['message']=trim($U['message']);
 	$U['message']=preg_replace('/\s+/', ' ', $U['message']);
-	$U['delstatus']=$U['status'];
 	$U['recipient']='';
 	if($_REQUEST['sendto']==='*'){
 		$U['poststatus']='1';
@@ -2760,7 +2763,6 @@ function validate_input(){
 			$U['recipient']=$P[$_REQUEST['sendto']][0];
 			$U['displayrecp']=style_this($U['recipient'], $P[$_REQUEST['sendto']][1]);
 			$U['poststatus']='9';
-			$U['delstatus']='9';
 			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this($U['nickname'], $U['style']), $U['displayrecp']);
 		}
 		if(empty($U['recipient'])){// nick left already or ignores us
@@ -2916,7 +2918,7 @@ function add_message(){
 		'poster'	=>$U['nickname'],
 		'recipient'	=>$U['recipient'],
 		'text'		=>"<span class=\"usermsg\">$U[displaysend]".style_this($U['message'], $U['style']).'</span>',
-		'delstatus'	=>$U['delstatus']
+		'delstatus'	=>$U['status']
 	);
 	write_message($newmessage);
 	return true;
@@ -2971,9 +2973,9 @@ function clean_room(){
 function clean_selected($status, $nick){
 	global $db;
 	if(isSet($_REQUEST['mid'])){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR delstatus<?);');
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR (poststatus<? AND delstatus<?));');
 		foreach($_REQUEST['mid'] as $mid){
-			$stmt->execute(array($mid, $nick, $nick, $status));
+			$stmt->execute(array($mid, $nick, $nick, $status, $status));
 		}
 	}
 }
@@ -2988,14 +2990,10 @@ function clean_inbox_selected(){
 	}
 }
 
-function del_all_messages($nick, $status, $entry){
-	global $U, $db;
-	if($nick===$U['nickname']) $status=10;
-	if($U['status']>1){
-		$entry=0;
-	}
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND delstatus<? AND postdate>?;');
-	$stmt->execute(array($nick, $status, $entry));
+function del_all_messages($nick, $entry){
+	global $db;
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>?;');
+	$stmt->execute(array($nick, $entry));
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=?;');
 	$stmt->execute(array($nick));
 }
@@ -3021,7 +3019,6 @@ function print_messages($delstatus=''){
 	global $I, $U, $db;
 	$dateformat=get_setting('dateformat');
 	$tz=3600*$U['tz'];
-	$messagelimit=(int) get_setting('messagelimit');
 	if(!isSet($_COOKIE[COOKIENAME]) && get_setting('forceredirect')==0){
 		$injectRedirect=true;
 		$redirect=get_setting('redirect');
@@ -3733,7 +3730,7 @@ function load_lang(){
 
 function load_config(){
 	date_default_timezone_set('UTC');
-	define('VERSION', '1.20.5'); // Script version
+	define('VERSION', '1.20.6'); // Script version
 	define('DBVERSION', 25); // Database version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages

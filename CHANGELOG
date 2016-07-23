@@ -1,5 +1,7 @@
+Version 1.20.6 - Jul. 23, 2016
 Simplify ignore logic + disallow ignoring chatters with higher status
 Delete messages based on public message limit, no buffer for private ones needed
+Allow deleting messages by name, when only PMs were sent
 
 Version 1.20.5 - Jul. 19, 2016
 Check permission before selectively deleting a message.
