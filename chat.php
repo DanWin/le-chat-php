@@ -1059,8 +1059,13 @@ function send_sessions(){
 				echo "<td class=\"padded\">$temp[ip]</td>";
 			}
 			echo '<td class="padded">';
-			frmadm('sessions');
-			echo hidden('nick', $temp['nickname']).submit($I['kick']).'</form></td></tr>';
+			if($temp['nickname']!==$U['nickname']){
+				frmadm('sessions');
+				echo hidden('nick', $temp['nickname']).submit($I['kick']).'</form>';
+			}else{
+				echo '-';
+			}
+			echo '</td></tr>';
 		}else{
 			echo '<td class="padded">-</td>';
 			if($trackip){
