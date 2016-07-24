@@ -880,7 +880,7 @@ function send_admin($arg=''){
 	echo "<label for=\"room\">$I[room]</label></td><td>&nbsp;</td><td><input type=\"radio\" name=\"what\" id=\"choose\" value=\"choose\" checked>";
 	echo "<label for=\"choose\">$I[selection]</label></td><td>&nbsp;</td></tr><tr><td colspan=\"3\"><input type=\"radio\" name=\"what\" id=\"nick\" value=\"nick\">";
 	echo "<label for=\"nick\">$I[cleannick] </label><select name=\"nickname\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . 'messages WHERE delstatus<? GROUP BY poster;');
+	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . "messages WHERE delstatus<? AND poster!='' GROUP BY poster;");
 	$stmt->execute(array($U['status']));
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo "<option value=\"$nick[0]\">$nick[0]</option>";
@@ -2992,6 +2992,9 @@ function clean_inbox_selected(){
 
 function del_all_messages($nick, $entry){
 	global $db;
+	if($nick==''){
+		return;
+	}
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>?;');
 	$stmt->execute(array($nick, $entry));
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=?;');
