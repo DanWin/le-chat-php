@@ -1043,7 +1043,7 @@ function send_sessions(){
 			$s='&nbsp;(SM)';
 		}elseif($temp['status']==7){
 			$s='&nbsp;(A)';
-		}elseif($temp['status']==8){
+		}else{
 			$s='&nbsp;(SA)';
 		}
 		echo '<tr class="left"><td class="padded">'.style_this($temp['nickname'].$s, $temp['style']).'</td><td class="padded">';
@@ -1729,14 +1729,10 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[ignore]</th><td class=\"right\">";
 	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->query('SELECT poster FROM ' . PREFIX . 'messages GROUP BY poster;');
+	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (messages.poster=sessions.nickname) WHERE poster!=? AND status<=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
+	$stmt->execute([$U['nickname'], $U['status'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
-		$nicks[]=$nick[0];
-	}
-	foreach($P as $user){
-		if($U['nickname']!==$user[0] && in_array($user[0], $nicks) && $user[2]<=$U['status']){
-			echo "<option value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
-		}
+		echo "<option value=\"$nick[0]\" style=\"$nick[1]\">$nick[0]</option>";
 	}
 	echo '</select></td></tr></table></td></tr>';
 	thr();
@@ -2602,7 +2598,7 @@ function amend_profile(){
 }
 
 function save_profile(){
-	global $I, $P, $U, $db;
+	global $I, $U, $db;
 	amend_profile();
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET refresh=?, style=?, boxwidth=?, boxheight=?, bgcolour=?, notesboxwidth=?, notesboxheight=?, timestamps=?, embed=?, incognito=?, nocache=?, tz=?, eninbox=? WHERE session=?;');
 	$stmt->execute(array($U['refresh'], $U['style'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['eninbox'], $U['session']));
@@ -2615,7 +2611,9 @@ function save_profile(){
 		$stmt->execute(array($_REQUEST['unignore'], $U['nickname']));
 	}
 	if(!empty($_REQUEST['ignore'])){
-		if($_REQUEST['ignore']!==$U['nickname'] && isset($P[$_REQUEST['ignore']]) && $P[$_REQUEST['ignore']][2]<=$U['status']){
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
+		$stmt->execute([$_REQUEST['ignore'], $U['status'], $U['nickname']]);
+		if($U['nickname']!==$_REQUEST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
 			$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
 		}
