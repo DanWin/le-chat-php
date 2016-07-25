@@ -2615,7 +2615,7 @@ function save_profile(){
 		$stmt->execute(array($_REQUEST['unignore'], $U['nickname']));
 	}
 	if(!empty($_REQUEST['ignore'])){
-		if($_REQUEST['ignore']!==$U['nickname'] && $P[$_REQUEST['ignore']][2]<=$U['status']){
+		if($_REQUEST['ignore']!==$U['nickname'] && isset($P[$_REQUEST['ignore']]) && $P[$_REQUEST['ignore']][2]<=$U['status']){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
 			$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
 		}
