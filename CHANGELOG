@@ -1,6 +1,7 @@
 Don't display empty option for system messages in delete messages by name
 Don't show a kick button on your own session in the list of active sessions
 Allow ignoring incognito chatters
+Prevent posting the same message twice, if no other message was posted in-between
 
 Version 1.20.6 - Jul. 23, 2016
 Simplify ignore logic + disallow ignoring chatters with higher status

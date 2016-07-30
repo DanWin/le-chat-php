@@ -2911,11 +2911,11 @@ function create_hotlinks(){
 }
 
 function add_message(){
-	global $U;
+	global $U, $db;
 	if(empty($U['message'])){
 		return false;
 	}
-	$newmessage=array(
+	$message=array(
 		'postdate'	=>time(),
 		'poststatus'	=>$U['poststatus'],
 		'poster'	=>$U['nickname'],
@@ -2923,7 +2923,13 @@ function add_message(){
 		'text'		=>"<span class=\"usermsg\">$U[displaysend]".style_this($U['message'], $U['style']).'</span>',
 		'delstatus'	=>$U['status']
 	);
-	write_message($newmessage);
+	//prevent posting the same message twice, if no other message was posted in-between.
+	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poststatus=? AND poster=? AND recipient=? AND text=? AND id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages ORDER BY id DESC LIMIT 1) AS t);');
+	$stmt->execute([$message['poststatus'], $message['poster'], $message['recipient'], $message['text']]);
+	if($stmt->fetch(PDO::FETCH_NUM)){
+		return false;
+	}
+	write_message($message);
 	return true;
 }
 
