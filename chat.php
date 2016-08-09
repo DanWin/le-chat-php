@@ -1352,17 +1352,7 @@ function send_inbox(){
 	echo "<$H[form]>$H[commonform]".hidden('action', 'inbox').hidden('do', 'clean').submit($I['delselmes'], 'class="delbutton"').'<br><br>';
 	$dateformat=get_setting('dateformat');
 	$tz=3600*$U['tz'];
-	if(!isSet($_COOKIE[COOKIENAME]) && get_setting('forceredirect')==0){
-		$injectRedirect=true;
-		$redirect=get_setting('redirect');
-		if(empty($redirect)){
-			$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
-		}
-	}else{
-		$injectRedirect=false;
-		$redirect='';
-	}
-	if(get_setting('imgembed') && (!$U['embed'] || !isSet($_COOKIE[COOKIENAME]))){
+	if(!$U['embed'] && get_setting('imgembed')){
 		$removeEmbed=true;
 	}else{
 		$removeEmbed=false;
@@ -1380,7 +1370,7 @@ function send_inbox(){
 	$stmt=$db->prepare('SELECT id, postdate, text FROM ' . PREFIX . 'inbox WHERE recipient=? ORDER BY id DESC;');
 	$stmt->execute(array($U['nickname']));
 	while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
-		prepare_message_print($message, $injectRedirect, $redirect, $removeEmbed);
+		prepare_message_print($message, $removeEmbed);
 		echo "<div class=\"msg\"><input type=\"checkbox\" name=\"mid[]\" id=\"$message[id]\" value=\"$message[id]\"><label for=\"$message[id]\">";
 		if($timestamps){
 			echo ' <small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
@@ -1739,16 +1729,11 @@ function send_profile($arg=''){
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[refreshrate]</th><td class=\"right\">";
 	echo "<input type=\"number\" name=\"refresh\" size=\"3\" maxlength=\"3\" min=\"5\" max=\"150\" value=\"$U[refresh]\"></td></tr></table></td></tr>";
 	thr();
-	if(!isSet($_COOKIE[COOKIENAME])){
-		$param="&amp;session=$U[session]&amp;lang=$language";
-	}else{
-		$param='';
-	}
 	preg_match('/#([0-9a-f]{6})/i', $U['style'], $matches);
-	echo "<tr><td><table class=\"left-table\"><tr><td><b>$I[fontcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours$param\" target=\"view\">$I[viewexample]</a>)</td><td class=\"right\">";
+	echo "<tr><td><table class=\"left-table\"><tr><td><b>$I[fontcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&amp;session=$U[session]&amp;lang=$language\" target=\"view\">$I[viewexample]</a>)</td><td class=\"right\">";
 	echo "<input type=\"text\" size=\"6\" maxlength=\"6\" pattern=\"[a-fA-F0-9]{6}\" value=\"$matches[1]\" name=\"colour\"></td></tr></table></td></tr>";
 	thr();
-	echo "<tr><td><table class=\"left-table\"><tr><td><b>$I[bgcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours$param\" target=\"view\">$I[viewexample]</a>)</td><td class=\"right\">";
+	echo "<tr><td><table class=\"left-table\"><tr><td><b>$I[bgcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&amp;session=$U[session]&amp;lang=$language\" target=\"view\">$I[viewexample]</a>)</td><td class=\"right\">";
 	echo "<input type=\"text\" size=\"6\" maxlength=\"6\" pattern=\"[a-fA-F0-9]{6}\" value=\"$U[bgcolour]\" name=\"bgcolour\"></td></tr></table></td></tr>";
 	thr();
 	if($U['status']>=3){
@@ -3031,17 +3016,7 @@ function print_messages($delstatus=''){
 	global $I, $U, $db;
 	$dateformat=get_setting('dateformat');
 	$tz=3600*$U['tz'];
-	if(!isSet($_COOKIE[COOKIENAME]) && get_setting('forceredirect')==0){
-		$injectRedirect=true;
-		$redirect=get_setting('redirect');
-		if(empty($redirect)){
-			$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
-		}
-	}else{
-		$injectRedirect=false;
-		$redirect='';
-	}
-	if(get_setting('imgembed') && (!$U['embed'] || !isSet($_COOKIE[COOKIENAME]))){
+	if(!$U['embed'] && get_setting('imgembed')){
 		$removeEmbed=true;
 	}else{
 		$removeEmbed=false;
@@ -3064,7 +3039,7 @@ function print_messages($delstatus=''){
 		'(poststatus<? AND delstatus<?) OR poster=? OR recipient=? ORDER BY id DESC;');
 		$stmt->execute(array($U['status'], $delstatus, $U['nickname'], $U['nickname']));
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
-			prepare_message_print($message, $injectRedirect, $redirect, $removeEmbed);
+			prepare_message_print($message, $removeEmbed);
 			echo "<div class=\"msg\"><input type=\"checkbox\" name=\"mid[]\" id=\"$message[id]\" value=\"$message[id]\"><label for=\"$message[id]\">";
 			if($timestamps){
 				echo ' <small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
@@ -3077,7 +3052,7 @@ function print_messages($delstatus=''){
 		') AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ORDER BY id DESC;');
 		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname']));
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
-			prepare_message_print($message, $injectRedirect, $redirect, $removeEmbed);
+			prepare_message_print($message, $removeEmbed);
 			echo '<div class="msg">';
 			if($timestamps){
 				echo '<small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
@@ -3087,16 +3062,9 @@ function print_messages($delstatus=''){
 	}
 }
 
-function prepare_message_print(&$message, $injectRedirect, $redirect, $removeEmbed){
+function prepare_message_print(&$message, $removeEmbed){
 	if(MSGENCRYPTED){
 		$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
-	}
-	if($injectRedirect){
-		$message['text']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
-			function ($matched) use($redirect) {
-				return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
-			}
-		, $message['text']);
 	}
 	if($removeEmbed){
 		$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/',
@@ -3122,6 +3090,8 @@ function send_headers(){
 	header('Pragma: no-cache');
 	header('Cache-Control: no-cache');
 	header('Expires: 0');
+	header('Referrer-Policy: no-referrer');
+	header('Content-Security-Policy: referrer never');
 	if($_SERVER['REQUEST_METHOD']==='HEAD'){
 		exit; // headers sent, no further processing needed
 	}
@@ -3696,7 +3666,7 @@ function load_html(){
 	global $H, $I, $language;
 	$H=array(// default HTML
 		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\"",
-		'meta_html'	=>"<meta name=\"robots\" content=\"noindex,nofollow\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"Pragma\" content=\"no-cache\"><meta http-equiv=\"Cache-Control\" content=\"no-cache\"><meta http-equiv=\"expires\" content=\"0\">",
+		'meta_html'	=>'<meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">',
 		'credit'	=>'<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>',
 		'commonform'	=>hidden('lang', $language).hidden('nc', substr(time(), -6))
 	);
