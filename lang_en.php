@@ -25,8 +25,8 @@ $I=array(
 	'changelang' => 'Change language:',
 	'expire' => 'Invalid/expired session',
 	'kicked' => 'Kicked!',
-	'invalnick' => 'Invalid nickname (%d characters maximum, no special characters allowed)',
-	'invalpass' => 'Invalid password (At least %d characters)',
+	'invalnick' => 'Invalid nickname (%1$d characters maximum and has to match the regular expression "%2$s")',
+	'invalpass' => 'Invalid password (At least %1$d characters and has to match the regular expression "%2$s")',
 	'noconfirm' => 'Password confirmation does not match!',
 	'incorregex' => 'Incorrect regular expression!',
 	'bottom' => 'Bottom',
@@ -342,8 +342,12 @@ $I=array(
 	'inboxmsgs' => 'Read %d messages in your inbox',
 	'offline' => '(offline)',
 	'deleteacc' => 'Delete account',
+	'eninnone' => 'For no one',
 	'eninall' => 'For everyone',
 	'eninmem' => 'For members only',
-	'eninstaff' => 'For staff only'
+	'eninstaff' => 'For staff only',
+	'eninadmin' => 'For admins only',
+	'nickregex' => 'Nickname regex',
+	'passregex' => 'Password regex',
 );
 ?>
