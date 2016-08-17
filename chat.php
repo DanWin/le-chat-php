@@ -3087,7 +3087,7 @@ function sort_names(&$names){
 function send_headers(){
 	header('Content-Type: text/html; charset=UTF-8');
 	header('Pragma: no-cache');
-	header('Cache-Control: no-cache');
+	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
 	header('Expires: 0');
 	header('Referrer-Policy: no-referrer');
 	header('Content-Security-Policy: referrer never');
@@ -3688,7 +3688,7 @@ function load_html(){
 	global $H, $I, $language;
 	$H=array(// default HTML
 		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\"",
-		'meta_html'	=>'<meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">',
+		'meta_html'	=>'<meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">',
 		'credit'	=>'<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>',
 		'commonform'	=>hidden('lang', $language).hidden('nc', substr(time(), -6))
 	);
