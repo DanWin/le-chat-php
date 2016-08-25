@@ -42,7 +42,6 @@ $I=array();// Translations
 $L=array();// Languages
 $P=array();// All present users [display name, style, status, nickname]
 $U=array();// This user data
-$countmods=0;// Present moderators
 $db;// Database connection
 $memcached;// Memcached connection
 $language;// user selected language
@@ -59,7 +58,7 @@ route();
 
 //  main program: decide what to do based on queries
 function route(){
-	global $U, $countmods;
+	global $U;
 	if(!isSet($_REQUEST['action'])){
 		if(!check_init()){
 			send_init();
@@ -75,7 +74,7 @@ function route(){
 	}elseif($_REQUEST['action']==='post'){
 		check_session();
 		if(isSet($_REQUEST['kick']) && isSet($_REQUEST['sendto']) && $_REQUEST['sendto']!=='&'){
-			if($U['status']>=5 || ($U['status']>=3 && $countmods===0 && get_setting('memkick'))){
+			if($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick'))){
 				if(isSet($_REQUEST['what']) && $_REQUEST['what']==='purge'){
 					kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], true);
 				}else{
@@ -1486,10 +1485,10 @@ function send_approve_waiting(){
 }
 
 function send_waiting_room(){
-	global $H, $I, $U, $countmods, $db, $language;
+	global $H, $I, $U, $db, $language;
 	parse_sessions();
 	$ga=(int) get_setting('guestaccess');
-	if($ga===3 && ($countmods>0 || !get_setting('modfallback'))){
+	if($ga===3 && (get_count_mods()>0 || !get_setting('modfallback'))){
 		$wait=false;
 	}else{
 		$wait=true;
@@ -1574,7 +1573,7 @@ function send_del_confirm(){
 }
 
 function send_post(){
-	global $I, $P, $U, $countmods, $db;
+	global $I, $P, $U, $db;
 	$U['postid']=substr(time(), -6);
 	print_start('post');
 	if(!isSet($_REQUEST['sendto'])){
@@ -1641,7 +1640,7 @@ function send_post(){
 		}
 	}
 	echo '</select>';
-	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && $countmods===0 && get_setting('memkick')))){
+	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick')))){
 		echo "<input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\"><label for=\"kick\">&nbsp;$I[kick]</label>";
 		echo "<input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked><label for=\"what\">&nbsp;$I[alsopurge]</label>";
 	}
@@ -2275,6 +2274,12 @@ function check_expired(){
 	}
 }
 
+function get_count_mods(){
+	global $db;
+	$c=$db->query('SELECT COUNT(*) FROM ' . PREFIX . 'sessions WHERE status>=5')->fetch(PDO::FETCH_NUM);
+	return $c[0];
+}
+
 function check_kicked(){
 	global $I, $U;
 	if($U['status']==0){
@@ -2293,7 +2298,7 @@ function get_nowchatting(){
 }
 
 function parse_sessions(){
-	global $P, $U, $countmods, $db;
+	global $P, $U, $db;
 	// delete old sessions
 	$time=time();
 	$result=$db->prepare('SELECT nickname, status FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='guestexpire'))) OR (status>2 AND lastpost<(?-60*(SELECT value FROM " . PREFIX . "settings WHERE setting='memberexpire')));");
@@ -2324,7 +2329,6 @@ function parse_sessions(){
 		}
 	}
 	// load other sessions
-	$countmods=0;
 	$P=array();
 	if(isSet($U['nickname'])){
 		$stmt=$db->prepare('SELECT nickname, style, status, incognito FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
@@ -2335,9 +2339,6 @@ function parse_sessions(){
 	while($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		if(!$temp['incognito']){
 			$P[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status'], $temp['nickname']];
-		}
-		if($temp['status']>=5){
-			++$countmods;
 		}
 	}
 }
