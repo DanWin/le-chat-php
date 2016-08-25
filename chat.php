@@ -2060,10 +2060,10 @@ function create_session($setup){
 
 function write_new_session(){
 	global $I, $P, $U, $db;
-	parse_sessions();
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 	$stmt->execute(array($U['nickname']));
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		// check whether alrady logged in
 		if($U['passhash']===$temp['passhash']){
 			$U=$temp;
 			check_kicked();
@@ -2072,15 +2072,12 @@ function write_new_session(){
 			send_error("$I[userloggedin]<br>$I[wrongpass]");
 		}
 	}else{
-		$sids=[];
 		// create new session
-		$stmt=$db->query('SELECT session FROM ' . PREFIX . 'sessions;');
-		while($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
-			$sids[$temp['session']]=true;// collect all existing ids
-		}
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
 		do{
 			$U['session']=md5(time().mt_rand().$U['nickname']);
-		}while(isSet($sids[$U['session']]));// check for hash collision
+			$stmt->execute([$U['session']]);
+		}while($stmt->fetch(PDO::FETCH_NUM)); // check for hash collision
 		if(isSet($_SERVER['HTTP_USER_AGENT'])){
 			$useragent=htmlspecialchars($_SERVER['HTTP_USER_AGENT']);
 		}else{
@@ -3735,7 +3732,7 @@ function load_lang(){
 function load_config(){
 	date_default_timezone_set('UTC');
 	define('VERSION', '1.20.6'); // Script version
-	define('DBVERSION', 26); // Database version
+	define('DBVERSION', 26); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host
