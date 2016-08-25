@@ -349,5 +349,6 @@ $I=array(
 	'eninadmin' => 'For admins only',
 	'nickregex' => 'Nickname regex',
 	'passregex' => 'Password regex',
+	'externalcss' => 'Link to external CSS file',
 );
 ?>

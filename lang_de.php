@@ -349,5 +349,6 @@ $T=array(
 	'eninadmin' => 'Nur für Administratoren',
 	'nickregex' => 'Nickname-Regex',
 	'passregex' => 'Passwort-Regex',
+	'externalcss' => 'Link zu externer CSS Datei',
 );
 ?>
