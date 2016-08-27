@@ -2382,13 +2382,10 @@ function delete_account(){
 
 function register_guest($status, $nick){
 	global $I, $P, $U, $db;
-	if(!isSet($P[$nick])){
-		return sprintf($I['cantreg'], $nick);
-	}
-	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?');
+	$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE nickname=?');
 	$stmt->execute([$nick]);
-	if($stmt->fetch(PDO::FETCH_NUM)){
-		return sprintf($I['alreadyreged'], $nick);
+	if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+		return sprintf($I['alreadyreged'], style_this($nick, $tmp[0]));
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND status=1;');
 	$stmt->execute(array($nick));
@@ -2407,12 +2404,11 @@ function register_guest($status, $nick){
 	}else{
 		add_system_message(sprintf(get_setting('msgsureg'), style_this($reg['nickname'], $reg['style'])));
 	}
-	return sprintf($I['successreg'], $reg['nickname']);
+	return sprintf($I['successreg'], style_this($reg['nickname'], $reg['style']));
 }
 
 function register_new($nick, $pass){
 	global $I, $P, $U, $db;
-	$nick=preg_replace('/\s+/', '', $nick);
 	if(empty($nick)){
 		return '';
 	}elseif(isSet($P[$nick])){
