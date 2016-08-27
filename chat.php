@@ -34,7 +34,6 @@
 
 send_headers();
 // initialize and load variables/configuration
-$A=array();// All registered members [display name, style, status, nickname]
 $C=array();// Configuration
 $F=array();// Fonts
 $H=array();// HTML-stuff
@@ -859,7 +858,7 @@ function send_alogin(){
 }
 
 function send_admin($arg=''){
-	global $A, $H, $I, $P, $U, $db;
+	global $H, $I, $P, $U, $db;
 	$ga=(int) get_setting('guestaccess');
 	print_start('admin');
 	$chlist="<select name=\"name[]\" size=\"5\" multiple><option value=\"\">$I[choose]</option>";
@@ -960,9 +959,12 @@ function send_admin($arg=''){
 		echo "<tr><td><table class=\"left-table\"><tr><th>$I[admmembers]</th><td>";
 		frmadm('status');
 		echo "<table class=\"right-table\"><td class=\"right\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
-		read_members();
-		sort_names($A);
-		foreach($A as $member){
+		$members=[];
+		$result=$db->query('SELECT * FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
+		while($temp=$result->fetch(PDO::FETCH_ASSOC)){
+			$members[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
+		}
+		foreach($members as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]";
 			if($member[2]==0){
 				echo ' (!)';
@@ -994,7 +996,7 @@ function send_admin($arg=''){
 		echo "<tr><td><table class=\"left-table\"><tr><th>$I[passreset]</th><td>";
 		frmadm('passreset');
 		echo "<table class=\"right-table\"><td><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
-		foreach($A as $member){
+		foreach($members as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]</option>";
 		}
 		echo '</select></td><td><input type="password" name="pass"></td><td>'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
@@ -2367,14 +2369,6 @@ function check_member(){
 	return false;
 }
 
-function read_members(){
-	global $A, $db;
-	$result=$db->query('SELECT * FROM ' . PREFIX . 'members;');
-	while($temp=$result->fetch(PDO::FETCH_ASSOC)){
-		$A[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status'], $temp['nickname']];
-	}
-}
-
 function delete_account(){
 	global $U, $db;
 	if($U['status']<8){
@@ -2387,12 +2381,13 @@ function delete_account(){
 }
 
 function register_guest($status, $nick){
-	global $A, $I, $P, $U, $db;
+	global $I, $P, $U, $db;
 	if(!isSet($P[$nick])){
 		return sprintf($I['cantreg'], $nick);
 	}
-	read_members();
-	if(isSet($A[$nick])){
+	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?');
+	$stmt->execute([$nick]);
+	if($stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['alreadyreged'], $nick);
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND status=1;');
@@ -2416,7 +2411,7 @@ function register_guest($status, $nick){
 }
 
 function register_new($nick, $pass){
-	global $A, $I, $P, $U, $db;
+	global $I, $P, $U, $db;
 	$nick=preg_replace('/\s+/', '', $nick);
 	if(empty($nick)){
 		return '';
@@ -2427,8 +2422,9 @@ function register_new($nick, $pass){
 	}elseif(!valid_pass($pass)){
 		return sprintf($I['invalpass'], get_setting('minpass'), get_setting('passregex'));
 	}
-	read_members();
-	if(isSet($A[$nick])){
+	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?');
+	$stmt->execute([$nick]);
+	if($stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['alreadyreged'], $nick);
 	}
 	$reg=array(
@@ -2794,7 +2790,7 @@ function apply_filter(){
 		$U['message']=preg_replace("~^/me~i", '', $U['message']);
 	}
 	$U['message']=preg_replace_callback('/\@([a-z0-9]{1,})/i', function ($matched){
-		global $A, $P;
+		global $P, $db;
 		if(isSet($P[$matched[1]])){
 			return style_this($matched[0], $P[$matched[1]][1]);
 		}
@@ -2804,14 +2800,15 @@ function apply_filter(){
 				return style_this($matched[0], $user[1]);
 			}
 		}
-		read_members();
-		if(isSet($A[$matched[1]])){
-			return style_this($matched[0], $A[$matched[1]][1]);
+		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute([$matched[1]]);
+		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+			return style_this($matched[0], $tmp[0]);
 		}
-		foreach($A as $user){
-			if(strtolower($user[0])===$nick){
-				return style_this($matched[0], $user[1]);
-			}
+		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE LOWER(nickname)=?;');
+		$stmt->execute([$nick]);
+		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+			return style_this($matched[0], $tmp[0]);
 		}
 		return "$matched[0]";
 	}, $U['message']);
