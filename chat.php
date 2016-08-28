@@ -34,7 +34,6 @@
 
 send_headers();
 // initialize and load variables/configuration
-$C=array();// Configuration
 $F=array();// Fonts
 $H=array();// HTML-stuff
 $I=array();// Translations
@@ -145,7 +144,6 @@ function route(){
 		send_admin(route_admin());
 	}elseif($_REQUEST['action']==='setup'){
 		route_setup();
-		send_setup();
 	}elseif($_REQUEST['action']==='init'){
 		init_chat();
 	}else{
@@ -219,7 +217,7 @@ function route_admin(){
 }
 
 function route_setup(){
-	global $C, $U;
+	global $U;
 	if(!check_init()){
 		send_init();
 	}
@@ -236,19 +234,20 @@ function route_setup(){
 	$C['settings']=array_merge(array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'), $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
 	if(!isSet($_REQUEST['do'])){
 	}elseif($_REQUEST['do']==='save'){
-		save_setup();
+		save_setup($C);
 	}elseif($_REQUEST['do']==='backup' && $U['status']==8){
-		send_backup();
+		send_backup($C);
 	}elseif($_REQUEST['do']==='restore' && $U['status']==8){
-		restore_backup();
-		send_backup();
+		restore_backup($C);
+		send_backup($C);
 	}elseif($_REQUEST['do']==='destroy' && $U['status']==8){
 		if(isSet($_REQUEST['confirm'])){
-			destroy_chat();
+			destroy_chat($C);
 		}else{
 			send_destroy_chat();
 		}
 	}
+	send_setup($C);
 }
 
 //  html output subs
@@ -454,8 +453,8 @@ function send_captcha(){
 	echo '</td><td class="right">'.hidden('challenge', $randid).'<input type="text" name="captcha" size="15" autocomplete="off"></td></tr>';
 }
 
-function send_setup(){
-	global $C, $H, $I, $U;
+function send_setup($C){
+	global $H, $I, $U;
 	print_start('setup');
 	echo "<h2>$I[setup]</h2><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'save');
 	if(!isSet($_REQUEST['session'])){
@@ -661,8 +660,8 @@ function send_setup(){
 	print_end();
 }
 
-function restore_backup(){
-	global $C, $db;
+function restore_backup($C){
+	global $db;
 	if(!extension_loaded('json')){
 		return;
 	}
@@ -717,8 +716,8 @@ function restore_backup(){
 	}
 }
 
-function send_backup(){
-	global $C, $H, $I, $db;
+function send_backup($C){
+	global $H, $I, $db;
 	$code=array();
 	if($_REQUEST['do']==='backup'){
 		if(isSet($_REQUEST['settings'])){
@@ -3101,8 +3100,8 @@ function send_headers(){
 	}
 }
 
-function save_setup(){
-	global $C, $db;
+function save_setup($C){
+	global $db;
 	//sanity checks and escaping
 	foreach($C['msg_settings'] as $setting){
 		$_REQUEST[$setting]=htmlspecialchars($_REQUEST[$setting]);
@@ -3280,8 +3279,8 @@ function check_init(){
 	return @$db->query('SELECT * FROM ' . PREFIX . 'settings LIMIT 1;');
 }
 
-function destroy_chat(){
-	global $C, $H, $I, $db, $language;
+function destroy_chat($C){
+	global $H, $I, $db, $language;
 	setcookie(COOKIENAME, false);
 	print_start('destory');
 	$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
