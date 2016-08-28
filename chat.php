@@ -2786,7 +2786,7 @@ function validate_input(){
 function apply_filter(){
 	global $I, $U;
 	if($U['poststatus']!==9 && preg_match('~^/me~i', $U['message'])){
-		$U['displaysend']=substr($U['displaysend'], 0, -3);
+		$U['displaysend']=style_this($U['nickname'], $U['style']);
 		$U['message']=preg_replace("~^/me~i", '', $U['message']);
 	}
 	$U['message']=preg_replace_callback('/\@([^\s]+)/i', function ($matched){
