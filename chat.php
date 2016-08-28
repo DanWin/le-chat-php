@@ -2740,12 +2740,12 @@ function validate_input(){
 		}
 		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
 		$stmt->execute(array($_REQUEST['sendto'], $U['status'], $U['nickname'], $U['nickname']));
-		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
 			$inbox=true;
 		}
 		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE nickname=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
 		$stmt->execute(array($_REQUEST['sendto'], $U['nickname'], $U['nickname']));
-		if($tmp || $tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if($tmp || $tmp=$stmt->fetch(PDO::FETCH_NUM)){
 			$U['recipient']=$_REQUEST['sendto'];
 			$U['poststatus']='9';
 			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this($U['nickname'], $U['style']), style_this($U['recipient'], $tmp[0]));
