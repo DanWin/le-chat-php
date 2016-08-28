@@ -2827,9 +2827,9 @@ function apply_filter(){
 			$U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
 		}
 		if(isSet($count) && $count>0 && $filter['kick']){
-			kick_chatter(array($U['nickname']), '', false);
+			kick_chatter(array($U['nickname']), $filter['replace'], false);
 			setcookie(COOKIENAME, false);
-			send_error("$I[kicked]");
+			send_error("$I[kicked]<br>$filter[replace]");
 		}
 	}
 	$U['message']=str_replace("\n", '<br>', $U['message']);

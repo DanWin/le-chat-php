@@ -8,6 +8,7 @@ Allow configuring password and nickname regex
 Prevent browser from caching at all.
 Add external CSS setting for large stylesheets
 Make /me work with custom texts
+Set replace of a filter used for kicking as kickmessage
 
 Version 1.20.6 - Jul. 23, 2016
 Simplify ignore logic + disallow ignoring chatters with higher status
