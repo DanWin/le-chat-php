@@ -1,3 +1,4 @@
+Version 1.21 - Aug. 29, 2016
 Don't display empty option for system messages in delete messages by name
 Don't show a kick button on your own session in the list of active sessions
 Allow ignoring incognito chatters
@@ -7,8 +8,9 @@ Enable image embedding without cookies as there is no more risk of session leaka
 Allow configuring password and nickname regex
 Prevent browser from caching at all.
 Add external CSS setting for large stylesheets
-Make /me work with custom texts
+Make /me work with custom texts set under system messages in setup
 Set replace of a filter used for kicking as kickmessage
+Add an option to first display a greeting message, before showing messages
 
 Version 1.20.6 - Jul. 23, 2016
 Simplify ignore logic + disallow ignoring chatters with higher status

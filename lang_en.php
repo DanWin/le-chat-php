@@ -139,7 +139,7 @@ $I=array(
 	'helpembed' => 'If you want to embed an image in your post, simply put [img] in front of your image URL. Example: [img]http://example.com/images/file.jpg will embed the image in your post.',
 	'helpmem' => 'Members: You\'ll have some more options in your profile. You can adjust your font face and you can change your password anytime.',
 	'helpmod' => 'Moderators: Notice the Admin-button at the bottom. It\'ll bring up a page where you can clean the room, kick chatters, view all active sessions and disable guest access completely if needed.',
-	'helpadm' => 'Admins: You\'ll be furthermore able to register guests, edit members and register new nicks without them beeing in the room.',
+	'helpadm' => 'Admins: You\'ll be furthermore able to register guests, edit members and register new nicknames.',
 	'profile' => 'Your Profile',
 	'ignore' => 'Ignore',
 	'unignore' => 'Don\'t ignore anymore',
@@ -350,5 +350,8 @@ $I=array(
 	'nickregex' => 'Nickname regex',
 	'passregex' => 'Password regex',
 	'externalcss' => 'Link to external CSS file',
+	'greetingmsg' => 'Welcome %s!',
+	'entryhelp' => 'If this frame does not reload in %d seconds, you\'ll have to enable automatic redirection (meta refresh) in your browser. Also make sure no web filter, local proxy tool or browser plugin is preventing automatic refreshing! This could be for example "Polipo", "NoScript", etc.<br>As a workaround (or in case of server/proxy reload errors) you can always use the buttons at the bottom to refresh manually.',
+	'enablegreeting' => 'Show a greeting message before showing the messages',
 );
 ?>
