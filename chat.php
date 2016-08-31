@@ -2735,16 +2735,16 @@ function validate_input(){
 	$U['message']=preg_replace('/\s+/', ' ', $U['message']);
 	$U['recipient']='';
 	if($_REQUEST['sendto']==='*'){
-		$U['poststatus']='1';
+		$U['poststatus']=1;
 		$U['displaysend']=sprintf(get_setting('msgsendall'), style_this($U['nickname'], $U['style']));
 	}elseif($_REQUEST['sendto']==='?' && $U['status']>=3){
-		$U['poststatus']='3';
+		$U['poststatus']=3;
 		$U['displaysend']=sprintf(get_setting('msgsendmem'), style_this($U['nickname'], $U['style']));
 	}elseif($_REQUEST['sendto']==='#' && $U['status']>=5){
-		$U['poststatus']='5';
+		$U['poststatus']=5;
 		$U['displaysend']=sprintf(get_setting('msgsendmod'), style_this($U['nickname'], $U['style']));
 	}elseif($_REQUEST['sendto']==='&' && $U['status']>=6){
-		$U['poststatus']='6';
+		$U['poststatus']=6;
 		$U['displaysend']=sprintf(get_setting('msgsendadm'), style_this($U['nickname'], $U['style']));
 	}else{// known nick in room?
 		if(get_setting('disablepm')){
@@ -2759,7 +2759,7 @@ function validate_input(){
 		$stmt->execute(array($_REQUEST['sendto'], $U['nickname'], $U['nickname']));
 		if($tmp || $tmp=$stmt->fetch(PDO::FETCH_NUM)){
 			$U['recipient']=$_REQUEST['sendto'];
-			$U['poststatus']='9';
+			$U['poststatus']=9;
 			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this($U['nickname'], $U['style']), style_this($U['recipient'], $tmp[0]));
 		}
 		if(empty($U['recipient'])){// nick left already or ignores us
@@ -3028,7 +3028,7 @@ function del_last_message(){
 	}
 }
 
-function print_messages($delstatus=''){
+function print_messages($delstatus=0){
 	global $I, $U, $db;
 	$dateformat=get_setting('dateformat');
 	$tz=3600*$U['tz'];
@@ -3050,7 +3050,7 @@ function print_messages($delstatus=''){
 	$time=time();
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages WHERE postdate<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='messageexpire'))) AS t);");
 	$stmt->execute([$time]);
-	if(!empty($delstatus)){
+	if($delstatus>0){
 		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
 		'(poststatus<? AND delstatus<?) OR poster=? OR recipient=? ORDER BY id DESC;');
 		$stmt->execute(array($U['status'], $delstatus, $U['nickname'], $U['nickname']));
