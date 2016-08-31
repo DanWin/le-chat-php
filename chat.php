@@ -2472,7 +2472,7 @@ function change_status($nick, $status){
 	}elseif($U['status']<=$status || !preg_match('/^[023567\-]$/', $status)){
 		return sprintf($I['cantchgstat'], $nick);
 	}
-	$stmt=$db->prepare('SELECT incognito FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
+	$stmt=$db->prepare('SELECT incognito, style FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
 	$stmt->execute(array($nick, $U['status']));
 	if(!$old=$stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['cantchgstat'], $nick);
@@ -2484,7 +2484,7 @@ function change_status($nick, $status){
 		$stmt->execute(array($nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute(array($nick));
-		return sprintf($I['succdel'], $nick);
+		return sprintf($I['succdel'], style_this($nick, $old[1]));
 	}else{
 		if($status<5){
 			$old[0]=0;
@@ -2493,7 +2493,7 @@ function change_status($nick, $status){
 		$stmt->execute(array($status, $old[0], $nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=?, incognito=? WHERE nickname=?;');
 		$stmt->execute(array($status, $old[0], $nick));
-		return sprintf($I['succchg'], $nick);
+		return sprintf($I['succchg'], style_this($nick, $old[1]));
 	}
 }
 
