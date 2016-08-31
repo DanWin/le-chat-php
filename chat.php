@@ -187,8 +187,10 @@ function route_admin(){
 			logout_chatter($_REQUEST['name']);
 		}
 	}elseif($_REQUEST['do']==='sessions'){
-		if(isSet($_REQUEST['nick'])){
-			kick_chatter(array($_REQUEST['nick']), '', false);
+		if(isset($_REQUEST['kick']) && isSet($_REQUEST['nick'])){
+			kick_chatter([$_REQUEST['nick']], '', false);
+		}elseif(isset($_REQUEST['logout']) && isSet($_REQUEST['nick'])){
+			logout_chatter([$_REQUEST['nick']], '', false);
 		}
 		send_sessions();
 	}elseif($_REQUEST['do']==='register'){
@@ -1027,7 +1029,7 @@ function send_admin($arg=''){
 
 function send_sessions(){
 	global $H, $I, $U, $db;
-	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE status!=0 AND entry!=0 AND (incognito=0 OR status<?) ORDER BY status DESC, lastpost DESC;');
+	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE entry!=0 AND (incognito=0 OR status<?) ORDER BY status DESC, lastpost DESC;');
 	$stmt->execute(array($U['status']));
 	if(!$lines=$stmt->fetchAll(PDO::FETCH_ASSOC)){
 		$lines=array();
@@ -1041,18 +1043,20 @@ function send_sessions(){
 	if($trackip) echo "<th class=\"padded\">$I[sesip]</th>";
 	echo "<th class=\"padded\">$I[actions]</th></tr>";
 	foreach($lines as $temp){
-		if($temp['status']<=2){
-			$s='&nbsp;(G)';
+		if($temp['status']==0){
+			$s=' (K)';
+		}elseif($temp['status']<=2){
+			$s=' (G)';
 		}elseif($temp['status']==3){
 			$s='';
 		}elseif($temp['status']==5){
-			$s='&nbsp;(M)';
+			$s=' (M)';
 		}elseif($temp['status']==6){
-			$s='&nbsp;(SM)';
+			$s=' (SM)';
 		}elseif($temp['status']==7){
-			$s='&nbsp;(A)';
+			$s=' (A)';
 		}else{
-			$s='&nbsp;(SA)';
+			$s=' (SA)';
 		}
 		echo '<tr class="left"><td class="padded">'.style_this($temp['nickname'].$s, $temp['style']).'</td><td class="padded">';
 		if($temp['status']>2){
@@ -1068,8 +1072,17 @@ function send_sessions(){
 			}
 			echo '<td class="padded">';
 			if($temp['nickname']!==$U['nickname']){
+				echo '<table><tr>';
+				if($temp['status']!=0){
+					echo '<td>';
+					frmadm('sessions');
+					echo hidden('kick', '1').hidden('nick', $temp['nickname']).submit($I['kick']).'</form>';
+					echo '</td>';
+				}
+				echo '<td>';
 				frmadm('sessions');
-				echo hidden('nick', $temp['nickname']).submit($I['kick']).'</form>';
+				echo hidden('logout', '1').hidden('nick', $temp['nickname']).submit($I['logout']).'</form>';
+				echo '</td></tr></table>';
 			}else{
 				echo '-';
 			}
@@ -2263,7 +2276,7 @@ function kick_chatter($names, $mes, $purge){
 
 function logout_chatter($names){
 	global $U, $db;
-	$check=$db->prepare('SELECT status FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<? AND status!=0;');
+	$check=$db->prepare('SELECT status FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<?;');
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 	$stmt1=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
 	$stmt2=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");

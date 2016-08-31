@@ -1,3 +1,5 @@
+Add logout button to session view and allow logging out kicked sessions
+
 Version 1.21 - Aug. 29, 2016
 Don't display empty option for system messages in delete messages by name
 Don't show a kick button on your own session in the list of active sessions
