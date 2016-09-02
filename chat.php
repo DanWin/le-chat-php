@@ -1373,21 +1373,40 @@ function send_messages(){
 	print_start('messages', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$nocache$sort");
 	echo '<div class="left">';
 	echo '<a id="top"></a>';
-	echo '<div id="topic">';
-	echo get_setting('topic');
-	echo '</div><div id="chatters">';
-	print_chatters();
-	echo "</div><a style=\"position:fixed;top:0.5em;right:0.5em\" href=\"#bottom\">$I[bottom]</a><div id=\"messages\">";
-	if($U['status']>=2 && $U['eninbox']!=0){
-		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
-		$stmt->execute(array($U['nickname']));
-		$tmp=$stmt->fetch(PDO::FETCH_NUM);
-		if($tmp[0]>0){
-			echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
-			echo submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
+	echo "<a style=\"position:fixed;top:0.5em;right:0.5em\" href=\"#bottom\">$I[bottom]</a>";
+	if(!$U['sortupdown']){
+		echo '<div id="topic">';
+		echo get_setting('topic');
+		echo '</div><div id="chatters">';
+		print_chatters();
+		echo "</div><div id=\"messages\">";
+		if($U['status']>=2 && $U['eninbox']!=0){
+			$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
+			$stmt->execute(array($U['nickname']));
+			$tmp=$stmt->fetch(PDO::FETCH_NUM);
+			if($tmp[0]>0){
+				echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
+				echo submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
+			}
 		}
+		print_messages();
+	}else{
+		echo '<div id="messages">';
+		print_messages();
+		if($U['status']>=2 && $U['eninbox']!=0){
+			$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
+			$stmt->execute(array($U['nickname']));
+			$tmp=$stmt->fetch(PDO::FETCH_NUM);
+			if($tmp[0]>0){
+				echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
+				echo submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
+			}
+		}
+		echo '</div><div id="chatters">';
+		print_chatters();
+		echo '</div><div id="topic">';
+		echo get_setting('topic');
 	}
-	print_messages();
 	echo '</div>';
 	echo "<a id=\"bottom\"></a><a style=\"position:fixed;bottom:0.5em;right:0.5em\" href=\"#top\">$I[top]</a>";
 	echo '</div>';
