@@ -1329,14 +1329,31 @@ function send_frameset(){
 	echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\"><html><head>$H[meta_html]";
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
-	echo '</head><frameset rows="100,*,60" border="3" frameborder="3" framespacing="3">';
-	echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
-	if(get_setting('enablegreeting')){
-		echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
+	echo '</head>';
+	if($U['sortupdown']){
+		$bottom='#bottom';
 	}else{
-		echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language\">";
+		$bottom='';
 	}
-	echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language\">";
+	if((!isset($_REQUEST['sort']) && !$U['sortupdown']) || (isset($_REQUEST['sort']) && $_REQUEST['sort']==0)){
+		echo '<frameset rows="100,*,50" border="3" frameborder="3" framespacing="3">';
+		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
+		if(get_setting('enablegreeting')){
+			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
+		}else{
+			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$bottom\">";
+		}
+		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language&sort=1\">";
+	}else{
+		echo '<frameset rows="50,*,100" border="3" frameborder="3" framespacing="3">';
+		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language&sort=0\">";
+		if(get_setting('enablegreeting')){
+			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
+		}else{
+			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$bottom\">";
+		}
+		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
+	}
 	echo "<noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
 	exit;
 }
@@ -1909,6 +1926,12 @@ function send_controls(){
 	if($U['status']>=3){
 		echo "<td><$H[form] target=\"_blank\">$H[commonform]".hidden('action', 'login').submit($I['clone']).'</form></td>';
 	}
+	if(!isset($_REQUEST['sort'])){
+		$sort=0;
+	}else{
+		$sort=$_REQUEST['sort'];
+	}
+	echo "<td><$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'login').hidden('sort', $sort).submit($I['sortframe']).'</form></td>';
 	echo "<td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'help').submit($I['randh']).'</form></td>';
 	echo "<td><$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'logout').submit($I['exit'], 'id="exitbutton"').'</form></td>';
 	echo '</tr></table>';
