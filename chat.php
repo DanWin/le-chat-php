@@ -2753,7 +2753,7 @@ function add_user_defaults(){
 	$U['embed']=1;
 	$U['incognito']=0;
 	$U['status']=1;
-	$U['nocache']=0;
+	$U['nocache']=get_setting('sortupdown');
 	$U['tz']=get_setting('defaulttz');
 	$U['eninbox']=0;
 	$U['sortupdown']=get_setting('sortupdown');
