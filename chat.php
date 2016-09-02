@@ -3181,7 +3181,6 @@ function save_setup($C){
 	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $_REQUEST['rulestxt']);
 	$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
 	$_REQUEST['redirect']=htmlspecialchars($_REQUEST['redirect']);
-	$_REQUEST['css']=htmlspecialchars($_REQUEST['css']);
 	if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colbg'])){
 		unset($_REQUEST['colbg']);
 	}
