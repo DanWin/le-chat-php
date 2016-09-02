@@ -1,4 +1,5 @@
 Add logout button to session view and allow unbanning kicked sessions
+Allow changing message sort direction
 
 Version 1.21 - Aug. 29, 2016
 Don't display empty option for system messages in delete messages by name
