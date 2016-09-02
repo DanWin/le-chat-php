@@ -1023,7 +1023,8 @@ function send_admin($arg=''){
 		echo submit($I['register']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 	}
-	echo "</table>$H[backtochat]";
+	echo "</table><br>";
+	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').submit($I['reload']).'</form>';
 	print_end();
 }
 
@@ -1081,7 +1082,7 @@ function send_sessions(){
 				}
 				echo '<td>';
 				frmadm('sessions');
-				echo hidden('logout', '1').hidden('nick', $temp['nickname']).submit($I['logout']).'</form>';
+				echo hidden('logout', '1').hidden('nick', $temp['nickname']).submit($temp['status']==0 ? $I['unban'] : $I['logout']).'</form>';
 				echo '</td></tr></table>';
 			}else{
 				echo '-';
@@ -1095,7 +1096,8 @@ function send_sessions(){
 			echo '<td class="padded">-</td></tr>';
 		}
 	}
-	echo "</table><br>$H[backtochat]";
+	echo "</table><br>";
+	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'sessions').submit($I['reload']).'</form>';
 	print_end();
 }
 
@@ -1274,7 +1276,8 @@ function send_filter($arg=''){
 	echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"regex\" id=\"regex\" value=\"1\"><label for=\"regex\">$I[regex]</label></td>";
 	echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"1\"><label for=\"kick\">$I[kick]</label></td>";
 	echo '<td class="right" style="width:5em;">'.submit($I['add']).'</td></tr></table></form></td></tr>';
-	echo "</table><br>$H[backtochat]";
+	echo "</table><br>";
+	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'filter').submit($I['reload']).'</form>';
 	print_end();
 }
 
@@ -1313,7 +1316,8 @@ function send_linkfilter($arg=''){
 	echo "<td style=\"width:12em;\"><input type=\"text\" name=\"replace\" value=\"\" size=\"20\" style=\"$U[style]\"></td>";
 	echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"regex\" id=\"regex\" value=\"1\"><label for=\"regex\">$I[regex]</label></td>";
 	echo '<td class="right" style="width:5em;">'.submit($I['add']).'</td></tr></table></form></td></tr>';
-	echo "</table><br>$H[backtochat]";
+	echo "</table><br>";
+	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'linkfilter').submit($I['reload']).'</form>';
 	print_end();
 }
 
@@ -1561,7 +1565,8 @@ function send_choose_messages(){
 	frmadm('clean');
 	echo hidden('what', 'selected').submit($I['delselmes'], 'class="delbutton"').'<br><br>';
 	print_messages($U['status']);
-	echo "</form><br>$H[backtochat]";
+	echo "</form><br>";
+	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'clean').hidden('what', 'choose').submit($I['reload']).'</form>';
 	echo '</div>';
 	print_end();
 }

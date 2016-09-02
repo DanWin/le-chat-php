@@ -353,5 +353,6 @@ $I=array(
 	'greetingmsg' => 'Welcome %s!',
 	'entryhelp' => 'If this frame does not reload in %d seconds, you\'ll have to enable automatic redirection (meta refresh) in your browser. Also make sure no web filter, local proxy tool or browser plugin is preventing automatic refreshing! This could be for example "Polipo", "NoScript", etc.<br>As a workaround (or in case of server/proxy reload errors) you can always use the buttons at the bottom to refresh manually.',
 	'enablegreeting' => 'Show a greeting message before showing the messages',
+	'unban' => 'Unban',
 );
 ?>

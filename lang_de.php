@@ -353,5 +353,6 @@ $T=array(
 	'greetingmsg' => 'Willkommen %s!',
 	'entryhelp' => 'Falls dieser Frame nich in %d Sekunden neu lädt, muss automatische Weiterleitun (meta refresh) in Ihrem Browser aktiviert werden. Stellen Sie auch sicher, dass keine Web filter, locale Proxy oder Browser Plugins das automatische neu-laden verhindern! Dies könnte z.B. "Polipo", "NoScript", etc. sein.<br>Zur Not (oder im Falle von Server/Proxy Fehlern) können Sie die Knöpfe unten verwenden, um manuell neu zu laden.',
 	'enablegreeting' => 'Zeige eine Begrüßungsnachricht an, befor die Nachrichten geladen werden',
+	'unban' => 'Entsperren',
 );
 ?>
