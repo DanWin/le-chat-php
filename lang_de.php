@@ -24,7 +24,7 @@ $T=array(
 	'nodbsetup' => 'Keine Verbindung zur Datenbank, bitte erstelle eine Datenbank und bearbeite das Skript, um die korrekte Datenbank mit angegebenem Benutzernamen und Passwort zu benutzen.',
 	'changelang' => 'Sprache ändern:',
 	'expire' => 'Ungültige/abgelaufene Sitzung',
-	'kicked' => 'Rausgeschmissen!',
+	'kicked' => 'Du wurdest rausgeschmissen!',
 	'invalnick' => 'Ungültiger Nickname (Maximal %1$d Zeichen und muss dem regulären Ausdruck "%2$s" entsprechen)',
 	'invalpass' => 'Ungültiges Passwort (Mindestens %1$d Zeichen und muss dem regulären Ausdruck "%2$s" entsprechen)',
 	'noconfirm' => 'Passwortbestätigung stimmt nicht überein!',
@@ -137,8 +137,8 @@ $T=array(
 	'help' => 'Hilfe',
 	'helpguest' => 'Alle Funktionen sollten recht selbsterklärend sein, benutze einfach die Knöpfe. In Ihrem Profil könnsen Sie die Aktualisierungsrate, Schriftfarbe und Ihre gewünschte Postboxgröße anpassen.<br><u>Hinweis:</u> Dies ist ein Chat, wenn Sie also nichts schreiben, werden Sie automatisch nach einiger Zeit abgemeldet.',
 	'helpembed' => 'Wenn Sie ein Bild einbetten möchten, fügen Sie einfach ein [img] vor die Adresse des Bildes. Beispiel: [img]http://example.com/images/file.jpg bettet das Bild in Ihrem Beitrag ein.',
-	'helpmem' => 'Mitglieder: Sie werden einige zusätzliche Optionen in Ihrem Profil haben. Sie können Ihre Schriftart ändern und Ihr Passwort jederzeit ändern.',
-	'helpmod' => 'Moderatoren: Achte auf den Admin-Knof unten. Er bringt eine Seite auf, auf der Sie Nachrichten löschen können, Teilnehmer rausschmeißen können, alle aktive Sitzungen anzeigen lassen können und den Gastzugriff deaktivieren können, falls dies nötig sein sollte.',
+	'helpmem' => 'Mitglieder: Sie werden einige zusätzliche Optionen in Ihrem Profil haben. Sie können Ihre Schriftart ändern, Ihr Passwort jederzeit ändern und natürlich können Sie auch Ihr Profil löschen.',
+	'helpmod' => 'Moderatoren: Achten Sie auf den Admin-Knof unten. Er ruft eine Seite auf, auf der Sie Nachrichten löschen können, Teilnehmer rausschmeißen können, alle aktive Sitzungen anzeigen lassen können und den Gastzugriff deaktivieren können, falls dies nötig sein sollte.',
 	'helpadm' => 'Admins: Sie werden zusätzlich in der Lage sein Gäste zu registrieren, Mitglieder zu verwalten und neue Nicknanem zu registrieren.',
 	'profile' => 'Ihr Profil',
 	'ignore' => 'Ignorieren',
@@ -356,5 +356,6 @@ $T=array(
 	'unban' => 'Entsperren',
 	'sortupdown' => 'Nachrichten von oben nach unten sortieren',
 	'sortframe' => 'Frames sortieren',
+	'cs' => 'Groß-/Kleinschreibung beachten',
 );
 ?>

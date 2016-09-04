@@ -24,7 +24,7 @@ $I=array(
 	'nodbsetup' => 'No connection to database, please create a database and edit the script to use the correct database with given username and password!',
 	'changelang' => 'Change language:',
 	'expire' => 'Invalid/expired session',
-	'kicked' => 'Kicked!',
+	'kicked' => 'You have been kicked!',
 	'invalnick' => 'Invalid nickname (%1$d characters maximum and has to match the regular expression "%2$s")',
 	'invalpass' => 'Invalid password (At least %1$d characters and has to match the regular expression "%2$s")',
 	'noconfirm' => 'Password confirmation does not match!',
@@ -137,7 +137,7 @@ $I=array(
 	'help' => 'Help',
 	'helpguest' => 'All functions should be pretty much self-explaining, just use the buttons. In your profile you can adjust the refresh rate, font colour and your preferred input box size.<br><u>Note:</u> This is a chat, so if you don\'t keep talking, you will be automatically logged out after a while.',
 	'helpembed' => 'If you want to embed an image in your post, simply put [img] in front of your image URL. Example: [img]http://example.com/images/file.jpg will embed the image in your post.',
-	'helpmem' => 'Members: You\'ll have some more options in your profile. You can adjust your font face and you can change your password anytime.',
+	'helpmem' => 'Members: You\'ll have some more options in your profile. You can adjust your font face, change your password anytime and of course you can delete your account.',
 	'helpmod' => 'Moderators: Notice the Admin-button at the bottom. It\'ll bring up a page where you can clean the room, kick chatters, view all active sessions and disable guest access completely if needed.',
 	'helpadm' => 'Admins: You\'ll be furthermore able to register guests, edit members and register new nicknames.',
 	'profile' => 'Your Profile',
@@ -356,5 +356,6 @@ $I=array(
 	'unban' => 'Unban',
 	'sortupdown' => 'Sort messages from top to bottom',
 	'sortframe' => 'Sort frames',
+	'cs' => 'Case sensitive',
 );
 ?>

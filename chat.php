@@ -681,9 +681,12 @@ function restore_backup($C){
 	if(isSet($_REQUEST['filter']) && (isSet($code['filters']) || isSet($code['linkfilters']))){
 		$db->exec('DELETE FROM ' . PREFIX . 'filter;');
 		$db->exec('DELETE FROM ' . PREFIX . 'linkfilter;');
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick) VALUES (?, ?, ?, ?, ?);');
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
 		foreach($code['filters'] as $filter){
-			$stmt->execute(array($filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick']));
+			if(!isset($filter['cs'])){
+				$filter['cs']=0;
+			}
+			$stmt->execute(array($filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick'], $filter['cs']));
 		}
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
 		foreach($code['linkfilters'] as $filter){
@@ -736,7 +739,7 @@ function send_backup($C){
 		if(isSet($_REQUEST['filter'])){
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'filter;');
 			while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-				$code['filters'][]=array('match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick']);
+				$code['filters'][]=array('match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick'], 'cs'=>$filter['cs']);
 			}
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'linkfilter;');
 			while($filter=$result->fetch(PDO::FETCH_ASSOC)){
@@ -1138,26 +1141,25 @@ function manage_filter(){
 		}else{
 			$kick=0;
 		}
+		if(isSet($_REQUEST['cs']) && $_REQUEST['cs']==1){
+			$cs=1;
+		}else{
+			$cs=0;
+		}
 		if(preg_match('/^[0-9]*$/', $_REQUEST['id'])){
 			if(empty($_REQUEST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'filter WHERE id=?;');
 				$stmt->execute(array($_REQUEST['id']));
-				if(MEMCACHED){
-					$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
-				}
 			}else{
-				$stmt=$db->prepare('UPDATE ' . PREFIX . 'filter SET filtermatch=?, filterreplace=?, allowinpm=?, regex=?, kick=? WHERE id=?;');
-				$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $_REQUEST['id']));
-				if(MEMCACHED){
-					$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
-				}
+				$stmt=$db->prepare('UPDATE ' . PREFIX . 'filter SET filtermatch=?, filterreplace=?, allowinpm=?, regex=?, kick=?, cs=? WHERE id=?;');
+				$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs, $_REQUEST['id']));
 			}
 		}elseif(preg_match('/^\+$/', $_REQUEST['id'])){
-			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick) VALUES (?, ?, ?, ?, ?);');
-			$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick));
-			if(MEMCACHED){
-				$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
-			}
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
+			$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs));
+		}
+		if(MEMCACHED){
+			$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
 		}
 	}
 }
@@ -1172,22 +1174,16 @@ function manage_linkfilter(){
 			if(empty($_REQUEST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'linkfilter WHERE id=?;');
 				$stmt->execute(array($_REQUEST['id']));
-				if(MEMCACHED){
-					$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
-				}
 			}else{
 				$stmt=$db->prepare('UPDATE ' . PREFIX . 'linkfilter SET filtermatch=?, filterreplace=?, regex=? WHERE id=?;');
 				$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $reg, $_REQUEST['id']));
-				if(MEMCACHED){
-					$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
-				}
 			}
 		}elseif(preg_match('/^\+$/', $_REQUEST['id'])){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
 			$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $reg));
-			if(MEMCACHED){
-				$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
-			}
+		}
+		if(MEMCACHED){
+			$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
 		}
 	}
 }
@@ -1199,9 +1195,9 @@ function get_filters(){
 	}
 	if(!MEMCACHED || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
 		$filters=array();
-		$result=$db->query('SELECT id, filtermatch, filterreplace, allowinpm, regex, kick FROM ' . PREFIX . 'filter;');
+		$result=$db->query('SELECT id, filtermatch, filterreplace, allowinpm, regex, kick, cs FROM ' . PREFIX . 'filter;');
 		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick']);
+			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick'], 'cs'=>$filter['cs']);
 		}
 		if(MEMCACHED){
 			$memcached->set(DBNAME . '-' . PREFIX . 'filter', $filters);
@@ -1233,13 +1229,16 @@ function send_filter($arg=''){
 	print_start('filter');
 	echo "<h2>$I[filter]</h2><i>$arg</i><table class=\"center-table\">";
 	thr();
-	echo "<tr><th><table style=\"width:100%;\"><tr><td style=\"width:8em;\">$I[fid]</td>";
+	echo '<tr><th><table style="width:100%;"><tr>';
+	echo "<td style=\"width:8em;\">$I[fid]</td>";
 	echo "<td style=\"width:12em;\">$I[match]</td>";
 	echo "<td style=\"width:12em;\">$I[replace]</td>";
 	echo "<td style=\"width:9em;\">$I[allowpm]</td>";
 	echo "<td style=\"width:5em;\">$I[regex]</td>";
 	echo "<td style=\"width:5em;\">$I[kick]</td>";
-	echo "<td style=\"width:5em;\">$I[apply]</td></tr></table></th></tr>";
+	echo "<td style=\"width:5em;\">$I[cs]</td>";
+	echo "<td style=\"width:5em;\">$I[apply]</td>";
+	echo '</tr></table></th></tr>';
 	$filters=get_filters();
 	foreach($filters as $filter){
 		if($filter['allowinpm']==1){
@@ -1258,6 +1257,11 @@ function send_filter($arg=''){
 		}else{
 			$checkedk='';
 		}
+		if($filter['cs']==1){
+			$checkedcs=' checked';
+		}else{
+			$checkedcs='';
+		}
 		echo '<tr><td>';
 		frmadm('filter');
 		echo hidden('id', $filter['id']);
@@ -1267,6 +1271,7 @@ function send_filter($arg=''){
 		echo "<td style=\"width:9em;\"><input type=\"checkbox\" name=\"allowinpm\" id=\"allowinpm-$filter[id]\" value=\"1\"$check><label for=\"allowinpm-$filter[id]\">$I[allowpm]</label></td>";
 		echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"regex\" id=\"regex-$filter[id]\" value=\"1\"$checked><label for=\"regex-$filter[id]\">$I[regex]</label></td>";
 		echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"kick\" id=\"kick-$filter[id]\" value=\"1\"$checkedk><label for=\"kick-$filter[id]\">$I[kick]</label></td>";
+		echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"cs\" id=\"cs-$filter[id]\" value=\"1\"$checkedcs><label for=\"cs-$filter[id]\">$I[cs]</label></td>";
 		echo '<td class="right" style="width:5em;">'.submit($I['change']).'</td></tr></table></form></td></tr>';
 	}
 	echo '<tr><td>';
@@ -1278,6 +1283,7 @@ function send_filter($arg=''){
 	echo "<td style=\"width:9em;\"><input type=\"checkbox\" name=\"allowinpm\" id=\"allowinpm\" value=\"1\"><label for=\"allowinpm\">$I[allowpm]</label></td>";
 	echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"regex\" id=\"regex\" value=\"1\"><label for=\"regex\">$I[regex]</label></td>";
 	echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"1\"><label for=\"kick\">$I[kick]</label></td>";
+	echo "<td style=\"width:5em;\"><input type=\"checkbox\" name=\"cs\" id=\"cs\" value=\"1\"><label for=\"cs\">$I[cs]</label></td>";
 	echo '<td class="right" style="width:5em;">'.submit($I['add']).'</td></tr></table></form></td></tr>';
 	echo "</table><br>";
 	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'filter').submit($I['reload']).'</form>';
@@ -1289,11 +1295,13 @@ function send_linkfilter($arg=''){
 	print_start('linkfilter');
 	echo "<h2>$I[linkfilter]</h2><i>$arg</i><table class=\"center-table\">";
 	thr();
-	echo "<tr><th><table style=\"width:100%;\"><tr><td style=\"width:8em;\">$I[fid]</td>";
+	echo '<tr><th><table style="width:100%;">';
+	echo "<tr><td style=\"width:8em;\">$I[fid]</td>";
 	echo "<td style=\"width:12em;\">$I[match]</td>";
 	echo "<td style=\"width:12em;\">$I[replace]</td>";
 	echo "<td style=\"width:5em;\">$I[regex]</td>";
-	echo "<td style=\"width:5em;\">$I[apply]</td></tr></table></th></tr>";
+	echo "<td style=\"width:5em;\">$I[apply]</td>";
+	echo '</tr></table></th></tr>';
 	$filters=get_linkfilters();
 	foreach($filters as $filter){
 		if($filter['regex']==1){
@@ -2912,10 +2920,12 @@ function apply_filter(){
 	$U['message']=str_replace('<br>', "\n", $U['message']);
 	$filters=get_filters();
 	foreach($filters as $filter){
-		if($U['poststatus']!==9){
-			$U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
-		}elseif(!$filter['allowinpm']){
-			$U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
+		if($U['poststatus']!==9 || !$filter['allowinpm']){
+			if($filter['cs']){
+				$U['message']=preg_replace("/$filter[match]/", $filter['replace'], $U['message'], -1, $count);
+			}else{
+				$U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
+			}
 		}
 		if(isSet($count) && $count>0 && $filter['kick']){
 			kick_chatter(array($U['nickname']), $filter['replace'], false);
@@ -3421,7 +3431,7 @@ function init_chat(){
 	}else{
 		if(DBDRIVER===0){//MySQL
 			$db->exec('CREATE TABLE ' . PREFIX . "captcha (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, time integer unsigned NOT NULL, code char(5) NOT NULL) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
-			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(20000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(20000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "ignored (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL, INDEX(ign), INDEX(ignby)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, postid integer unsigned NOT NULL, postdate integer unsigned NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, INDEX(postid), INDEX(poster), INDEX(recipient)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
@@ -3437,7 +3447,7 @@ function init_chat(){
 				$primary='integer PRIMARY KEY';
 			}
 			$db->exec('CREATE TABLE ' . PREFIX . "captcha (id $primary, time integer NOT NULL, code char(5) NOT NULL);");
-			$db->exec('CREATE TABLE ' . PREFIX . "filter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(20000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL);");
+			$db->exec('CREATE TABLE ' . PREFIX . "filter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(20000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL);");
 			$db->exec('CREATE TABLE ' . PREFIX . "ignored (id $primary, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL);");
 			$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
 			$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
@@ -3634,9 +3644,6 @@ function update_db(){
 		}
 		if($dbversion<23){
 			$db->exec('DELETE FROM ' . PREFIX . "settings WHERE setting='enablejs';");
-			if(MEMCACHED){
-				$memcached->delete(DBNAME . '-' . PREFIX . "settings-enablejs");
-			}
 		}
 		if($dbversion<24){
 			$db->exec('DELETE FROM ' . PREFIX . 'ignored WHERE id IN (SELECT id FROM (SELECT ' . PREFIX . 'ignored.id, ign, ignby FROM ' . PREFIX . 'ignored, ' . PREFIX . 'members WHERE nickname=ignby AND status < (SELECT status FROM ' . PREFIX . 'members WHERE nickname=ign) ) AS t);');
@@ -3657,6 +3664,12 @@ function update_db(){
 			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('sortupdown', '0');");
 			$db->exec('ALTER TABLE ' . PREFIX . 'sessions ADD COLUMN sortupdown smallint NOT NULL DEFAULT 0;');
 			$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN sortupdown smallint NOT NULL DEFAULT 0;');
+		}
+		if($dbversion<30){
+			$db->exec('ALTER TABLE ' . PREFIX . 'filter ADD COLUMN cs smallint NOT NULL DEFAULT 0;');
+			if(MEMCACHED){
+				$memcached->delete(DBNAME . '-' . PREFIX . "filter");
+			}
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
@@ -3847,7 +3860,7 @@ function load_lang(){
 function load_config(){
 	date_default_timezone_set('UTC');
 	define('VERSION', '1.21'); // Script version
-	define('DBVERSION', 29); // Database layout version
+	define('DBVERSION', 30); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host
