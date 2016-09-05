@@ -357,5 +357,6 @@ $T=array(
 	'sortupdown' => 'Nachrichten von oben nach unten sortieren',
 	'sortframe' => 'Frames sortieren',
 	'cs' => 'Groß-/Kleinschreibung beachten',
+	'hidechatters' => 'Teilnehmerlist ausblenden',
 );
 ?>

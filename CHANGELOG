@@ -3,6 +3,7 @@ Allow changing message sort direction
 Don't escape CSS (fixes use of html entities)
 Allow changing frame sorting
 Allow making filters case sensitive
+Add option to hide the list of chatters
 
 Version 1.21 - Aug. 29, 2016
 Don't display empty option for system messages in delete messages by name

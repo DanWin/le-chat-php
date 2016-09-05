@@ -357,5 +357,6 @@ $I=array(
 	'sortupdown' => 'Sort messages from top to bottom',
 	'sortframe' => 'Sort frames',
 	'cs' => 'Case sensitive',
+	'hidechatters' => 'Hide list of chatters',
 );
 ?>
