@@ -346,7 +346,7 @@ function send_access_denied(){
 	global $H, $I, $U;
 	header('HTTP/1.1 403 Forbidden');
 	print_start('access_denied');
-	echo "<h1>$I[accessdenied]</h1>".sprintf($I['loggedinas'], style_this($U['nickname'], $U['style']));
+	echo "<h1>$I[accessdenied]</h1>".sprintf($I['loggedinas'], style_this(htmlspecialchars($U['nickname']), $U['style']));
 	echo "<br><$H[form]>$H[commonform]".hidden('action', 'logout');
 	if(!isSet($_REQUEST['session'])){
 		echo hidden('session', $U['session']);
@@ -873,8 +873,11 @@ function send_admin($arg=''){
 	print_start('admin');
 	$chlist="<select name=\"name[]\" size=\"5\" multiple><option value=\"\">$I[choose]</option>";
 	$chlist.="<option value=\"&\">$I[allguests]</option>";
+	$users=[];
 	$stmt=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 ORDER BY LOWER(nickname);');
-	$users=$stmt->fetchAll(PDO::FETCH_NUM);
+	while($user=$stmt->fetch(PDO::FETCH_NUM)){
+		$users[]=[htmlspecialchars($user[0]), $user[1], $user[2]];
+	}
 	foreach($users as $user){
 		if($user[2]<$U['status']){
 			$chlist.="<option value=\"$user[0]\" style=\"$user[1]\">$user[0]</option>";
@@ -896,7 +899,7 @@ function send_admin($arg=''){
 	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . "messages WHERE delstatus<? AND poster!='' GROUP BY poster;");
 	$stmt->execute(array($U['status']));
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
-		echo "<option value=\"$nick[0]\">$nick[0]</option>";
+		echo '<option value="'.htmlspecialchars($nick[0]).'">'.htmlspecialchars($nick[0]).'</option>';
 	}
 	echo '</select></td><td>';
 	echo submit($I['clean'], 'class="delbutton"').'</td></tr></table></form></td></tr></table></td></tr>';
@@ -971,9 +974,9 @@ function send_admin($arg=''){
 		frmadm('status');
 		echo "<table class=\"right-table\"><td class=\"right\"><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		$members=[];
-		$result=$db->query('SELECT * FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
-		while($temp=$result->fetch(PDO::FETCH_ASSOC)){
-			$members[$temp['nickname']]=[$temp['nickname'], $temp['style'], $temp['status']];
+		$result=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
+		while($temp=$result->fetch(PDO::FETCH_NUM)){
+			$members[]=[htmlspecialchars($temp[0]), $temp[1], $temp[2]];
 		}
 		foreach($members as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]";
@@ -1039,7 +1042,7 @@ function send_sessions(){
 	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE entry!=0 AND (incognito=0 OR status<?) ORDER BY status DESC, lastpost DESC;');
 	$stmt->execute(array($U['status']));
 	if(!$lines=$stmt->fetchAll(PDO::FETCH_ASSOC)){
-		$lines=array();
+		$lines=[];
 	}
 	print_start('sessions');
 	echo "<h1>$I[sessact]</h1><table class=\"center-table\">";
@@ -1065,7 +1068,7 @@ function send_sessions(){
 		}else{
 			$s=' (SA)';
 		}
-		echo '<tr class="left"><td class="padded">'.style_this($temp['nickname'].$s, $temp['style']).'</td><td class="padded">';
+		echo '<tr class="left"><td class="padded">'.style_this(htmlspecialchars($temp['nickname']).$s, $temp['style']).'</td><td class="padded">';
 		if($temp['status']>2){
 			get_timeout($temp['lastpost'], $memexpire);
 		}else{
@@ -1083,12 +1086,12 @@ function send_sessions(){
 				if($temp['status']!=0){
 					echo '<td>';
 					frmadm('sessions');
-					echo hidden('kick', '1').hidden('nick', $temp['nickname']).submit($I['kick']).'</form>';
+					echo hidden('kick', '1').hidden('nick', htmlspecialchars($temp['nickname'])).submit($I['kick']).'</form>';
 					echo '</td>';
 				}
 				echo '<td>';
 				frmadm('sessions');
-				echo hidden('logout', '1').hidden('nick', $temp['nickname']).submit($temp['status']==0 ? $I['unban'] : $I['logout']).'</form>';
+				echo hidden('logout', '1').hidden('nick', htmlspecialchars($temp['nickname'])).submit($temp['status']==0 ? $I['unban'] : $I['logout']).'</form>';
 				echo '</td></tr></table>';
 			}else{
 				echo '-';
@@ -1506,7 +1509,7 @@ function send_notes($type){
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $revision;");
 	$stmt->execute(array($type));
 	if($note=$stmt->fetch(PDO::FETCH_ASSOC)){
-			printf($I['lastedited'], $note['editedby'], date($dateformat, $note['lastedited']+3600*$U['tz']));
+			printf($I['lastedited'], htmlspecialchars($note['editedby']), date($dateformat, $note['lastedited']+3600*$U['tz']));
 	}else{
 		$note['text']='';
 	}
@@ -1553,7 +1556,10 @@ function send_approve_waiting(){
 		echo '<table class="center-table left">';
 		echo "<tr><th class=\"padded\">$I[sessnick]</th><th class=\"padded\">$I[sessua]</th></tr>";
 		foreach($tmp as $temp){
-			echo '<tr>'.hidden('alls[]', $temp['nickname'])."<td class=\"padded\"><input type=\"checkbox\" name=\"csid[]\" id=\"$temp[nickname]\" value=\"$temp[nickname]\"><label for=\"$temp[nickname]\"> ".style_this($temp['nickname'], $temp['style'])."</label></td><td class=\"padded\">$temp[useragent]</td></tr>";
+			echo '<tr>'.hidden('alls[]', htmlspecialchars($temp['nickname']));
+			echo '<td class="padded"><input type="checkbox" name="csid[]" id="'.htmlspecialchars($temp[nickname]).'" value="'.htmlspecialchars($temp['nickname']).'">';
+			echo '<label for="'.htmlspecialchars($temp['nickname']).'">'.style_this(htmlspecialchars($temp['nickname']), $temp['style']).'</label></td>';
+			echo "<td class=\"padded\">$temp[useragent]</td></tr>";
 		}
 		echo "</table><br><table class=\"center-table left\"><tr><td><input type=\"radio\" name=\"what\" value=\"allowchecked\" id=\"allowchecked\" checked><label for=\"allowchecked\">$I[allowchecked]</label></td>";
 		echo "<td><input type=\"radio\" name=\"what\" value=\"allowall\" id=\"allowall\"><label for=\"allowall\">$I[allowall]</label></td>";
@@ -1590,9 +1596,9 @@ function send_waiting_room(){
 		print_start('waitingroom', $refresh, "$_SERVER[SCRIPT_NAME]?action=wait&session=$U[session]&lang=$language&nc=".substr(time(),-6));
 		echo "<h2>$I[waitingroom]</h2><p>";
 		if($wait){
-			printf($I['waittext'], style_this($U['nickname'], $U['style']), $timeleft);
+			printf($I['waittext'], style_this(htmlspecialchars($U['nickname']), $U['style']), $timeleft);
 		}else{
-			printf($I['admwaittext'], style_this($U['nickname'], $U['style']));
+			printf($I['admwaittext'], style_this(htmlspecialchars($U['nickname']), $U['style']));
 		}
 		echo '</p><br><p>';
 		printf($I['waitreload'], $refresh);
@@ -1663,7 +1669,7 @@ function send_post(){
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	echo '<table style="border-spacing:0px;"><tr style="vertical-align:top;"><td>'.style_this($U['nickname'], $U['style']).'</td><td>:</td>';
+	echo '<table style="border-spacing:0px;"><tr style="vertical-align:top;"><td>'.style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
 	if(!isSet($U['rejected'])){
 		$U['rejected']='';
 	}
@@ -1718,14 +1724,14 @@ function send_post(){
 				if($_REQUEST['sendto']==$user[3]){
 					echo 'selected ';
 				}
-				echo "value=\"$user[3]\" style=\"$user[1]\">$user[0]</option>";
+				echo 'value="'.htmlspecialchars($user[3])."\" style=\"$user[1]\">".htmlspecialchars($user[0]).'</option>';
 			}
 		}
 	}
 	echo '</select>';
 	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick')))){
-		echo "<input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\"><label for=\"kick\">&nbsp;$I[kick]</label>";
-		echo "<input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked><label for=\"what\">&nbsp;$I[alsopurge]</label>";
+		echo "<input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\"><label for=\"kick\">$I[kick]</label>";
+		echo "<input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked><label for=\"what\">$I[alsopurge]</label>";
 	}
 	echo '</td></tr></table></form></td></tr><tr><td style="height:8px;"></td></tr><tr><td><table class="center-table" style="border-spacing:0px;"><tr><td>';
 	frmpst('delete');
@@ -1754,7 +1760,7 @@ function send_post(){
 function send_greeting(){
 	global $I, $U, $language;
 	print_start('greeting', $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language");
-	printf("<h1>$I[greetingmsg]</h1>", style_this($U['nickname'], $U['style']));
+	printf("<h1>$I[greetingmsg]</h1>", style_this(htmlspecialchars($U['nickname']), $U['style']));
 	echo '<div class="left">';
 	printf("<hr><small>$I[entryhelp]</small>", $U['refresh']);
 	$rulestxt=get_setting('rulestxt');
@@ -1800,7 +1806,7 @@ function send_profile($arg=''){
 	$stmt=$db->prepare('SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?;');
 	$stmt->execute([$U['nickname']]);
 	while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-		$ignored[]=$tmp['ign'];
+		$ignored[]=htmlspecialchars($tmp['ign']);
 	}
 	if(count($ignored)>0){
 		echo "<tr><td><table class=\"left-table\"><tr><th>$I[unignore]</th><td class=\"right\">";
@@ -1816,7 +1822,7 @@ function send_profile($arg=''){
 	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (messages.poster=sessions.nickname) WHERE poster!=? AND status<=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
 	$stmt->execute([$U['nickname'], $U['status'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
-		echo "<option value=\"$nick[0]\" style=\"$nick[1]\">$nick[0]</option>";
+		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
 	}
 	echo '</select></td></tr></table></td></tr>';
 	thr();
@@ -1851,7 +1857,7 @@ function send_profile($arg=''){
 		echo "><label for=\"italic\"><i>$I[italic]</i></label></td></tr></table></td></tr></table></td></tr>";
 		thr();
 	}
-	echo '<tr><td>'.style_this("$U[nickname] : $I[fontexample]", $U['style']).'</td></tr>';
+	echo '<tr><td>'.style_this(htmlspecialchars($U['nickname'])." : $I[fontexample]", $U['style']).'</td></tr>';
 	thr();
 	$bool_settings=['timestamps', 'nocache', 'sortupdown'];
 	if(get_setting('imgembed')){
@@ -1968,7 +1974,7 @@ function send_controls(){
 function send_logout(){
 	global $H, $I, $U;
 	print_start('logout');
-	echo '<h1>'.sprintf($I['bye'], style_this($U['nickname'], $U['style']))."</h1>$H[backtologin]";
+	echo '<h1>'.sprintf($I['bye'], style_this(htmlspecialchars($U['nickname']), $U['style']))."</h1>$H[backtologin]";
 	print_end();
 }
 
@@ -2084,9 +2090,9 @@ function print_chatters(){
 	$stmt->execute([$U['nickname'], $U['nickname']]);
 	while($user=$stmt->fetch(PDO::FETCH_NUM)){
 		if($user[2]<=2){
-			$G[]=style_this($user[0], $user[1]);
+			$G[]=style_this(htmlspecialchars($user[0]), $user[1]);
 		}else{
-			$M[]=style_this($user[0], $user[1]);
+			$M[]=style_this(htmlspecialchars($user[0]), $user[1]);
 		}
 	}
 	if(!empty($M)){
@@ -2195,7 +2201,7 @@ function write_new_session(){
 		$stmt->execute(array($U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $useragent, $U['bgcolour'], $U['notesboxwidth'], $U['notesboxheight'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown']));
 		setcookie(COOKIENAME, $U['session']);
 		if($U['status']>=3 && !$U['incognito']){
-			add_system_message(sprintf(get_setting('msgenter'), style_this($U['nickname'], $U['style'])));
+			add_system_message(sprintf(get_setting('msgenter'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
 		}
 	}
 }
@@ -2294,7 +2300,7 @@ function kill_session(){
 		$stmt->execute(array($U['nickname'], $U['nickname']));
 		$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
 	}elseif($U['status']>=3 && !$U['incognito']){
-		add_system_message(sprintf(get_setting('msgexit'), style_this($U['nickname'], $U['style'])));
+		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
 	}
 }
 
@@ -2321,7 +2327,7 @@ function kick_chatter($names, $mes, $purge){
 			if($purge){
 				del_all_messages($name, 0);
 			}
-			$lonick.=style_this($name, $temp[0]).', ';
+			$lonick.=style_this(htmlspecialchars($name), $temp[0]).', ';
 			++$i;
 		}
 	}
@@ -2410,7 +2416,7 @@ function get_nowchatting(){
 	$users=$stmt->fetchAll();
 	echo sprintf($I['curchat'], count($users)).'<br>';
 	foreach($users as $user){
-		echo style_this($user[0], $user[1]).' &nbsp; ';
+		echo style_this(htmlspecialchars($user[0]), $user[1]).' &nbsp; ';
 	}
 }
 
@@ -2483,7 +2489,7 @@ function register_guest($status, $nick){
 	$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE nickname=?');
 	$stmt->execute([$nick]);
 	if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
-		return sprintf($I['alreadyreged'], style_this($nick, $tmp[0]));
+		return sprintf($I['alreadyreged'], style_this(htmlspecialchars($nick), $tmp[0]));
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND status=1;');
 	$stmt->execute(array($nick));
@@ -2492,16 +2498,16 @@ function register_guest($status, $nick){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=? WHERE session=?;');
 		$stmt->execute(array($reg['status'], $reg['session']));
 	}else{
-		return sprintf($I['cantreg'], $nick);
+		return sprintf($I['cantreg'], htmlspecialchars($nick));
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, boxwidth, boxheight, regedby, timestamps, embed, style, incognito, nocache, tz, eninbox, sortupdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 	$stmt->execute(array($reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['style'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown']));
 	if($reg['status']==3){
-		add_system_message(sprintf(get_setting('msgmemreg'), style_this($reg['nickname'], $reg['style'])));
+		add_system_message(sprintf(get_setting('msgmemreg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])));
 	}else{
-		add_system_message(sprintf(get_setting('msgsureg'), style_this($reg['nickname'], $reg['style'])));
+		add_system_message(sprintf(get_setting('msgsureg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])));
 	}
-	return sprintf($I['successreg'], style_this($reg['nickname'], $reg['style']));
+	return sprintf($I['successreg'], style_this(htmlspecialchars($reg['nickname']), $reg['style']));
 }
 
 function register_new($nick, $pass){
@@ -2512,7 +2518,7 @@ function register_new($nick, $pass){
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?');
 	$stmt->execute([$nick]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
-		return sprintf($I['cantreg'], $nick);
+		return sprintf($I['cantreg'], htmlspecialchars($nick));
 	}
 	if(!valid_nick($nick)){
 		return sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex'));
@@ -2523,7 +2529,7 @@ function register_new($nick, $pass){
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?');
 	$stmt->execute([$nick]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
-		return sprintf($I['alreadyreged'], $nick);
+		return sprintf($I['alreadyreged'], htmlspecialchars($nick));
 	}
 	$reg=array(
 		'nickname'	=>$nick,
@@ -2543,7 +2549,7 @@ function register_new($nick, $pass){
 	);
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, timestamps, style, embed, incognito, nocache, tz, eninbox, sortupdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 	$stmt->execute(array($reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['regedby'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown']));
-	return sprintf($I['successreg'], $reg['nickname']);
+	return sprintf($I['successreg'], htmlspecialchars($reg['nickname']));
 }
 
 function change_status($nick, $status){
@@ -2551,12 +2557,12 @@ function change_status($nick, $status){
 	if(empty($nick)){
 		return '';
 	}elseif($U['status']<=$status || !preg_match('/^[023567\-]$/', $status)){
-		return sprintf($I['cantchgstat'], $nick);
+		return sprintf($I['cantchgstat'], htmlspecialchars($nick));
 	}
 	$stmt=$db->prepare('SELECT incognito, style FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
 	$stmt->execute(array($nick, $U['status']));
 	if(!$old=$stmt->fetch(PDO::FETCH_NUM)){
-		return sprintf($I['cantchgstat'], $nick);
+		return sprintf($I['cantchgstat'], htmlspecialchars($nick));
 	}
 	if($_REQUEST['set']==='-'){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
@@ -2565,7 +2571,7 @@ function change_status($nick, $status){
 		$stmt->execute(array($nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute(array($nick));
-		return sprintf($I['succdel'], style_this($nick, $old[1]));
+		return sprintf($I['succdel'], style_this(htmlspecialchars($nick), $old[1]));
 	}else{
 		if($status<5){
 			$old[0]=0;
@@ -2574,7 +2580,7 @@ function change_status($nick, $status){
 		$stmt->execute(array($status, $old[0], $nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=?, incognito=? WHERE nickname=?;');
 		$stmt->execute(array($status, $old[0], $nick));
-		return sprintf($I['succchg'], style_this($nick, $old[1]));
+		return sprintf($I['succchg'], style_this(htmlspecialchars($nick), $old[1]));
 	}
 }
 
@@ -2591,9 +2597,9 @@ function passreset($nick, $pass){
 		$stmt->execute(array($passhash, $nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE nickname=?;');
 		$stmt->execute(array($passhash, $nick));
-		return sprintf($I['succpassreset'], $nick);
+		return sprintf($I['succpassreset'], htmlspecialchars($nick));
 	}else{
-		return sprintf($I['cantresetpass'], $nick);
+		return sprintf($I['cantresetpass'], htmlspecialchars($nick));
 	}
 }
 
@@ -2823,16 +2829,16 @@ function validate_input(){
 	$U['recipient']='';
 	if($_REQUEST['sendto']==='*'){
 		$U['poststatus']=1;
-		$U['displaysend']=sprintf(get_setting('msgsendall'), style_this($U['nickname'], $U['style']));
+		$U['displaysend']=sprintf(get_setting('msgsendall'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}elseif($_REQUEST['sendto']==='?' && $U['status']>=3){
 		$U['poststatus']=3;
-		$U['displaysend']=sprintf(get_setting('msgsendmem'), style_this($U['nickname'], $U['style']));
+		$U['displaysend']=sprintf(get_setting('msgsendmem'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}elseif($_REQUEST['sendto']==='#' && $U['status']>=5){
 		$U['poststatus']=5;
-		$U['displaysend']=sprintf(get_setting('msgsendmod'), style_this($U['nickname'], $U['style']));
+		$U['displaysend']=sprintf(get_setting('msgsendmod'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}elseif($_REQUEST['sendto']==='&' && $U['status']>=6){
 		$U['poststatus']=6;
-		$U['displaysend']=sprintf(get_setting('msgsendadm'), style_this($U['nickname'], $U['style']));
+		$U['displaysend']=sprintf(get_setting('msgsendadm'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}else{// known nick in room?
 		if(get_setting('disablepm')){
 			return;
@@ -2847,7 +2853,7 @@ function validate_input(){
 		if($tmp || $tmp=$stmt->fetch(PDO::FETCH_NUM)){
 			$U['recipient']=$_REQUEST['sendto'];
 			$U['poststatus']=9;
-			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this($U['nickname'], $U['style']), style_this($U['recipient'], $tmp[0]));
+			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($U['recipient']), $tmp[0]));
 		}
 		if(empty($U['recipient'])){// nick left already or ignores us
 			$U['message']='';
@@ -2885,7 +2891,7 @@ function validate_input(){
 function apply_filter(){
 	global $I, $U;
 	if($U['poststatus']!==9 && preg_match('~^/me~i', $U['message'])){
-		$U['displaysend']=style_this($U['nickname'], $U['style']);
+		$U['displaysend']=style_this(htmlspecialchars($U['nickname']), $U['style']);
 		$U['message']=preg_replace("~^/me~i", '', $U['message']);
 	}
 	$U['message']=preg_replace_callback('/\@([^\s]+)/i', function ($matched){
