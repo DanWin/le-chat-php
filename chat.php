@@ -1819,7 +1819,7 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[ignore]</th><td class=\"right\">";
 	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (messages.poster=sessions.nickname) WHERE poster!=? AND status<=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
+	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (messages.poster=sessions.nickname) WHERE poster!=? AND (status<=? OR status<=3) AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
 	$stmt->execute([$U['nickname'], $U['status'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
@@ -2697,7 +2697,7 @@ function save_profile(){
 		$stmt->execute(array($_REQUEST['unignore'], $U['nickname']));
 	}
 	if(!empty($_REQUEST['ignore'])){
-		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND (status<=? OR status<=3) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
 		$stmt->execute([$_REQUEST['ignore'], $U['status'], $U['nickname']]);
 		if($U['nickname']!==$_REQUEST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
