@@ -1363,7 +1363,7 @@ function send_frameset(){
 }
 
 function send_messages(){
-	global $H, $I, $U, $db, $language;
+	global $I, $U, $language;
 	if($U['nocache']){
 		$nocache='&nc='.substr(time(), -6);
 	}else{
@@ -1383,53 +1383,16 @@ function send_messages(){
 		echo get_setting('topic');
 		echo '</div>';
 		print_chatters();
-		echo '<div id="messages">';
-		if($U['status']>=2 && $U['eninbox']!=0){
-			$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
-			$stmt->execute(array($U['nickname']));
-			$tmp=$stmt->fetch(PDO::FETCH_NUM);
-			if($tmp[0]>0){
-				echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
-				echo submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
-			}
-		}
-		if($U['status']>=5 && get_setting('guestaccess')==3){
-			$result=$db->query('SELECT COUNT(*) FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1;');
-			$temp=$result->fetch(PDO::FETCH_NUM);
-			if($temp[0]>0){
-				echo '<p>';
-				frmadm('approve');
-				echo submit(sprintf($I['approveguests'], $temp[0])).'</form></p>';
-			}
-		}
+		print_notifications();
 		print_messages();
 	}else{
-		echo '<div id="messages">';
 		print_messages();
-		if($U['status']>=2 && $U['eninbox']!=0){
-			$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
-			$stmt->execute(array($U['nickname']));
-			$tmp=$stmt->fetch(PDO::FETCH_NUM);
-			if($tmp[0]>0){
-				echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
-				echo submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
-			}
-		}
-		if($U['status']>=5 && get_setting('guestaccess')==3){
-			$result=$db->query('SELECT COUNT(*) FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1;');
-			$temp=$result->fetch(PDO::FETCH_NUM);
-			if($temp[0]>0){
-				echo '<p>';
-				frmadm('approve');
-				echo submit(sprintf($I['approveguests'], $temp[0])).'</form></p>';
-			}
-		}
-		echo '</div>';
+		print_notifications();
 		print_chatters();
 		echo '<div id="topic">';
 		echo get_setting('topic');
+		echo '</div>';
 	}
-	echo '</div>';
 	echo "<a id=\"bottom\"></a><a style=\"position:fixed;bottom:0.5em;right:0.5em\" href=\"#top\">$I[top]</a>";
 	echo '</div>';
 	print_end();
@@ -2085,6 +2048,29 @@ function send_fatal_error($err){
 	print_end();
 }
 
+function print_notifications(){
+	global $H, $I, $U, $db;
+	echo '<span id="notifications">';
+	if($U['status']>=2 && $U['eninbox']!=0){
+		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
+		$stmt->execute(array($U['nickname']));
+		$tmp=$stmt->fetch(PDO::FETCH_NUM);
+		if($tmp[0]>0){
+			echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
+			echo submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
+		}
+	}
+	if($U['status']>=5 && get_setting('guestaccess')==3){
+		$result=$db->query('SELECT COUNT(*) FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1;');
+		$temp=$result->fetch(PDO::FETCH_NUM);
+		if($temp[0]>0){
+			echo '<p>';
+			frmadm('approve');
+			echo submit(sprintf($I['approveguests'], $temp[0])).'</form></p>';
+		}
+	}
+	echo '</span>';
+}
 function print_chatters(){
 	global $I, $U, $db;
 	if(!$U['hidechatters']){
@@ -3148,6 +3134,7 @@ function print_messages($delstatus=0){
 	$time=time();
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages WHERE postdate<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='messageexpire'))) AS t);");
 	$stmt->execute([$time]);
+	echo '<div id="messages">';
 	if($delstatus>0){
 		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
 		"(poststatus<? AND delstatus<?) OR poster=? OR recipient=? ORDER BY id $direction;");
@@ -3174,6 +3161,7 @@ function print_messages($delstatus=0){
 			echo "$message[text]</div>";
 		}
 	}
+	echo '</div>';
 }
 
 function prepare_message_print(&$message, $removeEmbed){
