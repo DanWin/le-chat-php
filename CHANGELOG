@@ -5,6 +5,7 @@ Allow changing frame sorting
 Allow making filters case sensitive
 Add option to hide the list of chatters
 Make nicknames in the chatters list clickable to send PMs more easily
+Add better multi-byte character support - New dependency: mbstring extension
 
 Version 1.21 - Aug. 29, 2016
 Don't display empty option for system messages in delete messages by name

@@ -38,7 +38,7 @@ Features:
 Installation Instructions:
 --------------------------
 
-You'll need to have php with pdo, pcre and date extension and a web-server installed.
+You'll need to have php with pdo, pcre, mbstring and date extension and a web-server installed.
 You will also need the pdo_sqlite, pdo_mysql or pdo_pgsql extension, depending on which database you choose.
 Optionally, you can install:
 - the gd extension for the captcha feature
