@@ -1142,7 +1142,7 @@ function manage_filter(){
 		}else{
 			$cs=0;
 		}
-		if(preg_match('/^[0-9]*$/', $_REQUEST['id'])){
+		if(preg_match('/^[0-9]+$/', $_REQUEST['id'])){
 			if(empty($_REQUEST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'filter WHERE id=?;');
 				$stmt->execute(array($_REQUEST['id']));
@@ -1150,7 +1150,7 @@ function manage_filter(){
 				$stmt=$db->prepare('UPDATE ' . PREFIX . 'filter SET filtermatch=?, filterreplace=?, allowinpm=?, regex=?, kick=?, cs=? WHERE id=?;');
 				$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs, $_REQUEST['id']));
 			}
-		}elseif(preg_match('/^\+$/', $_REQUEST['id'])){
+		}elseif($_REQUEST['id']==='+'){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
 			$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs));
 		}
@@ -1166,7 +1166,7 @@ function manage_linkfilter(){
 		if($tmp=check_filter_match($reg)){
 			return $tmp;
 		}
-		if(preg_match('/^[0-9]*$/', $_REQUEST['id'])){
+		if(preg_match('/^[0-9]+$/', $_REQUEST['id'])){
 			if(empty($_REQUEST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'linkfilter WHERE id=?;');
 				$stmt->execute(array($_REQUEST['id']));
@@ -1174,7 +1174,7 @@ function manage_linkfilter(){
 				$stmt=$db->prepare('UPDATE ' . PREFIX . 'linkfilter SET filtermatch=?, filterreplace=?, regex=? WHERE id=?;');
 				$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $reg, $_REQUEST['id']));
 			}
-		}elseif(preg_match('/^\+$/', $_REQUEST['id'])){
+		}elseif($_REQUEST['id']==='+'){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
 			$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $reg));
 		}
@@ -2327,7 +2327,7 @@ function kick_chatter($names, $mes, $purge){
 		if($all){
 			add_system_message(get_setting('msgallkick'));
 		}else{
-			$lonick=preg_replace('/\,\s$/','',$lonick);
+			$lonick=substr($lonick, 0, -2);
 			if($i>1){
 				add_system_message(sprintf(get_setting('msgmultikick'), $lonick));
 			}else{
@@ -2794,7 +2794,7 @@ function validate_input(){
 	}
 	if(preg_match('/&[^;]{0,8}$/', $U['message']) && preg_match('/^([^;]{0,8};)/', $U['rejected'], $match)){
 		$U['message'].=$match[0];
-		$U['rejected']=preg_replace("/^$match[0]", '', $U['rejected']);
+		$U['rejected']=preg_replace("/^$match[0]/", '', $U['rejected']);
 	}
 	if(!empty($U['rejected'])){
 		$U['rejected']=trim($U['rejected']);
@@ -3310,15 +3310,20 @@ function valid_regex(&$regex){
 function get_timeout($lastpost, $expire){
 	$s=($lastpost+60*$expire)-time();
 	$m=floor($s/60);
-	$s-=$m*60;
-	$h=floor($m/60);
-	$m-=$h*60;
-	$s=substr("0$s", -2, 2);
-	if($h>0){
-		$m=substr("0$m", -2, 2);
-		echo "$h:$m:$s";
+	$s%=60;
+	if($s<10){
+		$s="0$s";
 	}
-	echo "$m:$s";
+	if($m>60){
+		$h=floor($m/60);
+		$m%=60;
+		if($m<10){
+			$m="0$m";
+		}
+		echo "$h:$m:$s";
+	}else{
+		echo "$m:$s";
+	}
 }
 
 function print_colours(){
@@ -3432,7 +3437,7 @@ function init_chat(){
 			$db->exec('CREATE TABLE ' . PREFIX . "members (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, nickname varchar(50) NOT NULL UNIQUE, passhash char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, status smallint unsigned NOT NULL, refresh smallint unsigned NOT NULL, bgcolour char(6) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, boxwidth smallint unsigned NOT NULL DEFAULT 40, boxheight smallint unsigned NOT NULL DEFAULT 3, notesboxheight smallint unsigned NOT NULL DEFAULT 30, notesboxwidth smallint unsigned NOT NULL DEFAULT 80, regedby varchar(50) NOT NULL, lastlogin integer unsigned NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, postdate integer unsigned NOT NULL, poststatus smallint unsigned NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, delstatus smallint unsigned NOT NULL, INDEX(poster), INDEX(recipient), INDEX(postdate), INDEX(poststatus)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "notes (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, type char(5) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, lastedited integer unsigned NOT NULL, editedby varchar(50) NOT NULL, text varchar(20000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
-			$db->exec('CREATE TABLE ' . PREFIX . "sessions (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, session char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint unsigned NOT NULL, refresh smallint unsigned NOT NULL, style varchar(255) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, lastpost integer unsigned NOT NULL, passhash char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, postid char(6) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT '000000', boxwidth smallint unsigned NOT NULL DEFAULT 40, boxheight smallint unsigned NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) NOT NULL, bgcolour char(6) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, notesboxheight smallint unsigned NOT NULL DEFAULT 30, notesboxwidth smallint unsigned NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL DEFAULT 0, ip varchar(45) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smalling NOT NULL, INDEX(status) USING BTREE, INDEX(lastpost) USING BTREE, INDEX(incognito) USING BTREE) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "sessions (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, session char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint unsigned NOT NULL, refresh smallint unsigned NOT NULL, style varchar(255) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, lastpost integer unsigned NOT NULL, passhash char(32) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, postid char(6) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL DEFAULT '000000', boxwidth smallint unsigned NOT NULL DEFAULT 40, boxheight smallint unsigned NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) NOT NULL, bgcolour char(6) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, notesboxheight smallint unsigned NOT NULL DEFAULT 30, notesboxwidth smallint unsigned NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL DEFAULT 0, ip varchar(45) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, INDEX(status) USING BTREE, INDEX(lastpost) USING BTREE, INDEX(incognito) USING BTREE) ENGINE=MEMORY DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL PRIMARY KEY, value varchar(20000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;");
 		}else{
 			if(DBDRIVER===1){//PostgreSQL
@@ -3457,7 +3462,7 @@ function init_chat(){
 			$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
 			$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
 			$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text varchar(20000) NOT NULL);");
-			$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash char(32) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smalling NOT NULL);");
+			$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash char(32) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL);");
 			$db->exec('CREATE INDEX ' . PREFIX . 'status ON ' . PREFIX . 'sessions(status);');
 			$db->exec('CREATE INDEX ' . PREFIX . 'lastpost ON ' . PREFIX . 'sessions(lastpost);');
 			$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
