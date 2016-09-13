@@ -2103,7 +2103,7 @@ function print_chatters(){
 
 function create_session($setup){
 	global $I, $U, $db, $memcached;
-	$U['nickname']=preg_replace('/\s+/', '', $_REQUEST['nick']);
+	$U['nickname']=str_replace(' ', '', $_REQUEST['nick']);
 	$U['passhash']=md5(sha1(md5($U['nickname'].$_REQUEST['pass'])));
 	if(!check_member()){
 		add_user_defaults();
@@ -2507,6 +2507,7 @@ function register_guest($status, $nick){
 
 function register_new($nick, $pass){
 	global $I, $U, $db;
+	$nick=str_replace(' ', '', $nick);
 	if(empty($nick)){
 		return '';
 	}
@@ -2724,6 +2725,7 @@ function save_profile(){
 
 function set_new_nickname(){
 	global $I, $U, $db;
+	$_REQUEST['newnickname']=str_replace(' ', '', $_REQUEST['newnickname']);
 	if(!valid_nick($_REQUEST['newnickname'])){
 		return sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex'));
 	}
