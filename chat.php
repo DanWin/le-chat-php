@@ -3447,27 +3447,27 @@ function init_chat(){
 			$primary='integer PRIMARY KEY';
 		}
 		$db->exec('CREATE TABLE ' . PREFIX . "captcha (id $primary, time integer NOT NULL, code char(5) NOT NULL)$memengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "filter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(20000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "filter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(16383) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "ignored (id $primary, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
-		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16383) NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_postid ON ' . PREFIX . 'inbox(postid);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
 		$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash char(32) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, delstatus smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16383) NOT NULL, delstatus smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
-		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text varchar(20000) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text varchar(16383) NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash char(32) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL)$memengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'status ON ' . PREFIX . 'sessions(status);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'lastpost ON ' . PREFIX . 'sessions(lastpost);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
-		$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(20000) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(16383) NOT NULL)$diskengine$charset;");
 
 		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} .center-table{margin-left:auto;margin-right:auto;} body{text-align:center;} .left-table{width:100%;text-align:left;} .right{text-align:right;} .left{text-align:left;} .right-table{border-spacing:0px;margin-left:auto;} .padded{padding:5px;} #chatters{max-height:100px;overflow-y:auto;} .center{text-align:center;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'), array('guestreg', '0'), array('disablepm', '0'), array('disabletext', "<h1>$I[disabledtext]</h1>"), array('defaulttz', '0'), array('eninbox', '0'), array('passregex', '.*'), array('nickregex', '^[A-Za-z0-9]*$'), array('externalcss', ''), array('enablegreeting', '0'), array('sortupdown', '0'), array('hidechatters', '0'));
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
@@ -3691,7 +3691,7 @@ function update_db(){
 			$result=$olddb->query('SELECT filtermatch, filterreplace, allowinpm, regex, kick, cs FROM ' . PREFIX . 'filter;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'filter;');
-			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(20000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(16383) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES(?, ?, ?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
@@ -3709,7 +3709,7 @@ function update_db(){
 			$result=$olddb->query('SELECT postdate, postid, poster, recipient, text FROM ' . PREFIX . 'inbox;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'inbox;');
-			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, postid integer NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, postid integer NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16383) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
@@ -3736,7 +3736,7 @@ function update_db(){
 			$result=$olddb->query('SELECT postdate, poststatus, poster, recipient, text, delstatus FROM ' . PREFIX . 'messages;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'messages;');
-			$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(20000) NOT NULL, delstatus smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16383) NOT NULL, delstatus smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES(?, ?, ?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
@@ -3748,7 +3748,7 @@ function update_db(){
 			$result=$olddb->query('SELECT type, lastedited, editedby, text FROM ' . PREFIX . 'notes;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'notes;');
-			$db->exec('CREATE TABLE ' . PREFIX . "notes (id integer PRIMARY KEY AUTO_INCREMENT, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text varchar(20000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "notes (id integer PRIMARY KEY AUTO_INCREMENT, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text varchar(16383) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES(?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
@@ -3761,7 +3761,7 @@ function update_db(){
 			$result=$olddb->query('SELECT setting, value FROM ' . PREFIX . 'settings;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'settings;');
-			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(20000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(16383) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES(?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
