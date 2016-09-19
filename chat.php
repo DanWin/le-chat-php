@@ -2884,29 +2884,38 @@ function apply_filter(){
 	}
 	$U['message']=preg_replace_callback('/\@([^\s]+)/i', function ($matched){
 		global $db;
-		//match case-sensitive present nicknames
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE nickname=?;');
-		$stmt->execute([$matched[1]]);
-		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
-			return style_this($matched[0], $tmp[0]);
-		}
-		//match case-insensitive present nicknames
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE LOWER(nickname)=LOWER(?);');
-		$stmt->execute([$matched[1]]);
-		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
-			return style_this($matched[0], $tmp[0]);
-		}
-		//match case-sensitive members
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE nickname=?;');
-		$stmt->execute([$matched[1]]);
-		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
-			return style_this($matched[0], $tmp[0]);
-		}
-		//match case-insensitive members
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE LOWER(nickname)=LOWER(?);');
-		$stmt->execute([$matched[1]]);
-		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
-			return style_this($matched[0], $tmp[0]);
+		$nick=$matched[1];
+		$rest='';
+		for($i=0;$i<3;++$i){
+			//match case-sensitive present nicknames
+			$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE nickname=?;');
+			$stmt->execute([$nick]);
+			if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+				return style_this("@$nick", $tmp[0]).$rest;
+			}
+			//match case-insensitive present nicknames
+			$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE LOWER(nickname)=LOWER(?);');
+			$stmt->execute([$nick]);
+			if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+				return style_this("@$nick", $tmp[0]).$rest;
+			}
+			//match case-sensitive members
+			$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE nickname=?;');
+			$stmt->execute([$nick]);
+			if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+				return style_this("@$nick", $tmp[0]).$rest;
+			}
+			//match case-insensitive members
+			$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE LOWER(nickname)=LOWER(?);');
+			$stmt->execute([$nick]);
+			if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+				return style_this("@$nick", $tmp[0]).$rest;
+			}
+			if(strlen($nick)===1){
+				break;
+			}
+			$rest=substr($nick, -1).$rest;
+			$nick=substr($nick, 0, -1);
 		}
 		return "$matched[0]";
 	}, $U['message']);
@@ -3252,8 +3261,8 @@ function save_setup($C){
 	}
 	if($_REQUEST['maxmessage']<1){
 		$_REQUEST['maxmessage']=1;
-	}elseif($_REQUEST['maxmessage']>20000){
-		$_REQUEST['maxmessage']=20000;
+	}elseif($_REQUEST['maxmessage']>16000){
+		$_REQUEST['maxmessage']=16000;
 	}
 		if($_REQUEST['numnotes']<1){
 		$_REQUEST['numnotes']=1;
