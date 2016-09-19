@@ -2890,10 +2890,9 @@ function apply_filter(){
 		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
 			return style_this($matched[0], $tmp[0]);
 		}
-		$nick=mb_strtolower($matched[1]);
 		//match case-insensitive present nicknames
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE LOWER(nickname)=?;');
-		$stmt->execute([$nick]);
+		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE LOWER(nickname)=LOWER(?);');
+		$stmt->execute([$matched[1]]);
 		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
 			return style_this($matched[0], $tmp[0]);
 		}
@@ -2904,8 +2903,8 @@ function apply_filter(){
 			return style_this($matched[0], $tmp[0]);
 		}
 		//match case-insensitive members
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE LOWER(nickname)=?;');
-		$stmt->execute([$nick]);
+		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE LOWER(nickname)=LOWER(?);');
+		$stmt->execute([$matched[1]]);
 		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
 			return style_this($matched[0], $tmp[0]);
 		}
