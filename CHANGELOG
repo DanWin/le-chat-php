@@ -8,6 +8,7 @@ Make nicknames in the chatters list clickable to send PMs more easily
 Add better multi-byte character support - New dependency: mbstring extension
 Don't send messages to inbox when in incognito
 Remove up to two characters from the end of @mention to also match @mention, etc.
+Make colour input use colorChooser, if supported
 
 Version 1.21 - Aug. 29, 2016
 Don't display empty option for system messages in delete messages by name

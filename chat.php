@@ -555,7 +555,7 @@ function send_setup($C){
 	foreach($C['colour_settings'] as $setting){
 		thr();
 		echo '<tr><td><table class="left-table"><tr><th>'.$I[$setting].'</th><td class="right">';
-		echo "<input type=\"text\" name=\"$setting\" size=\"6\" maxlength=\"6\" pattern=\"[a-fA-F0-9]{6}\" value=\"".htmlspecialchars(get_setting($setting)).'">';
+		echo "<input type=\"color\" name=\"$setting\" value=\"#".htmlspecialchars(get_setting($setting)).'">';
 		echo '</td></tr></table></td></tr>';
 	}
 	thr();
@@ -1805,10 +1805,10 @@ function send_profile($arg=''){
 	thr();
 	preg_match('/#([0-9a-f]{6})/i', $U['style'], $matches);
 	echo "<tr><td><table class=\"left-table\"><tr><td><b>$I[fontcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&amp;session=$U[session]&amp;lang=$language\" target=\"view\">$I[viewexample]</a>)</td><td class=\"right\">";
-	echo "<input type=\"text\" size=\"6\" maxlength=\"6\" pattern=\"[a-fA-F0-9]{6}\" value=\"$matches[1]\" name=\"colour\"></td></tr></table></td></tr>";
+	echo "<input type=\"color\" value=\"#$matches[1]\" name=\"colour\"></td></tr></table></td></tr>";
 	thr();
 	echo "<tr><td><table class=\"left-table\"><tr><td><b>$I[bgcolour]</b> (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&amp;session=$U[session]&amp;lang=$language\" target=\"view\">$I[viewexample]</a>)</td><td class=\"right\">";
-	echo "<input type=\"text\" size=\"6\" maxlength=\"6\" pattern=\"[a-fA-F0-9]{6}\" value=\"$U[bgcolour]\" name=\"bgcolour\"></td></tr></table></td></tr>";
+	echo "<input type=\"color\" value=\"#$U[bgcolour]\" name=\"bgcolour\"></td></tr></table></td></tr>";
 	thr();
 	if($U['status']>=3){
 		echo "<tr><td><table class=\"left-table\"><tr><th>$I[fontface]</th><td><table class=\"right-table\">";
@@ -2610,14 +2610,14 @@ function amend_profile(){
 	}elseif($U['refresh']>150){
 		$U['refresh']=150;
 	}
-	if(preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colour'])){
-		$U['colour']=$_REQUEST['colour'];
+	if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST['colour'], $match)){
+		$U['colour']=$match[1];
 	}else{
 		preg_match('/#([0-9a-f]{6})/i', $U['style'], $matches);
 		$U['colour']=$matches[1];
 	}
-	if(preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['bgcolour'])){
-		$U['bgcolour']=$_REQUEST['bgcolour'];
+	if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST['bgcolour'], $match)){
+		$U['bgcolour']=$match[1];
 	}
 	$fonttags='';
 	if($U['status']>=3 && isSet($_REQUEST['bold'])){
@@ -3220,6 +3220,13 @@ function save_setup($C){
 	foreach($C['number_settings'] as $setting){
 		settype($_REQUEST[$setting], 'int');
 	}
+	foreach($C['colour_settings'] as $setting){
+		if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST[$setting], $match)){
+			$_REQUEST[$setting]=$match[1];
+		}else{
+			unset($_REQUEST[$setting]);
+		}
+	}
 	settype($_REQUEST['guestaccess'], 'int');
 	if(!preg_match('/^[01234]$/', $_REQUEST['guestaccess'])){
 		unset($_REQUEST['guestaccess']);
@@ -3237,12 +3244,6 @@ function save_setup($C){
 	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $_REQUEST['rulestxt']);
 	$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
 	$_REQUEST['redirect']=htmlspecialchars($_REQUEST['redirect']);
-	if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colbg'])){
-		unset($_REQUEST['colbg']);
-	}
-	if(!preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['coltxt'])){
-		unset($_REQUEST['coltxt']);
-	}
 	if($_REQUEST['memberexpire']<5){
 		$_REQUEST['memberexpire']=5;
 	}
