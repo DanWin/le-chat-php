@@ -2896,6 +2896,7 @@ function apply_filter(){
 		$U['displaysend']=style_this(htmlspecialchars($U['nickname']), $U['style']);
 		$U['message']=preg_replace("~^/me~i", '', $U['message']);
 	}
+	$U['message']=str_replace('<br>', "\n", $U['message']);
 	$U['message']=preg_replace_callback('/\@([^\s]+)/i', function ($matched){
 		global $db;
 		$nick=$matched[1];
@@ -2933,7 +2934,6 @@ function apply_filter(){
 		}
 		return "$matched[0]";
 	}, $U['message']);
-	$U['message']=str_replace('<br>', "\n", $U['message']);
 	$filters=get_filters();
 	foreach($filters as $filter){
 		if($U['poststatus']!==9 || !$filter['allowinpm']){
