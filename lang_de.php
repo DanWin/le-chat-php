@@ -328,7 +328,7 @@ $T=array(
 	'fatalerror' => 'Fataler Fehler',
 	'prevmatch' => 'Ihr regex war folgender',
 	'matchtoolong' => 'Ihr Match war zu lang. Sie können max. 255 Zeichen benutzen. Versuchen Sie diesen aufzuteilen.',
-	'nocache' => 'Neulade-Hack für alte Browser hinzufügen.<br>Aktivieren Sie dies, falls Neuladen nicht funktioniert oder<br>für automatisches scrollen, wenn Narchrichten von oben nach unten sortiert sind.',
+	'nocache' => 'Neulade-Hack für alte Browser hinzufügen.<br>Aktivieren Sie dies, falls Neuladen nicht funktioniert<br>oder für automatisches scrollen.',
 	'disablepm' => 'Private Nachrichten deaktivieren',
 	'disablechat' => 'Chat deaktivieren',
 	'disabletext' => 'Chat deaktiviert Nachricht (html)',
@@ -355,7 +355,7 @@ $T=array(
 	'enablegreeting' => 'Zeige eine Begrüßungsnachricht an, befor die Nachrichten geladen werden',
 	'unban' => 'Entsperren',
 	'sortupdown' => 'Nachrichten von oben nach unten sortieren',
-	'sortframe' => 'Frames sortieren',
+	'sortframe' => 'Umordnen',
 	'cs' => 'Groß-/Kleinschreibung beachten',
 	'hidechatters' => 'Teilnehmerlist ausblenden',
 );

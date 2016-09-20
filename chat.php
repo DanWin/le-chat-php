@@ -1329,11 +1329,25 @@ function send_linkfilter($arg=''){
 }
 
 function send_frameset(){
-	global $H, $I, $U, $language;
+	global $H, $I, $U, $db, $language;
 	echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\"><html><head>$H[meta_html]";
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
 	echo '</head>';
+	if(isset($_REQUEST['sort'])){
+		if($_REQUEST['sort']==1){
+			$U['sortupdown']=1;
+			$U['nocache']=1;
+		}else{
+			$U['sortupdown']=0;
+		}
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET sortupdown=?, nocache=? WHERE nickname=?;');
+		$stmt->execute([$U['sortupdown'], $U['nocache'], $U['nickname']]);
+		if($U['status']>1){
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET sortupdown=?, nocache=? WHERE nickname=?;');
+			$stmt->execute([$U['sortupdown'], $U['nocache'], $U['nickname']]);
+		}
+	}
 	if($U['sortupdown']){
 		$bottom='#bottom';
 	}else{
@@ -1793,7 +1807,7 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table class=\"left-table\"><tr><th>$I[ignore]</th><td class=\"right\">";
 	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (messages.poster=sessions.nickname) WHERE poster!=? AND (status<=? OR status<=3) AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
+	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (' .  PREFIX . 'messages.poster=' . PREFIX . 'sessions.nickname) WHERE poster!=? AND (status<=? OR status<=3) AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
 	$stmt->execute([$U['nickname'], $U['status'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
@@ -3439,6 +3453,8 @@ function init_chat(){
 	}elseif($_REQUEST['supass']!==$_REQUEST['supassc']){
 		$suwrite=$I['noconfirm'];
 	}else{
+		ignore_user_abort(true);
+		set_time_limit(0);
 		if(DBDRIVER===0){//MySQL
 			$memengine=' ENGINE=MEMORY';
 			$diskengine=' ENGINE=InnoDB';

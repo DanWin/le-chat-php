@@ -328,7 +328,7 @@ $I=array(
 	'fatalerror' => 'Fatal error',
 	'prevmatch' => 'Your match was as follows',
 	'matchtoolong' => 'Your match was too long. You can use max. 255 characters. Try splitting it up.',
-	'nocache' => 'Add refresh hack for old browsers.<br>Enable, if refreshing doesn\'t work or<br>for autoscrolling when sorting messages top to bottom.',
+	'nocache' => 'Add refresh hack for old browsers.<br>Enable, if refreshing doesn\'t work<br>or for autoscrolling.',
 	'disablepm' => 'Disable private messages',
 	'disablechat' => 'Disable chat',
 	'disabletext' => 'Chat disabled message (html)',
@@ -355,7 +355,7 @@ $I=array(
 	'enablegreeting' => 'Show a greeting message before showing the messages',
 	'unban' => 'Unban',
 	'sortupdown' => 'Sort messages from top to bottom',
-	'sortframe' => 'Sort frames',
+	'sortframe' => 'Rearrange',
 	'cs' => 'Case sensitive',
 	'hidechatters' => 'Hide list of chatters',
 );
