@@ -358,5 +358,10 @@ $T=array(
 	'sortframe' => 'Umordnen',
 	'cs' => 'Groß-/Kleinschreibung beachten',
 	'hidechatters' => 'Teilnehmerlist ausblenden',
+	'enfileupload' => 'Dateien hochladen aktivieren',
+	'msgattache' => 'Anhang',
+	'filenotfound' => 'Datei nicht gefunden!',
+	'maxuploadsize' => 'Maximal hochgeladene Dateigröße in KB',
+	'maxsize' => 'Max %d KB',
 );
 ?>

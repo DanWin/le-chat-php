@@ -142,6 +142,8 @@ function route(){
 			clean_inbox_selected();
 		}
 		send_inbox();
+	}elseif($_REQUEST['action']==='download'){
+		send_download();
 	}elseif($_REQUEST['action']==='admin'){
 		check_session();
 		send_admin(route_admin());
@@ -230,10 +232,10 @@ function route_setup(){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters');
+	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'enfileupload');
 	$C['colour_settings']=array('colbg', 'coltxt');
-	$C['msg_settings']=array('msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv');
-	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes');
+	$C['msg_settings']=array('msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv', 'msgattache');
+	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize');
 	$C['textarea_settings']=array('rulestxt', 'css', 'disabletext');
 	$C['text_settings']=array('dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss');
 	$C['settings']=array_merge(array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'), $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
@@ -1032,8 +1034,8 @@ function send_admin($arg=''){
 
 function send_sessions(){
 	global $H, $I, $U, $db;
-	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE entry!=0 AND (incognito=0 OR status<?) ORDER BY status DESC, lastpost DESC;');
-	$stmt->execute(array($U['status']));
+	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE entry!=0 AND (incognito=0 OR status<? OR nickname=?) ORDER BY status DESC, lastpost DESC;');
+	$stmt->execute([$U['status'], $U['nickname']]);
 	if(!$lines=$stmt->fetchAll(PDO::FETCH_ASSOC)){
 		$lines=[];
 	}
@@ -1354,7 +1356,7 @@ function send_frameset(){
 		$bottom='';
 	}
 	if((!isset($_REQUEST['sort']) && !$U['sortupdown']) || (isset($_REQUEST['sort']) && $_REQUEST['sort']==0)){
-		echo '<frameset rows="100,*,50" border="3" frameborder="3" framespacing="3">';
+		echo '<frameset rows="120,*,45" border="3" frameborder="3" framespacing="3">';
 		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
 		if(get_setting('enablegreeting')){
 			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
@@ -1363,7 +1365,7 @@ function send_frameset(){
 		}
 		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language&sort=1\">";
 	}else{
-		echo '<frameset rows="50,*,100" border="3" frameborder="3" framespacing="3">';
+		echo '<frameset rows="45,*,120" border="3" frameborder="3" framespacing="3">';
 		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language&sort=0\">";
 		if(get_setting('enablegreeting')){
 			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
@@ -1657,7 +1659,7 @@ function send_post(){
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	echo '<table style="border-spacing:0px;"><tr style="vertical-align:top;"><td>'.style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
+	echo '<table class="center-table" style="border-spacing:0px;"><tr style="vertical-align:top;"><td><table class="center-table" style="border-spacing:0px;"><tr style="vertical-align:top;"><td>'.style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
 	if(!isSet($U['rejected'])){
 		$U['rejected']='';
 	}
@@ -1716,12 +1718,18 @@ function send_post(){
 			}
 		}
 	}
-	echo '</select>';
-	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick')))){
-		echo "<input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\"><label for=\"kick\">$I[kick]</label>";
-		echo "<input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked><label for=\"what\">$I[alsopurge]</label>";
+	echo '</select></td>';
+	if(get_setting('enfileupload')){
+		if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick')))){
+			echo '</tr></table><table class="center-table" style="border-spacing:0px;"><tr>';
+		}
+		printf("<td><input type=\"file\" name=\"file\"><small>$I[maxsize]</small></td>", get_setting('maxuploadsize'));
 	}
-	echo '</td></tr></table></form></td></tr><tr><td style="height:8px;"></td></tr><tr><td><table class="center-table" style="border-spacing:0px;"><tr><td>';
+	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick')))){
+		echo "<td><input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\"><label for=\"kick\">$I[kick]</label></td>";
+		echo "<td><input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked><label for=\"what\">$I[alsopurge]</label></td>";
+	}
+	echo '</tr></table></td></tr></table></form></td></tr><tr><td><table class="center-table" style="border-spacing:0px;"><tr><td>';
 	frmpst('delete');
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
@@ -1957,6 +1965,26 @@ function send_controls(){
 	echo "<td><$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'logout').submit($I['exit'], 'id="exitbutton"').'</form></td>';
 	echo '</tr></table>';
 	print_end();
+}
+
+function send_download(){
+	global $I, $db;
+	if(isset($_REQUEST['id'])){
+		$stmt=$db->prepare('SELECT filename, type, data FROM ' . PREFIX . 'files WHERE hash=?;');
+		$stmt->execute([$_REQUEST['id']]);
+		if($data=$stmt->fetch(PDO::FETCH_ASSOC)){
+			header("Content-Type: $data[type]");
+			header("Content-disposition: filename=$data[filename]");
+			header('Pragma: no-cache');
+			header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+			header('Expires: 0');
+			echo base64_decode($data['data']);
+		}else{
+			send_error($I['filenotfound']);
+		}
+	}else{
+		send_error($I['filenotfound']);
+	}
 }
 
 function send_logout(){
@@ -2305,6 +2333,7 @@ function kill_session(){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
 		$stmt->execute(array($U['nickname'], $U['nickname']));
 		$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}elseif($U['status']>=3 && !$U['incognito']){
 		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
 	}
@@ -2327,7 +2356,7 @@ function kick_chatter($names, $mes, $purge){
 	}
 	$i=0;
 	foreach($names as $name){
-		$check->execute([$name, $U['status'], $name]);
+		$check->execute([$name, $U['status'], $U['nickname']]);
 		if($temp=$check->fetch(PDO::FETCH_NUM)){
 			$stmt->execute(array($time, $mes, $name));
 			if($purge){
@@ -2381,6 +2410,7 @@ function logout_chatter($names){
 		}
 	}
 	$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
 function check_session(){
@@ -2451,6 +2481,7 @@ function parse_sessions(){
 			}
 		}
 		$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 	// look for our session
 	if(isSet($_REQUEST['session'])){
@@ -2489,6 +2520,9 @@ function delete_account(){
 		$stmt->execute(array($U['nickname']));
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
 		$stmt->execute(array($U['nickname']));
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
+		$stmt->execute(array($U['nickname']));
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 		$U['status']=1;
 	}
 }
@@ -2582,6 +2616,7 @@ function change_status($nick, $status){
 		$stmt->execute(array($nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute(array($nick));
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 		return sprintf($I['succdel'], style_this(htmlspecialchars($nick), $old[1]));
 	}else{
 		if($status<5){
@@ -2866,11 +2901,21 @@ function validate_input(){
 	apply_filter();
 	create_hotlinks();
 	apply_linkfilter();
+	if(isSet($_FILES['file']) && get_setting('enfileupload')){
+		if($_FILES['file']['error']===UPLOAD_ERR_OK && $_FILES['file']['size']<=(1024*get_setting('maxuploadsize'))){
+			$hash=sha1_file($_FILES['file']['tmp_name']);
+			$name=htmlspecialchars($_FILES['file']['name']);
+			$U['message']=sprintf(get_setting('msgattache'), "<a class=\"attachement\" href=\"$_SERVER[SCRIPT_NAME]?action=download&amp;id=$hash\" target=\"_blank\">$name</a>", $U['message']);
+		}
+	}
 	if(add_message()){
 		$U['lastpost']=time();
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
 		$stmt->execute(array($U['lastpost'], $_REQUEST['postid'], $U['session']));
-		if($inbox){
+		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . "messages WHERE poster=? ORDER BY id DESC LIMIT 1");
+		$stmt->execute(array($U['nickname']));
+		$id=$stmt->fetch(PDO::FETCH_NUM);
+		if($inbox && $id){
 			$message=array(
 				'postdate'	=>time(),
 				'poster'	=>$U['nickname'],
@@ -2880,12 +2925,18 @@ function validate_input(){
 			if(MSGENCRYPTED){
 				$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 			}
-			$stmt=$db->prepare('SELECT id FROM ' . PREFIX . "messages WHERE poster=? ORDER BY id DESC LIMIT 1");
-			$stmt->execute(array($U['nickname']));
-			if($id=$stmt->fetch(PDO::FETCH_NUM)){
-				$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?)');
-				$stmt->execute(array($message['postdate'], $id[0], $message['poster'], $message['recipient'], $message['text']));
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?)');
+			$stmt->execute(array($message['postdate'], $id[0], $message['poster'], $message['recipient'], $message['text']));
+		}
+		if(isset($hash) && $id){
+			if(!empty($_FILES['file']['type'])){
+				$type=$_FILES['file']['type'];
+			}else{
+				$type='application/octet-stream';
 			}
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'files (postid, hash, filename, type, data) VALUES (?, ?, ?, ?, ?);');
+			$stmt->execute([$id[0], $hash, rawurlencode($_FILES['file']['name']), $type, base64_encode(file_get_contents($_FILES['file']['tmp_name']))]);
+			unlink($_FILES['file']['tmp_name']);
 		}
 	}
 }
@@ -3069,6 +3120,7 @@ function write_message($message){
 	if($id=$stmt->fetch(PDO::FETCH_NUM)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id<=?;');
 		$stmt->execute(array($id[0]));
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 	if($message['poststatus']<9 && get_setting('sendmail')){
 		$subject='New Chat message';
@@ -3081,8 +3133,8 @@ function write_message($message){
 function clean_room(){
 	global $db;
 	$db->query('DELETE FROM ' . PREFIX . 'messages;');
-	$msg=get_setting('msgclean');
-	add_system_message(sprintf($msg, get_setting('chatname')));
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+	add_system_message(sprintf(get_setting('msgclean'), get_setting('chatname')));
 }
 
 function clean_selected($status, $nick){
@@ -3092,6 +3144,7 @@ function clean_selected($status, $nick){
 		foreach($_REQUEST['mid'] as $mid){
 			$stmt->execute(array($mid, $nick, $nick, $status, $status));
 		}
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 }
 
@@ -3102,6 +3155,7 @@ function clean_inbox_selected(){
 		foreach($_REQUEST['mid'] as $mid){
 			$stmt->execute(array($mid, $U['nickname']));
 		}
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 }
 
@@ -3114,6 +3168,7 @@ function del_all_messages($nick, $entry){
 	$stmt->execute(array($nick, $entry));
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=?;');
 	$stmt->execute(array($nick));
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
 function del_last_message(){
@@ -3129,6 +3184,8 @@ function del_last_message(){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=?;');
 		$stmt->execute(array($id[0]));
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE postid=?;');
+		$stmt->execute(array($id[0]));
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'files WHERE postid=?;');
 		$stmt->execute(array($id[0]));
 	}
 }
@@ -3160,6 +3217,7 @@ function print_messages($delstatus=0){
 	$time=time();
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages WHERE postdate<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='messageexpire'))) AS t);");
 	$stmt->execute([$time]);
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	echo '<div id="messages">';
 	if($delstatus>0){
 		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
@@ -3414,6 +3472,7 @@ function destroy_chat($C){
 	setcookie(COOKIENAME, false);
 	print_start('destory');
 	$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
+	$db->exec('DROP TABLE ' . PREFIX . 'files;');
 	$db->exec('DROP TABLE ' . PREFIX . 'filter;');
 	$db->exec('DROP TABLE ' . PREFIX . 'ignored;');
 	$db->exec('DROP TABLE ' . PREFIX . 'inbox;');
@@ -3460,41 +3519,45 @@ function init_chat(){
 			$diskengine=' ENGINE=InnoDB';
 			$charset=' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin';
 			$primary='integer PRIMARY KEY AUTO_INCREMENT';
+			$longtext='longtext';
 		}elseif(DBDRIVER===1){//PostgreSQL
 			$memengine='';
 			$diskengine='';
 			$charset='';
 			$primary='serial PRIMARY KEY';
+			$longtext='text';
 		}else{//SQLite
 			$memengine='';
 			$diskengine='';
 			$charset='';
 			$primary='integer PRIMARY KEY';
+			$longtext='text';
 		}
 		$db->exec('CREATE TABLE ' . PREFIX . "captcha (id $primary, time integer NOT NULL, code char(5) NOT NULL)$memengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "filter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(16000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "files (id $primary, postid integer NOT NULL UNIQUE, filename varchar(255) NOT NULL, hash char(40) NOT NULL, type varchar(255) NOT NULL, data $longtext NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'files_hash ON ' . PREFIX . 'files(hash);');
+		$db->exec('CREATE TABLE ' . PREFIX . "filter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace text NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "ignored (id $primary, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
-		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16000) NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_postid ON ' . PREFIX . 'inbox(postid);');
+		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
 		$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash char(32) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16000) NOT NULL, delstatus smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
-		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text varchar(16000) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash char(32) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL)$memengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'status ON ' . PREFIX . 'sessions(status);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'lastpost ON ' . PREFIX . 'sessions(lastpost);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
-		$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(16000) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value text NOT NULL)$diskengine$charset;");
 
-		$settings=array(array('guestaccess', '0'), array('globalpass', ''), array('englobalpass', '0'), array('captcha', '0'), array('dateformat', 'm-d H:i:s'), array('rulestxt', ''), array('msgencrypted', '0'), array('dbversion', DBVERSION), array('css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} .center-table{margin-left:auto;margin-right:auto;} body{text-align:center;} .left-table{width:100%;text-align:left;} .right{text-align:right;} .left{text-align:left;} .right-table{border-spacing:0px;margin-left:auto;} .padded{padding:5px;} #chatters{max-height:100px;overflow-y:auto;} .center{text-align:center;}'), array('memberexpire', '60'), array('guestexpire', '15'), array('kickpenalty', '10'), array('entrywait', '120'), array('messageexpire', '14400'), array('messagelimit', '150'), array('maxmessage', 2000), array('captchatime', '600'), array('colbg', '000000'), array('coltxt', 'FFFFFF'), array('maxname', '20'), array('minpass', '5'), array('defaultrefresh', '20'), array('dismemcaptcha', '0'), array('suguests', '0'), array('imgembed', '1'), array('timestamps', '1'), array('trackip', '0'), array('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), array('memkick', '1'), array('forceredirect', '0'), array('redirect', ''), array('incognito', '1'), array('chatname', 'My Chat'), array('topic', ''), array('msgsendall', $I['sendallmsg']), array('msgsendmem', $I['sendmemmsg']), array('msgsendmod', $I['sendmodmsg']), array('msgsendadm', $I['sendadmmsg']), array('msgsendprv', $I['sendprvmsg']), array('msgenter', $I['entermsg']), array('msgexit', $I['exitmsg']), array('msgmemreg', $I['memregmsg']), array('msgsureg', $I['suregmsg']), array('msgkick', $I['kickmsg']), array('msgmultikick', $I['multikickmsg']), array('msgallkick', $I['allkickmsg']), array('msgclean', $I['cleanmsg']), array('numnotes', '3'), array('mailsender', 'www-data <www-data@localhost>'), array('mailreceiver', 'Webmaster <webmaster@localhost>'), array('sendmail', '0'), array('modfallback', '1'), array('guestreg', '0'), array('disablepm', '0'), array('disabletext', "<h1>$I[disabledtext]</h1>"), array('defaulttz', '0'), array('eninbox', '0'), array('passregex', '.*'), array('nickregex', '^[A-Za-z0-9]*$'), array('externalcss', ''), array('enablegreeting', '0'), array('sortupdown', '0'), array('hidechatters', '0'));
+		$settings=[['guestaccess', '0'], ['globalpass', ''], ['englobalpass', '0'], ['captcha', '0'], ['dateformat', 'm-d H:i:s'], ['rulestxt', ''], ['msgencrypted', '0'], ['dbversion', DBVERSION], ['css', 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} input,select,textarea{color:#FFFFFF;background-color:#000000;} a img{width:15%} a:hover img{width:35%} .error{color:#FF0033;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} .center-table{margin-left:auto;margin-right:auto;} body{text-align:center;} .left-table{width:100%;text-align:left;} .right{text-align:right;} .left{text-align:left;} .right-table{border-spacing:0px;margin-left:auto;} .padded{padding:5px;} #chatters{max-height:100px;overflow-y:auto;} .center{text-align:center;}'], ['memberexpire', '60'], ['guestexpire', '15'], ['kickpenalty', '10'], ['entrywait', '120'], ['messageexpire', '14400'], ['messagelimit', '150'], ['maxmessage', 2000], ['captchatime', '600'], ['colbg', '000000'], ['coltxt', 'FFFFFF'], ['maxname', '20'], ['minpass', '5'], ['defaultrefresh', '20'], ['dismemcaptcha', '0'], ['suguests', '0'], ['imgembed', '1'], ['timestamps', '1'], ['trackip', '0'], ['captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'], ['memkick', '1'], ['forceredirect', '0'], ['redirect', ''], ['incognito', '1'], ['chatname', 'My Chat'], ['topic', ''], ['msgsendall', $I['sendallmsg']], ['msgsendmem', $I['sendmemmsg']], ['msgsendmod', $I['sendmodmsg']], ['msgsendadm', $I['sendadmmsg']], ['msgsendprv', $I['sendprvmsg']], ['msgenter', $I['entermsg']], ['msgexit', $I['exitmsg']], ['msgmemreg', $I['memregmsg']], ['msgsureg', $I['suregmsg']], ['msgkick', $I['kickmsg']], ['msgmultikick', $I['multikickmsg']], ['msgallkick', $I['allkickmsg']], ['msgclean', $I['cleanmsg']], ['numnotes', '3'], ['mailsender', 'www-data <www-data@localhost>'], ['mailreceiver', 'Webmaster <webmaster@localhost>'], ['sendmail', '0'], ['modfallback', '1'], ['guestreg', '0'], ['disablepm', '0'], ['disabletext', "<h1>$I[disabledtext]</h1>"], ['defaulttz', '0'], ['eninbox', '0'], ['passregex', '.*'], ['nickregex', '^[A-Za-z0-9]*$'], ['externalcss', ''], ['enablegreeting', '0'], ['sortupdown', '0'], ['hidechatters', '0'], ['enfileupload', '0'], ['msgattache', '%2$s [%1$s]'], ['maxuploadsize', '1024']];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
 			$stmt->execute($pair);
@@ -3531,10 +3594,24 @@ function update_db(){
 	if($dbversion<DBVERSION || get_setting('msgencrypted')!=MSGENCRYPTED){
 		ignore_user_abort(true);
 		set_time_limit(0);
-		if(DBDRIVER===1){//PostgreSQL
+		if(DBDRIVER===0){//MySQL
+			$memengine=' ENGINE=MEMORY';
+			$diskengine=' ENGINE=InnoDB';
+			$charset=' DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin';
+			$primary='integer PRIMARY KEY AUTO_INCREMENT';
+			$longtext='longtext';
+		}elseif(DBDRIVER===1){//PostgreSQL
+			$memengine='';
+			$diskengine='';
+			$charset='';
 			$primary='serial PRIMARY KEY';
+			$longtext='text';
 		}else{//SQLite
+			$memengine='';
+			$diskengine='';
+			$charset='';
 			$primary='integer PRIMARY KEY';
+			$longtext='text';
 		}
 		if($dbversion<2){
 			$db->exec('CREATE TABLE IF NOT EXISTS ' . PREFIX . "ignored (id integer unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT, ignored varchar(50) NOT NULL, `by` varchar(50) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
@@ -3716,7 +3793,7 @@ function update_db(){
 			$result=$olddb->query('SELECT filtermatch, filterreplace, allowinpm, regex, kick, cs FROM ' . PREFIX . 'filter;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'filter;');
-			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(16000) NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace text NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES(?, ?, ?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
@@ -3734,12 +3811,11 @@ function update_db(){
 			$result=$olddb->query('SELECT postdate, postid, poster, recipient, text FROM ' . PREFIX . 'inbox;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'inbox;');
-			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, postid integer NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
 			}
-			$db->exec('CREATE INDEX ' . PREFIX . 'inbox_postid ON ' . PREFIX . 'inbox(postid);');
 			$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 			$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
 			$result=$olddb->query('SELECT filtermatch, filterreplace, regex FROM ' . PREFIX . 'filter;');
@@ -3761,7 +3837,7 @@ function update_db(){
 			$result=$olddb->query('SELECT postdate, poststatus, poster, recipient, text, delstatus FROM ' . PREFIX . 'messages;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'messages;');
-			$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text varchar(16000) NOT NULL, delstatus smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES(?, ?, ?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
@@ -3773,7 +3849,7 @@ function update_db(){
 			$result=$olddb->query('SELECT type, lastedited, editedby, text FROM ' . PREFIX . 'notes;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'notes;');
-			$db->exec('CREATE TABLE ' . PREFIX . "notes (id integer PRIMARY KEY AUTO_INCREMENT, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text varchar(16000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "notes (id integer PRIMARY KEY AUTO_INCREMENT, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES(?, ?, ?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
@@ -3786,11 +3862,17 @@ function update_db(){
 			$result=$olddb->query('SELECT setting, value FROM ' . PREFIX . 'settings;');
 			$data=$result->fetchAll(PDO::FETCH_NUM);
 			$db->exec('DROP TABLE ' . PREFIX . 'settings;');
-			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value varchar(16000) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES(?, ?);');
 			foreach($data as $tmp){
 				$stmt->execute($tmp);
 			}
+		}
+		if($dbversion<33){
+			$db->exec('CREATE TABLE ' . PREFIX . "files (id $primary, postid integer NOT NULL UNIQUE, filename varchar(255) NOT NULL, hash char(40) NOT NULL, type varchar(255) NOT NULL, data $longtext NOT NULL)$diskengine$charset;");
+			$db->exec('CREATE INDEX ' . PREFIX . 'files_hash ON ' . PREFIX . 'files(hash);');
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('enfileupload', '0'), ('msgattache', '%2\$s [%1\$s]'), ('maxuploadsize', '1024');");
+			$db->exec('DELETE FROM ' . PREFIX . 'inbox WHERE recipient NOT IN (SELECT nickname FROM ' . PREFIX . 'members);'); // delete inbox of members who deleted themselves
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
@@ -3933,7 +4015,7 @@ function load_fonts(){
 function load_html(){
 	global $H, $I, $language;
 	$H=array(// default HTML
-		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" method=\"post\"",
+		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\"",
 		'meta_html'	=>'<meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">',
 		'credit'	=>'<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>',
 		'commonform'	=>hidden('lang', $language).hidden('nc', substr(time(), -6))
@@ -3982,7 +4064,7 @@ function load_config(){
 	date_default_timezone_set('UTC');
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.21'); // Script version
-	define('DBVERSION', 32); // Database layout version
+	define('DBVERSION', 33); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host

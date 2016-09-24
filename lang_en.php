@@ -358,5 +358,10 @@ $I=array(
 	'sortframe' => 'Rearrange',
 	'cs' => 'Case sensitive',
 	'hidechatters' => 'Hide list of chatters',
+	'enfileupload' => 'Enable file uploads',
+	'msgattache' => 'Attachement',
+	'filenotfound' => 'File not found!',
+	'maxuploadsize' => 'Maximum upload size in KB',
+	'maxsize' => 'Max %d KB',
 );
 ?>
