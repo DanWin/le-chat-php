@@ -2997,8 +2997,8 @@ function apply_filter(){
 			if(strlen($nick)===1){
 				break;
 			}
-			$rest=substr($nick, -1).$rest;
-			$nick=substr($nick, 0, -1);
+			$rest=mb_substr($nick, -1).$rest;
+			$nick=mb_substr($nick, 0, -1);
 		}
 		return "$matched[0]";
 	}, $U['message']);

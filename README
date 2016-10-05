@@ -39,7 +39,7 @@ You'll need to have php with pdo, pcre, mbstring and date extension and a web-se
 You will also need the pdo_sqlite, pdo_mysql or pdo_pgsql extension, depending on which database you choose.
 Optionally, you can install:
 - the gd extension for the captcha feature
-- the json extension for save/restore and a JavaScript helper for clients with enabled JavaScript.
+- the json extension for save/restore
 - a memcached server and the memcached extension and change the configuaration to use memcached. This will lessen the database load a bit.
 - a MySQL or PostgreSQL server to use as an external database instead of SQLite
 - the openssl extension for encryption of messages and notes in the database
@@ -78,5 +78,5 @@ If you never used regex before, check out this starting guide to begin with regu
 LIVE DEMO:
 
 If you want to see the script in action, you can visit my TOR hidden service http://tt3j2x4k5ycaa5zt.onion/chat.php or via a tor2web proxy like http://tt3j2x4k5ycaa5zt.onion.to/chat.php if you don't have TOR installed.
-Considering this is a hidden service, you should be prepared for the worst case, as people often tend to do illegal activities in the TOR network. I'm not online 24/7 so it might not be possible to remove such content right away.
+Considering this is a hidden service, you should be prepared for the worst case, as people tend to do illegal activities in the TOR network. I'm not online 24/7 so it might not be possible to remove such content right away.
 If you should see illegal content, don't panic. Use the contact form on my site to notify me and clean your browser cache afterwards.
