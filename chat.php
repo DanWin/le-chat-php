@@ -348,8 +348,8 @@ function print_start($class='', $ref=0, $url=''){
 function send_redirect($url){
 	global $I;
 	$url=htmlspecialchars_decode(rawurldecode($url));
-	preg_match('~^(.*)://~', $url, $match);
-	$url=preg_replace('~^(.*)://~', '', $url);
+	preg_match('~^(.*)://~u', $url, $match);
+	$url=preg_replace('~^(.*)://~u', '', $url);
 	$escaped=htmlspecialchars($url);
 	if(isSet($match[1]) && ($match[1]==='http' || $match[1]==='https')){
 		print_start('redirect', 0, $match[0].$escaped);
@@ -1135,7 +1135,7 @@ function check_filter_match(&$reg){
 		}
 		$reg=1;
 	}else{
-		$_REQUEST['match']=preg_replace('/([^\w\d])/', "\\\\$1", $_REQUEST['match']);
+		$_REQUEST['match']=preg_replace('/([^\w\d])/u', "\\\\$1", $_REQUEST['match']);
 		$reg=0;
 	}
 	if(mb_strlen($_REQUEST['match'])>255){
@@ -1271,7 +1271,7 @@ function send_filter($arg=''){
 			$checked=' checked';
 		}else{
 			$checked='';
-			$filter['match']=preg_replace('/(\\\\(.))/', "$2", $filter['match']);
+			$filter['match']=preg_replace('/(\\\\(.))/u', "$2", $filter['match']);
 		}
 		if($filter['kick']==1){
 			$checkedk=' checked';
@@ -1329,7 +1329,7 @@ function send_linkfilter($arg=''){
 			$checked=' checked';
 		}else{
 			$checked='';
-			$filter['match']=preg_replace('/(\\\\(.))/', "$2", $filter['match']);
+			$filter['match']=preg_replace('/(\\\\(.))/u', "$2", $filter['match']);
 		}
 		echo '<tr><td>';
 		frmadm('linkfilter');
@@ -2860,26 +2860,26 @@ function validate_input(){
 		$U['rejected']=$_REQUEST['message'];
 		$U['message']='';
 	}
-	if(preg_match('/&[^;]{0,8}$/', $U['message']) && preg_match('/^([^;]{0,8};)/', $U['rejected'], $match)){
+	if(preg_match('/&[^;]{0,8}$/u', $U['message']) && preg_match('/^([^;]{0,8};)/u', $U['rejected'], $match)){
 		$U['message'].=$match[0];
-		$U['rejected']=preg_replace("/^$match[0]/", '', $U['rejected']);
+		$U['rejected']=preg_replace("/^$match[0]/u", '', $U['rejected']);
 	}
 	if(!empty($U['rejected'])){
 		$U['rejected']=trim($U['rejected']);
 		$U['rejected']=htmlspecialchars($U['rejected']);
 	}
 	$U['message']=htmlspecialchars($U['message']);
-	$U['message']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $U['message']);
+	$U['message']=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $U['message']);
 	if(isSet($_REQUEST['multi'])){
-		$U['message']=preg_replace('/\s*<br>/', '<br>', $U['message']);
-		$U['message']=preg_replace('/<br>(<br>)+/', '<br><br>', $U['message']);
-		$U['message']=preg_replace('/<br><br>\s*$/', '<br>', $U['message']);
-		$U['message']=preg_replace('/^<br>\s*$/', '', $U['message']);
+		$U['message']=preg_replace('/\s*<br>/u', '<br>', $U['message']);
+		$U['message']=preg_replace('/<br>(<br>)+/u', '<br><br>', $U['message']);
+		$U['message']=preg_replace('/<br><br>\s*$/u', '<br>', $U['message']);
+		$U['message']=preg_replace('/^<br>\s*$/u', '', $U['message']);
 	}else{
 		$U['message']=str_replace('<br>', ' ', $U['message']);
 	}
 	$U['message']=trim($U['message']);
-	$U['message']=preg_replace('/\s+/', ' ', $U['message']);
+	$U['message']=preg_replace('/\s+/u', ' ', $U['message']);
 	$U['recipient']='';
 	if($_REQUEST['sendto']==='*'){
 		$U['poststatus']=1;
@@ -2960,12 +2960,12 @@ function validate_input(){
 
 function apply_filter(){
 	global $I, $U;
-	if($U['poststatus']!==9 && preg_match('~^/me~i', $U['message'])){
+	if($U['poststatus']!==9 && preg_match('~^/me~iu', $U['message'])){
 		$U['displaysend']=style_this(htmlspecialchars($U['nickname']), $U['style']);
-		$U['message']=preg_replace("~^/me~i", '', $U['message']);
+		$U['message']=preg_replace("~^/me~iu", '', $U['message']);
 	}
 	$U['message']=str_replace('<br>', "\n", $U['message']);
-	$U['message']=preg_replace_callback('/\@([^\s]+)/i', function ($matched){
+	$U['message']=preg_replace_callback('/\@([^\s]+)/iu', function ($matched){
 		global $db;
 		$nick=$matched[1];
 		$rest='';
@@ -3006,9 +3006,9 @@ function apply_filter(){
 	foreach($filters as $filter){
 		if($U['poststatus']!==9 || !$filter['allowinpm']){
 			if($filter['cs']){
-				$U['message']=preg_replace("/$filter[match]/", $filter['replace'], $U['message'], -1, $count);
+				$U['message']=preg_replace("/$filter[match]/u", $filter['replace'], $U['message'], -1, $count);
 			}else{
-				$U['message']=preg_replace("/$filter[match]/i", $filter['replace'], $U['message'], -1, $count);
+				$U['message']=preg_replace("/$filter[match]/iu", $filter['replace'], $U['message'], -1, $count);
 			}
 		}
 		if(isSet($count) && $count>0 && $filter['kick']){
@@ -3024,15 +3024,15 @@ function apply_linkfilter(){
 	global $U;
 	$filters=get_linkfilters();
 	foreach($filters as $filter){
-		$U['message']=preg_replace_callback("/<a href=\"([^\"]+)\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/i",
+		$U['message']=preg_replace_callback("/<a href=\"([^\"]+)\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/iu",
 			function ($matched) use(&$filter){
-				return "<a href=\"$matched[1]\" target=\"_blank\">".preg_replace("/$filter[match]/i", $filter['replace'], $matched[2]).'</a>';
+				return "<a href=\"$matched[1]\" target=\"_blank\">".preg_replace("/$filter[match]/iu", $filter['replace'], $matched[2]).'</a>';
 			}
 		, $U['message']);
 	}
 	$redirect=get_setting('redirect');
 	if(get_setting('imgembed')){
-		$U['message']=preg_replace_callback('/\[img\]\s?<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/i',
+		$U['message']=preg_replace_callback('/\[img\]\s?<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/iu',
 			function ($matched){
 				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\"><img src=\"$matched[1]\"></a><br>");
 			}
@@ -3042,15 +3042,15 @@ function apply_linkfilter(){
 		$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
 	}
 	if(get_setting('forceredirect')){
-		$U['message']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/',
+		$U['message']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/u',
 			function ($matched) use($redirect){
 				return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
 			}
 		, $U['message']);
-	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/', $U['message'], $matches)){
+	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/u', $U['message'], $matches)){
 		foreach($matches[1] as $match){
-			if(!preg_match('~^http(s)?://~', $match)){
-				$U['message']=preg_replace_callback('/<a href="('.str_replace('/', '\/', $match).')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/',
+			if(!preg_match('~^http(s)?://~u', $match)){
+				$U['message']=preg_replace_callback('/<a href="('.str_replace('/', '\/', $match).')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/u',
 					function ($matched) use($redirect){
 						return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
 					}
@@ -3064,16 +3064,16 @@ function create_hotlinks(){
 	global $U;
 	//Make hotlinks for URLs, redirect through dereferrer script to prevent session leakage
 	// 1. all explicit schemes with whatever xxx://yyyyyyy
-	$U['message']=preg_replace('~(^|[^\w"])(\w+://[^\s<>]+)~i', "$1<<$2>>", $U['message']);
+	$U['message']=preg_replace('~(^|[^\w"])(\w+://[^\s<>]+)~iu', "$1<<$2>>", $U['message']);
 	// 2. valid URLs without scheme:
-	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d*)?/[^\s<>]*)(?![^<>]*>)~i', "<<$1>>", $U['message']); // server/path given
-	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+:\d+)(?![^<>]*>)~i', "<<$1>>", $U['message']); // server:port given
-	$U['message']=preg_replace('~([^\s<>]*:[^\s<>]*@[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d+)?)(?![^<>]*>)~i', "<<$1>>", $U['message']); // au:th@server given
+	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d*)?/[^\s<>]*)(?![^<>]*>)~iu', "<<$1>>", $U['message']); // server/path given
+	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+:\d+)(?![^<>]*>)~iu', "<<$1>>", $U['message']); // server:port given
+	$U['message']=preg_replace('~([^\s<>]*:[^\s<>]*@[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d+)?)(?![^<>]*>)~iu', "<<$1>>", $U['message']); // au:th@server given
 	// 3. likely servers without any hints but not filenames like *.rar zip exe etc.
-	$U['message']=preg_replace('~((?:[a-z0-9\-]+\.)*[a-z2-7]{16}\.onion)(?![^<>]*>)~i', "<<$1>>", $U['message']);// *.onion
-	$U['message']=preg_replace('~([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\.(?!rar|zip|exe|gz|7z|bat|doc)[a-z]{2,}))(?=[^a-z0-9\-\.]|$)(?![^<>]*>)~i', "<<$1>>", $U['message']);// xxx.yyy.zzz
+	$U['message']=preg_replace('~((?:[a-z0-9\-]+\.)*[a-z2-7]{16}\.onion)(?![^<>]*>)~iu', "<<$1>>", $U['message']);// *.onion
+	$U['message']=preg_replace('~([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\.(?!rar|zip|exe|gz|7z|bat|doc)[a-z]{2,}))(?=[^a-z0-9\-\.]|$)(?![^<>]*>)~iu', "<<$1>>", $U['message']);// xxx.yyy.zzz
 	// Convert every <<....>> into proper links:
-	$U['message']=preg_replace_callback('/<<([^<>]+)>>/',
+	$U['message']=preg_replace_callback('/<<([^<>]+)>>/u',
 		function ($matches){
 			if(strpos($matches[1], '://')===false){
 				return "<a href=\"http://$matches[1]\" target=\"_blank\">$matches[1]</a>";
@@ -3270,7 +3270,7 @@ function prepare_message_print(&$message, $removeEmbed){
 		$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 	}
 	if($removeEmbed){
-		$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/',
+		$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/u',
 			function ($matched){
 				return "$matched[1]</a>";
 			}
@@ -3330,7 +3330,7 @@ function save_setup($C){
 	if($_REQUEST['defaulttz']<-12 || $_REQUEST['defaulttz']>14){
 		unset($_REQUEST['defaulttz']);
 	}
-	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/", '<br>', $_REQUEST['rulestxt']);
+	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $_REQUEST['rulestxt']);
 	$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
 	$_REQUEST['redirect']=htmlspecialchars($_REQUEST['redirect']);
 	if($_REQUEST['memberexpire']<5){
@@ -3392,19 +3392,19 @@ function valid_nick($nick){
 	if($len<1 || $len>get_setting('maxname')){
 		return false;
 	}
-	return preg_match('/'.get_setting('nickregex').'/', $nick);
+	return preg_match('/'.get_setting('nickregex').'/u', $nick);
 }
 
 function valid_pass($pass){
 	if(mb_strlen($pass)<get_setting('minpass')){
 		return false;
 	}
-	return preg_match('/'.get_setting('passregex').'/', $pass);
+	return preg_match('/'.get_setting('passregex').'/u', $pass);
 }
 
 function valid_regex(&$regex){
-	$regex=preg_replace('~(^|[^\\\\])/~', "$1\/", $regex); // Escape "/" if not yet escaped
-	return (@preg_match("/$_REQUEST[match]/", '') !== false);
+	$regex=preg_replace('~(^|[^\\\\])/~', "$1\/u", $regex); // Escape "/" if not yet escaped
+	return (@preg_match("/$_REQUEST[match]/u", '') !== false);
 }
 
 function get_timeout($lastpost, $expire){
@@ -3524,7 +3524,7 @@ function init_chat(){
 		}
 	}elseif(!preg_match('/^[a-z0-9]{1,20}$/i', $_REQUEST['sunick'])){
 		$suwrite=sprintf($I['invalnick'], 20, '^[A-Za-z1-9]*$');
-	}elseif(!preg_match('/^.{5,}$/', $_REQUEST['supass'])){
+	}elseif(mb_strlen($_REQUEST['supass'])<5){
 		$suwrite=sprintf($I['invalpass'], 5, '.*');
 	}elseif($_REQUEST['supass']!==$_REQUEST['supassc']){
 		$suwrite=$I['noconfirm'];
