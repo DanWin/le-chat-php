@@ -172,7 +172,7 @@ $T=array(
 	'notes' => 'Notizen',
 	'clone' => 'Klonen',
 	'randh' => 'Regeln & Hilfe',
-	'exit' => 'Chat verlassen',
+	'exit' => 'Verlassen',
 	'bye' => 'Auf Wiedersehen %s, besuche uns bald wieder!',
 	'colourtable' => 'Farbtabelle',
 	'backtoprofile' => 'Zurück zu Ihrem Profil',
@@ -328,7 +328,7 @@ $T=array(
 	'fatalerror' => 'Fataler Fehler',
 	'prevmatch' => 'Ihr regex war folgender',
 	'matchtoolong' => 'Ihr Match war zu lang. Sie können max. 255 Zeichen benutzen. Versuchen Sie diesen aufzuteilen.',
-	'nocache' => 'Neulade-Hack für alte Browser hinzufügen.<br>Aktivieren Sie dies, falls Neuladen nicht funktioniert<br>oder für automatisches scrollen.',
+	'nocache' => 'Autoscrollen (für alte Browser oder oben nach unten Sortierung).',
 	'disablepm' => 'Private Nachrichten deaktivieren',
 	'disablechat' => 'Chat deaktivieren',
 	'disabletext' => 'Chat deaktiviert Nachricht (html)',
@@ -363,5 +363,6 @@ $T=array(
 	'filenotfound' => 'Datei nicht gefunden!',
 	'maxuploadsize' => 'Maximal hochgeladene Dateigröße in KB',
 	'maxsize' => 'Max %d KB',
+	'cssupdate' => 'Hinweis: Standard CSS ist jetzt hardcoded und kann aus der CSS Einstellung entfernt werden',
 );
 ?>

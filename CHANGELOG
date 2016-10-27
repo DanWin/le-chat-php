@@ -1,3 +1,4 @@
+Version 1.22 - Oct. 29, 2016
 Add logout button to session view and allow unbanning kicked sessions
 Allow changing message sort direction
 Don't escape CSS (fixes use of html entities)
@@ -7,7 +8,7 @@ Add option to hide the list of chatters
 Make nicknames in the chatters list clickable to send PMs more easily
 Add better multi-byte character support - New dependency: mbstring extension
 Don't send messages to inbox when in incognito
-Remove up to two characters from the end of @mention to also match @mention, etc.
+Remove up to three characters from the end of @mention to also match @mention, etc.
 Make colour input use colorChooser, if supported
 Add integrated file upload support
 Allow making CSS more unique, by adding more ids/classes and allowing to over-write hardcoded CSS

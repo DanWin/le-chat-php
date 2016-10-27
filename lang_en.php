@@ -328,7 +328,7 @@ $I=array(
 	'fatalerror' => 'Fatal error',
 	'prevmatch' => 'Your match was as follows',
 	'matchtoolong' => 'Your match was too long. You can use max. 255 characters. Try splitting it up.',
-	'nocache' => 'Add refresh hack for old browsers.<br>Enable, if refreshing doesn\'t work<br>or for autoscrolling.',
+	'nocache' => 'Autoscroll (for old browsers or top-to-bottom sort).',
 	'disablepm' => 'Disable private messages',
 	'disablechat' => 'Disable chat',
 	'disabletext' => 'Chat disabled message (html)',
@@ -363,5 +363,6 @@ $I=array(
 	'filenotfound' => 'File not found!',
 	'maxuploadsize' => 'Maximum upload size in KB',
 	'maxsize' => 'Max %d KB',
+	'cssupdate' => 'Note: Default CSS is now hardcoded and can be removed from the CSS setting',
 );
 ?>
