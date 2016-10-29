@@ -2352,8 +2352,6 @@ function kill_session(){
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
 	$stmt->execute(array($U['session']));
 	if($U['status']==1){
-		$stmt=$db->prepare('UPDATE ' . PREFIX . "inbox SET poster='' WHERE poster=?;");
-		$stmt->execute(array($U['nickname']));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
 		$stmt->execute(array($U['nickname']));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");
@@ -2371,7 +2369,7 @@ function kick_chatter($names, $mes, $purge){
 	global $U, $db;
 	$lonick='';
 	$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
-	$check=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE nickname=? AND status!=0 AND (status<? OR nickname=?);');
+	$check=$db->prepare('SELECT style, entry FROM ' . PREFIX . 'sessions WHERE nickname=? AND status!=0 AND (status<? OR nickname=?);');
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=?;');
 	$all=false;
 	if($names[0]==='s &'){
@@ -2385,12 +2383,12 @@ function kick_chatter($names, $mes, $purge){
 	$i=0;
 	foreach($names as $name){
 		$check->execute([$name, $U['status'], $U['nickname']]);
-		if($temp=$check->fetch(PDO::FETCH_NUM)){
-			$stmt->execute(array($time, $mes, $name));
+		if($temp=$check->fetch(PDO::FETCH_ASSOC)){
+			$stmt->execute([$time, $mes, $name]);
 			if($purge){
-				del_all_messages($name, 0);
+				del_all_messages($name, $temp['entry']);
 			}
-			$lonick.=style_this(htmlspecialchars($name), $temp[0]).', ';
+			$lonick.=style_this(htmlspecialchars($name), $temp['style']).', ';
 			++$i;
 		}
 	}
@@ -2417,7 +2415,6 @@ function logout_chatter($names){
 	$stmt1=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
 	$stmt2=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");
 	$stmt3=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
-	$stmt4=$db->prepare('UPDATE ' . PREFIX . "inbox SET poster='' WHERE poster=?;");
 	if($names[0]==='s &'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
@@ -2433,7 +2430,6 @@ function logout_chatter($names){
 				$stmt1->execute([$name]);
 				$stmt2->execute([$name]);
 				$stmt3->execute([$name, $name]);
-				$stmt4->execute([$name]);
 			}
 		}
 	}
@@ -2499,14 +2495,12 @@ function parse_sessions(){
 		$stmt1=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
 		$stmt2=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");
 		$stmt3=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
-		$stmt4=$db->prepare('UPDATE ' . PREFIX . "inbox SET poster='' WHERE poster=?;");
 		foreach($tmp as $temp){
 			$stmt->execute(array($temp['nickname']));
 			if($temp['status']<=1){
 				$stmt1->execute(array($temp['nickname']));
 				$stmt2->execute(array($temp['nickname']));
 				$stmt3->execute(array($temp['nickname'], $temp['nickname']));
-				$stmt4->execute(array($temp['nickname']));
 			}
 		}
 		$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
@@ -3195,10 +3189,10 @@ function del_all_messages($nick, $entry){
 	if($nick==''){
 		return;
 	}
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>?;');
-	$stmt->execute(array($nick, $entry));
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=?;');
-	$stmt->execute(array($nick));
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=?;');
+	$stmt->execute([$nick, $entry]);
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=? AND postdate>=?;');
+	$stmt->execute([$nick, $entry, $entry]);
 	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
