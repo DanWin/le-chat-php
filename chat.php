@@ -1000,13 +1000,14 @@ function send_admin($arg=''){
 				echo ' (!)';
 			}elseif($member[2]==2){
 				echo ' (G)';
+			}elseif($member[2]==3){
 			}elseif($member[2]==5){
 				echo ' (M)';
 			}elseif($member[2]==6){
 				echo ' (SM)';
 			}elseif($member[2]==7){
 				echo ' (A)';
-			}elseif($member[2]==8){
+			}else{
 				echo ' (SA)';
 			}
 			echo '</option>';
@@ -2352,13 +2353,8 @@ function kill_session(){
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
 	$stmt->execute(array($U['session']));
 	if($U['status']==1){
-		$stmt=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
-		$stmt->execute(array($U['nickname']));
-		$stmt=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");
-		$stmt->execute(array($U['nickname']));
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
 		$stmt->execute(array($U['nickname'], $U['nickname']));
-		$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}elseif($U['status']>=3 && !$U['incognito']){
 		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
@@ -2412,9 +2408,7 @@ function logout_chatter($names){
 	global $U, $db;
 	$check=$db->prepare('SELECT status FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<?;');
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
-	$stmt1=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
-	$stmt2=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");
-	$stmt3=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
+	$stmt1=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
 	if($names[0]==='s &'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
@@ -2427,13 +2421,10 @@ function logout_chatter($names){
 		if($temp=$check->fetch(PDO::FETCH_NUM)){
 			$stmt->execute([$name]);
 			if($temp[0]==1){
-				$stmt1->execute([$name]);
-				$stmt2->execute([$name]);
-				$stmt3->execute([$name, $name]);
+				$stmt1->execute([$name, $name]);
 			}
 		}
 	}
-	$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
 	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
@@ -2492,18 +2483,13 @@ function parse_sessions(){
 	$result->execute(array($time, $time));
 	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
-		$stmt1=$db->prepare('UPDATE ' . PREFIX . "messages SET poster='' WHERE poster=? AND poststatus=9;");
-		$stmt2=$db->prepare('UPDATE ' . PREFIX . "messages SET recipient='' WHERE recipient=? AND poststatus=9;");
-		$stmt3=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
+		$stmt1=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
 		foreach($tmp as $temp){
-			$stmt->execute(array($temp['nickname']));
+			$stmt->execute([$temp['nickname']]);
 			if($temp['status']<=1){
-				$stmt1->execute(array($temp['nickname']));
-				$stmt2->execute(array($temp['nickname']));
-				$stmt3->execute(array($temp['nickname'], $temp['nickname']));
+				$stmt1->execute([$temp['nickname'], $temp['nickname']]);
 			}
 		}
-		$db->exec('DELETE FROM ' . PREFIX . "messages WHERE poster='' AND recipient='' AND poststatus=9;");
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 	// look for our session
@@ -2937,7 +2923,7 @@ function validate_input(){
 		$U['lastpost']=time();
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
 		$stmt->execute(array($U['lastpost'], $_REQUEST['postid'], $U['session']));
-		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . "messages WHERE poster=? ORDER BY id DESC LIMIT 1");
+		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poster=? ORDER BY id DESC LIMIT 1;');
 		$stmt->execute(array($U['nickname']));
 		$id=$stmt->fetch(PDO::FETCH_NUM);
 		if($inbox && $id){
@@ -3141,10 +3127,10 @@ function write_message($message){
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES (?, ?, ?, ?, ?, ?);');
 	$stmt->execute(array($message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']));
 	$limit=get_setting('messagelimit');
-	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT 1 OFFSET $limit");
+	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT 1 OFFSET $limit;");
 	if($id=$stmt->fetch(PDO::FETCH_NUM)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id<=?;');
-		$stmt->execute(array($id[0]));
+		$stmt->execute($id);
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 	if($message['poststatus']<9 && get_setting('sendmail')){
@@ -3192,7 +3178,7 @@ function del_all_messages($nick, $entry){
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=?;');
 	$stmt->execute([$nick, $entry]);
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=? AND postdate>=?;');
-	$stmt->execute([$nick, $entry, $entry]);
+	$stmt->execute([$nick, $entry]);
 	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
@@ -3203,15 +3189,15 @@ function del_last_message(){
 	}else{
 		$entry=$U['entry'];
 	}
-	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>? ORDER BY id DESC LIMIT 1;');
-	$stmt->execute(array($U['nickname'], $entry));
+	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=? ORDER BY id DESC LIMIT 1;');
+	$stmt->execute([$U['nickname'], $entry]);
 	if($id=$stmt->fetch(PDO::FETCH_NUM)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=?;');
-		$stmt->execute(array($id[0]));
+		$stmt->execute($id);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE postid=?;');
-		$stmt->execute(array($id[0]));
+		$stmt->execute($id);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'files WHERE postid=?;');
-		$stmt->execute(array($id[0]));
+		$stmt->execute($id);
 	}
 }
 
@@ -3239,6 +3225,11 @@ function print_messages($delstatus=0){
 	}else{
 		$direction='DESC';
 	}
+	if($U['status']>1){
+		$entry=0;
+	}else{
+		$entry=$U['entry'];
+	}
 	$time=time();
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages WHERE postdate<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='messageexpire'))) AS t);");
 	$stmt->execute([$time]);
@@ -3246,8 +3237,8 @@ function print_messages($delstatus=0){
 	echo '<div id="messages">';
 	if($delstatus>0){
 		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
-		"(poststatus<? AND delstatus<?) OR poster=? OR recipient=? ORDER BY id $direction;");
-		$stmt->execute(array($U['status'], $delstatus, $U['nickname'], $U['nickname']));
+		"(poststatus<? AND delstatus<?) OR ((poster=? OR recipient=?) AND postdate>=?) ORDER BY id $direction;");
+		$stmt->execute([$U['status'], $delstatus, $U['nickname'], $U['nickname'], $entry]);
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 			prepare_message_print($message, $removeEmbed);
 			echo "<div class=\"msg\"><input type=\"checkbox\" name=\"mid[]\" id=\"$message[id]\" value=\"$message[id]\"><label for=\"$message[id]\">";
@@ -3258,9 +3249,9 @@ function print_messages($delstatus=0){
 		}
 	}else{
 		$stmt=$db->prepare('SELECT id, postdate, text FROM ' . PREFIX . 'messages WHERE (poststatus<=? OR '.
-		'(poststatus=9 AND ( (poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ) OR recipient=?) )'.
+		'(poststatus=9 AND ( (poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ) OR recipient=?) AND postdate>=?)'.
 		') AND poster NOT IN (SELECT ign FROM ' . PREFIX . "ignored WHERE ignby=?) ORDER BY id $direction;");
-		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $U['nickname']));
+		$stmt->execute([$U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname']]);
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 			prepare_message_print($message, $removeEmbed);
 			echo '<div class="msg">';
