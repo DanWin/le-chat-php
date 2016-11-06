@@ -1728,24 +1728,23 @@ function send_post(){
 	}
 	$disablepm=(bool) get_setting('disablepm');
 	if(!$disablepm){
-		$stmt=$db->prepare('SELECT nickname, style, status, incognito FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
-		$stmt->execute([$U['nickname'], $U['nickname']]);
+		$users=[];
+		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) UNION SELECT nickname, style, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0 UNION SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?)) AS t ORDER BY LOWER(nickname);');
+		$stmt->execute([$U['nickname'], $U['nickname'], $U['status'], $U['nickname'], $U['nickname']]);
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-			$users[$tmp['nickname']]=[$tmp['nickname'], $tmp['style'], $tmp['status'], $tmp['nickname']];
+			if($tmp['offline']){
+				$users[]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['nickname']];
+			}else{
+				$users[]=[$tmp['nickname'], $tmp['style'], $tmp['nickname']];
+			}
 		}
-		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-		$stmt->execute(array($U['status'], $U['nickname'], $U['nickname']));
-		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-			$users[$tmp['nickname']]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['status'], $tmp['nickname']];
-		}
-		sort_names($users);
 		foreach($users as $user){
-			if($U['nickname']!==$user[3]){
+			if($U['nickname']!==$user[2]){
 				echo '<option ';
-				if($_REQUEST['sendto']==$user[3]){
+				if($_REQUEST['sendto']==$user[2]){
 					echo 'selected ';
 				}
-				echo 'value="'.htmlspecialchars($user[3])."\" style=\"$user[1]\">".htmlspecialchars($user[0]).'</option>';
+				echo 'value="'.htmlspecialchars($user[2])."\" style=\"$user[1]\">".htmlspecialchars($user[0]).'</option>';
 			}
 		}
 	}
@@ -2146,7 +2145,7 @@ function print_chatters(){
 	global $I, $U, $db, $language;
 	if(!$U['hidechatters']){
 		echo '<div id="chatters"><table><tr>';
-		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
+		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
 		$stmt->execute([$U['nickname'], $U['nickname']]);
 		$nc=substr(time(), -6);
 		while($user=$stmt->fetch(PDO::FETCH_NUM)){
@@ -2355,7 +2354,7 @@ function kill_session(){
 	if($U['status']==1){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
 		$stmt->execute(array($U['nickname'], $U['nickname']));
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}elseif($U['status']>=3 && !$U['incognito']){
 		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
 	}
@@ -2425,7 +2424,7 @@ function logout_chatter($names){
 			}
 		}
 	}
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
 function check_session(){
@@ -2490,7 +2489,7 @@ function parse_sessions(){
 				$stmt1->execute([$temp['nickname'], $temp['nickname']]);
 			}
 		}
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 	// look for our session
 	if(isSet($_REQUEST['session'])){
@@ -2529,7 +2528,7 @@ function delete_account(){
 		$stmt->execute(array($U['nickname']));
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
 		$stmt->execute(array($U['nickname']));
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 		$U['status']=1;
 	}
 }
@@ -2622,7 +2621,7 @@ function change_status($nick, $status){
 		$stmt->execute(array($nick));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute(array($nick));
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 		return sprintf($I['succdel'], style_this(htmlspecialchars($nick), $old[1]));
 	}else{
 		if($status<5){
@@ -2891,17 +2890,13 @@ function validate_input(){
 		if(get_setting('disablepm')){
 			return;
 		}
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-		$stmt->execute(array($_REQUEST['sendto'], $U['status'], $U['nickname'], $U['nickname']));
-		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
-			$inbox=true;
-		}
-		$stmt=$db->prepare('SELECT style FROM ' . PREFIX . 'sessions WHERE nickname=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) AND nickname NOT IN (SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-		$stmt->execute(array($_REQUEST['sendto'], $U['nickname'], $U['nickname']));
-		if($tmp || $tmp=$stmt->fetch(PDO::FETCH_NUM)){
+		$stmt=$db->prepare('SELECT style, 1 AS inbox FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions UNION SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?) UNION SELECT style, 0 AS inbox FROM ' . PREFIX . 'sessions WHERE nickname=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
+		$stmt->execute([$_REQUEST['sendto'], $U['status'], $U['nickname'], $U['nickname'], $_REQUEST['sendto'], $U['nickname'], $U['nickname']]);
+		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$U['recipient']=$_REQUEST['sendto'];
 			$U['poststatus']=9;
-			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($U['recipient']), $tmp[0]));
+			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($U['recipient']), $tmp['style']));
+			$inbox=$tmp['inbox'];
 		}
 		if(empty($U['recipient'])){// nick left already or ignores us
 			$U['message']='';
@@ -3131,7 +3126,7 @@ function write_message($message){
 	if($id=$stmt->fetch(PDO::FETCH_NUM)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id<=?;');
 		$stmt->execute($id);
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 	if($message['poststatus']<9 && get_setting('sendmail')){
 		$subject='New Chat message';
@@ -3144,7 +3139,7 @@ function write_message($message){
 function clean_room(){
 	global $db;
 	$db->query('DELETE FROM ' . PREFIX . 'messages;');
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	add_system_message(sprintf(get_setting('msgclean'), get_setting('chatname')));
 }
 
@@ -3155,7 +3150,7 @@ function clean_selected($status, $nick){
 		foreach($_REQUEST['mid'] as $mid){
 			$stmt->execute(array($mid, $nick, $nick, $status, $status));
 		}
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 }
 
@@ -3166,7 +3161,7 @@ function clean_inbox_selected(){
 		foreach($_REQUEST['mid'] as $mid){
 			$stmt->execute(array($mid, $U['nickname']));
 		}
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 }
 
@@ -3179,7 +3174,7 @@ function del_all_messages($nick, $entry){
 	$stmt->execute([$nick, $entry]);
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=? AND postdate>=?;');
 	$stmt->execute([$nick, $entry]);
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
 function del_last_message(){
@@ -3233,7 +3228,7 @@ function print_messages($delstatus=0){
 	$time=time();
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages WHERE postdate<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='messageexpire'))) AS t);");
 	$stmt->execute([$time]);
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages) AND postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	echo '<div id="messages">';
 	if($delstatus>0){
 		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
@@ -3278,14 +3273,6 @@ function prepare_message_print(&$message, $removeEmbed){
 }
 
 // this and that
-
-function sort_names(&$names){
-	$keys=[];
-	foreach($names as $v){
-		$keys[]=$v[3];
-	}
-	array_multisort(array_map('mb_strtolower', $keys), SORT_ASC, SORT_STRING, $names);
-}
 
 function send_headers(){
 	header('Content-Type: text/html; charset=UTF-8');
