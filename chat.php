@@ -339,7 +339,7 @@ function print_start($class='', $ref=0, $url=''){
 		print_stylesheet();
 	}
 	echo "</head><body class=\"$class\">";
-	if(($externalcss=get_setting('externalcss'))!=''){
+	if($class!=='init' && ($externalcss=get_setting('externalcss'))!=''){
 		//external css - in body to make it non-renderblocking
 		echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$externalcss\">";
 	}
