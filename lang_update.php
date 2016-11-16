@@ -25,7 +25,7 @@ echo "<?php
 */
 
 //Native language name: $native
-\$T=array(
+\$T=[
 ";
 if(file_exists("lang_$code.php")){
 	include("lang_$code.php");
@@ -39,7 +39,7 @@ foreach($T as $id=>$value){
 foreach($I as $id=>$value){
 	echo "\t'$id' => '".str_replace("'", "\'", $value)."',\n";
 }
-echo ");\n?>\n";
+echo "];\n?>\n";
 $file=ob_get_clean();
 file_put_contents("lang_$code.php", $file);
 ?>

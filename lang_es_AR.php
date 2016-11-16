@@ -19,7 +19,7 @@
 */
 
 //Native language name: Español (Argentina)
-$T=array(
+$T=[
 	'nodb' => '¡Sin conexión a la base de datos!',
 	'nodbsetup' => '¡No pudo conectarse a la base de datos! Por favor creá la base de datos y editá el script para usarla con el nombre de usuario y clave dados.',
 	'changelang' => 'Cambiar idioma:',
@@ -308,5 +308,5 @@ $T=array(
 	'newnickname' => 'Nuevo apodo:',
 	'nicknametaken' => 'Ese apodo ya fue tomado',
 	'nopass' => 'Constraseña incorrecta (al menos %d caracteres), no se cambia apodo'
-);
+];
 ?>

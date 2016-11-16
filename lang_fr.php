@@ -19,7 +19,7 @@
 */
 
 //Native language name: Français
-$T=array(
+$T=[
 	'nodb' => 'Pas de connexion à la base de données!',
 	'nodbsetup' => 'Pas de connexion à la base de données, s\'il vous plaît créer une base de données et modifier le script pour utiliser la base de données correctement avec le nom d\'utilisateur et son mot de passe !',
 	'changelang' => 'Changer la langue:',
@@ -308,5 +308,5 @@ $T=array(
 	'newnickname' => 'Nouveau Pseudo:',
 	'nicknametaken' => 'Pseudo déjà pris',
 	'nopass' => 'Mot de passe invalide (au moins % caractères), ne pas changer le pseudo',
-);
+];
 ?>

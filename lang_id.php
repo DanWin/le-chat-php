@@ -19,7 +19,7 @@
 */
 
 //Native language name: Bahasa Indonesia
-$T=array(
+$T=[
 	'nodb' => 'Tak ada sambungan ke basisdata!',
 	'nodbsetup' => 'Tak ada sambungan ke basisdata, silahkan buat basisdata dan sunting skrip ini agar menggunakan basisdata yang benar dengan nama pengguna dan kata sandi yang telah diberikan!',
 	'changelang' => 'Ubah bahasa:',
@@ -308,5 +308,5 @@ $T=array(
 	'newnickname' => 'Nama baru:',
 	'nicknametaken' => 'Nama sudah ada',
 	'nopass' => 'Kata sandi salah (Minimal %d karakter), tak merubah nama'
-);
+];
 ?>

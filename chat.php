@@ -34,11 +34,11 @@
 
 send_headers();
 // initialize and load variables/configuration
-$F=array();// Fonts
-$H=array();// HTML-stuff
-$I=array();// Translations
-$L=array();// Languages
-$U=array();// This user data
+$F=[];// Fonts
+$H=[];// HTML-stuff
+$I=[];// Translations
+$L=[];// Languages
+$U=[];// This user data
 $db;// Database connection
 $memcached;// Memcached connection
 $language;// user selected language
@@ -74,9 +74,9 @@ function route(){
 		if(isSet($_REQUEST['kick']) && isSet($_REQUEST['sendto']) && $_REQUEST['sendto']!=='s &'){
 			if($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick'))){
 				if(isSet($_REQUEST['what']) && $_REQUEST['what']==='purge'){
-					kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], true);
+					kick_chatter([$_REQUEST['sendto']], $_REQUEST['message'], true);
 				}else{
-					kick_chatter(array($_REQUEST['sendto']), $_REQUEST['message'], false);
+					kick_chatter([$_REQUEST['sendto']], $_REQUEST['message'], false);
 				}
 			}
 		}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto'])){
@@ -232,13 +232,13 @@ function route_setup(){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=array('suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'enfileupload');
-	$C['colour_settings']=array('colbg', 'coltxt');
-	$C['msg_settings']=array('msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv', 'msgattache');
-	$C['number_settings']=array('memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize');
-	$C['textarea_settings']=array('rulestxt', 'css', 'disabletext');
-	$C['text_settings']=array('dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss');
-	$C['settings']=array_merge(array('guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'), $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
+	$C['bool_settings']=['suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'enfileupload'];
+	$C['colour_settings']=['colbg', 'coltxt'];
+	$C['msg_settings']=['msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv', 'msgattache'];
+	$C['number_settings']=['memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize'];
+	$C['textarea_settings']=['rulestxt', 'css', 'disabletext'];
+	$C['text_settings']=['dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss'];
+	$C['settings']=array_merge(['guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'], $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
 	if(!isSet($_REQUEST['do'])){
 	}elseif($_REQUEST['do']==='save'){
 		save_setup($C);
@@ -396,7 +396,7 @@ function send_captcha(){
 		$memcached->set(DBNAME . '-' . PREFIX . "captcha-$randid", $code, get_setting('captchatime'));
 	}else{
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'captcha (id, time, code) VALUES (?, ?, ?);');
-		$stmt->execute(array($randid, $time, $code));
+		$stmt->execute([$randid, $time, $code]);
 	}
 	echo "<tr id=\"captcha\"><td>$I[copy]<br>";
 	if($difficulty===1){
@@ -434,7 +434,7 @@ function send_captcha(){
 		for($i=0;$i<1000;++$i){
 			imagesetpixel($im, mt_rand(0, 150), mt_rand(0, 200), $dots);
 		}
-		$chars=array();
+		$chars=[];
 		for($i=0;$i<10;++$i){
 			$found=false;
 			while(!$found){
@@ -458,7 +458,7 @@ function send_captcha(){
 					}
 				}
 			}
-			$chars[]=array('x', 'y');
+			$chars[]=['x', 'y'];
 			$chars[$i]['x']=$x;
 			$chars[$i]['y']=$y;
 			if($i<5){
@@ -709,11 +709,11 @@ function restore_backup($C){
 			if(!isset($filter['cs'])){
 				$filter['cs']=0;
 			}
-			$stmt->execute(array($filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick'], $filter['cs']));
+			$stmt->execute([$filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick'], $filter['cs']]);
 		}
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
 		foreach($code['linkfilters'] as $filter){
-			$stmt->execute(array($filter['match'], $filter['replace'], $filter['regex']));
+			$stmt->execute([$filter['match'], $filter['replace'], $filter['regex']]);
 		}
 		if(MEMCACHED){
 			$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
@@ -731,21 +731,21 @@ function restore_backup($C){
 					$member[$setting]=0;
 				}
 			}
-			$stmt->execute(array($member['nickname'], $member['passhash'], $member['status'], $member['refresh'], $member['bgcolour'], $member['boxwidth'], $member['boxheight'], $member['notesboxwidth'], $member['notesboxheight'], $member['regedby'], $member['lastlogin'], $member['timestamps'], $member['embed'], $member['incognito'], $member['style'], $member['nocache'], $member['tz'], $member['eninbox'], $member['sortupdown'], $member['hidechatters']));
+			$stmt->execute([$member['nickname'], $member['passhash'], $member['status'], $member['refresh'], $member['bgcolour'], $member['boxwidth'], $member['boxheight'], $member['notesboxwidth'], $member['notesboxheight'], $member['regedby'], $member['lastlogin'], $member['timestamps'], $member['embed'], $member['incognito'], $member['style'], $member['nocache'], $member['tz'], $member['eninbox'], $member['sortupdown'], $member['hidechatters']]);
 		}
 	}
 	if(isSet($_REQUEST['notes']) && isSet($code['notes'])){
 		$db->exec('DELETE FROM ' . PREFIX . 'notes;');
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
 		foreach($code['notes'] as $note){
-			$stmt->execute(array($note['type'], $note['lastedited'], $note['editedby'], $note['text']));
+			$stmt->execute([$note['type'], $note['lastedited'], $note['editedby'], $note['text']]);
 		}
 	}
 }
 
 function send_backup($C){
 	global $H, $I, $db;
-	$code=array();
+	$code=[];
 	if($_REQUEST['do']==='backup'){
 		if(isSet($_REQUEST['settings'])){
 			foreach($C['settings'] as $setting){
@@ -755,11 +755,11 @@ function send_backup($C){
 		if(isSet($_REQUEST['filter'])){
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'filter;');
 			while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-				$code['filters'][]=array('match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick'], 'cs'=>$filter['cs']);
+				$code['filters'][]=['match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick'], 'cs'=>$filter['cs']];
 			}
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'linkfilter;');
 			while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-				$code['linkfilters'][]=array('match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
+				$code['linkfilters'][]=['match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']];
 			}
 		}
 		if(isSet($_REQUEST['members'])){
@@ -913,7 +913,7 @@ function send_admin($arg=''){
 	echo "$I[selection]</label></td><td>&nbsp;</td></tr><tr><td colspan=\"3\"><label><input type=\"radio\" name=\"what\" id=\"nick\" value=\"nick\">";
 	echo "$I[cleannick]</label> <select name=\"nickname\" size=\"1\"><option value=\"\">$I[choose]</option>";
 	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . "messages WHERE delstatus<? AND poster!='' GROUP BY poster;");
-	$stmt->execute(array($U['status']));
+	$stmt->execute([$U['status']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0]).'">'.htmlspecialchars($nick[0]).'</option>';
 	}
@@ -930,7 +930,7 @@ function send_admin($arg=''){
 	frmadm('logout');
 	echo "<table><tr><td>$chlist</td><td>";
 	echo submit($I['logout']).'</td></tr></table></form></td></tr></table></td></tr>';
-	$views=array('sessions', 'filter', 'linkfilter');
+	$views=['sessions', 'filter', 'linkfilter'];
 	foreach($views as $view){
 		thr();
 		echo "<tr><td><table id=\"$view\"><tr><th>".$I[$view].'</th><td>';
@@ -1170,14 +1170,14 @@ function manage_filter(){
 		if(preg_match('/^[0-9]+$/', $_REQUEST['id'])){
 			if(empty($_REQUEST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'filter WHERE id=?;');
-				$stmt->execute(array($_REQUEST['id']));
+				$stmt->execute([$_REQUEST['id']]);
 			}else{
 				$stmt=$db->prepare('UPDATE ' . PREFIX . 'filter SET filtermatch=?, filterreplace=?, allowinpm=?, regex=?, kick=?, cs=? WHERE id=?;');
-				$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs, $_REQUEST['id']));
+				$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs, $_REQUEST['id']]);
 			}
 		}elseif($_REQUEST['id']==='+'){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
-			$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs));
+			$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs]);
 		}
 		if(MEMCACHED){
 			$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
@@ -1195,14 +1195,14 @@ function manage_linkfilter(){
 		if(preg_match('/^[0-9]+$/', $_REQUEST['id'])){
 			if(empty($_REQUEST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'linkfilter WHERE id=?;');
-				$stmt->execute(array($_REQUEST['id']));
+				$stmt->execute([$_REQUEST['id']]);
 			}else{
 				$stmt=$db->prepare('UPDATE ' . PREFIX . 'linkfilter SET filtermatch=?, filterreplace=?, regex=? WHERE id=?;');
-				$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $reg, $_REQUEST['id']));
+				$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $reg, $_REQUEST['id']]);
 			}
 		}elseif($_REQUEST['id']==='+'){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
-			$stmt->execute(array($_REQUEST['match'], $_REQUEST['replace'], $reg));
+			$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $reg]);
 		}
 		if(MEMCACHED){
 			$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
@@ -1216,10 +1216,10 @@ function get_filters(){
 		$filters=$memcached->get(DBNAME . '-' . PREFIX . 'filter');
 	}
 	if(!MEMCACHED || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
-		$filters=array();
+		$filters=[];
 		$result=$db->query('SELECT id, filtermatch, filterreplace, allowinpm, regex, kick, cs FROM ' . PREFIX . 'filter;');
 		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick'], 'cs'=>$filter['cs']);
+			$filters[]=['id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick'], 'cs'=>$filter['cs']];
 		}
 		if(MEMCACHED){
 			$memcached->set(DBNAME . '-' . PREFIX . 'filter', $filters);
@@ -1234,10 +1234,10 @@ function get_linkfilters(){
 		$filters=$memcached->get(DBNAME . '-' . PREFIX . 'linkfilter');
 	}
 	if(!MEMCACHED || $memcached->getResultCode()!==Memcached::RES_SUCCESS){
-		$filters=array();
+		$filters=[];
 		$result=$db->query('SELECT id, filtermatch, filterreplace, regex FROM ' . PREFIX . 'linkfilter;');
 		while($filter=$result->fetch(PDO::FETCH_ASSOC)){
-			$filters[]=array('id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']);
+			$filters[]=['id'=>$filter['id'], 'match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']];
 		}
 		if(MEMCACHED){
 			$memcached->set(DBNAME . '-' . PREFIX . 'linkfilter', $filters);
@@ -1473,7 +1473,7 @@ function send_inbox(){
 		$direction='DESC';
 	}
 	$stmt=$db->prepare('SELECT id, postdate, text FROM ' . PREFIX . "inbox WHERE recipient=? ORDER BY id $direction;");
-	$stmt->execute(array($U['nickname']));
+	$stmt->execute([$U['nickname']]);
 	while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 		prepare_message_print($message, $removeEmbed);
 		echo "<div class=\"msg\"><label><input type=\"checkbox\" name=\"mid[]\" value=\"$message[id]\">";
@@ -1507,19 +1507,19 @@ function send_notes($type){
 		}
 		$time=time();
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
-		$stmt->execute(array($type, $time, $U['nickname'], $_REQUEST['text']));
+		$stmt->execute([$type, $time, $U['nickname'], $_REQUEST['text']]);
 		$offset=get_setting('numnotes');
 		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $offset;");
-		$stmt->execute(array($type));
+		$stmt->execute([$type]);
 		if($id=$stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE type=? AND id <=?;');
-			$stmt->execute(array($type, $id[0]));
+			$stmt->execute([$type, $id[0]]);
 		}
 		echo "<b>$I[notessaved]</b> ";
 	}
 	$dateformat=get_setting('dateformat');
 	$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'notes WHERE type=?;');
-	$stmt->execute(array($type));
+	$stmt->execute([$type]);
 	$num=$stmt->fetch(PDO::FETCH_NUM);
 	if(!empty($_REQUEST['revision'])){
 		$revision=intval($_REQUEST['revision']);
@@ -1527,7 +1527,7 @@ function send_notes($type){
 		$revision=0;
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $revision;");
-	$stmt->execute(array($type));
+	$stmt->execute([$type]);
 	if($note=$stmt->fetch(PDO::FETCH_ASSOC)){
 			printf($I['lastedited'], htmlspecialchars($note['editedby']), date($dateformat, $note['lastedited']+3600*$U['tz']));
 	}else{
@@ -1610,7 +1610,7 @@ function send_waiting_room(){
 	if($wait && ($timeleft<=0 || $ga===1)){
 		$U['entry']=$U['lastpost'];
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE session=?;');
-		$stmt->execute(array($U['session']));
+		$stmt->execute([$U['session']]);
 		send_frameset();
 	}elseif(!$wait && $U['entry']!=0){
 		send_frameset();
@@ -2123,7 +2123,7 @@ function print_notifications(){
 	echo '<span id="notifications">';
 	if($U['status']>=2 && $U['eninbox']!=0){
 		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
-		$stmt->execute(array($U['nickname']));
+		$stmt->execute([$U['nickname']]);
 		$tmp=$stmt->fetch(PDO::FETCH_NUM);
 		if($tmp[0]>0){
 			echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
@@ -2189,14 +2189,14 @@ function create_session($setup){
 		}
 		if(!MEMCACHED){
 			$stmt=$db->prepare('SELECT code FROM ' . PREFIX . 'captcha WHERE id=?;');
-			$stmt->execute(array($_REQUEST['challenge']));
+			$stmt->execute([$_REQUEST['challenge']]);
 			$stmt->bindColumn(1, $code);
 			if(!$stmt->fetch(PDO::FETCH_BOUND)){
 				send_error($I['captchaexpire']);
 			}
 			$time=time();
 			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'captcha WHERE id=? OR time<(?-(SELECT value FROM ' . PREFIX . "settings WHERE setting='captchatime'));");
-			$stmt->execute(array($_REQUEST['challenge'], $time));
+			$stmt->execute([$_REQUEST['challenge'], $time]);
 		}else{
 			if(!$code=$memcached->get(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]")){
 				send_error($I['captchaexpire']);
@@ -2232,7 +2232,7 @@ function create_session($setup){
 function write_new_session(){
 	global $I, $U, $db;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
-	$stmt->execute(array($U['nickname']));
+	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		// check whether alrady logged in
 		if($U['passhash']===$temp['passhash']){
@@ -2260,7 +2260,7 @@ function write_new_session(){
 			$ip='';
 		}
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, boxwidth, boxheight, useragent, bgcolour, entry, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
-		$stmt->execute(array($U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old']));
+		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $U['boxwidth'], $U['boxheight'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old']]);
 		setcookie(COOKIENAME, $U['session']);
 		if($U['status']>=3 && !$U['incognito']){
 			add_system_message(sprintf(get_setting('msgenter'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
@@ -2274,24 +2274,24 @@ function approve_session(){
 		if($_REQUEST['what']==='allowchecked' && isSet($_REQUEST['csid'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
 			foreach($_REQUEST['csid'] as $nick){
-				$stmt->execute(array($nick));
+				$stmt->execute([$nick]);
 			}
 		}elseif($_REQUEST['what']==='allowall' && isSet($_REQUEST['alls'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
 			foreach($_REQUEST['alls'] as $nick){
-				$stmt->execute(array($nick));
+				$stmt->execute([$nick]);
 			}
 		}elseif($_REQUEST['what']==='denychecked' && isSet($_REQUEST['csid'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
 			foreach($_REQUEST['csid'] as $nick){
-				$stmt->execute(array($time, $_REQUEST['kickmessage'], $nick));
+				$stmt->execute([$time, $_REQUEST['kickmessage'], $nick]);
 			}
 		}elseif($_REQUEST['what']==='denyall' && isSet($_REQUEST['alls'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
 			foreach($_REQUEST['alls'] as $nick){
-				$stmt->execute(array($time, $_REQUEST['kickmessage'], $nick));
+				$stmt->execute([$time, $_REQUEST['kickmessage'], $nick]);
 			}
 		}
 	}
@@ -2302,7 +2302,7 @@ function check_login(){
 	$ga=(int) get_setting('guestaccess');
 	if(isSet($_POST['session'])){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
-		$stmt->execute(array($_POST['session']));
+		$stmt->execute([$_POST['session']]);
 		if($U=$stmt->fetch(PDO::FETCH_ASSOC)){
 			check_kicked();
 			setcookie(COOKIENAME, $U['session']);
@@ -2337,7 +2337,7 @@ function check_login(){
 	if($U['status']==1){
 		if($ga===2 || $ga===3){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=0 WHERE session=?;');
-			$stmt->execute(array($U['session']));
+			$stmt->execute([$U['session']]);
 			send_waiting_room();
 		}
 	}
@@ -2350,10 +2350,10 @@ function kill_session(){
 	check_kicked();
 	setcookie(COOKIENAME, false);
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
-	$stmt->execute(array($U['session']));
+	$stmt->execute([$U['session']]);
 	if($U['status']==1){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
-		$stmt->execute(array($U['nickname'], $U['nickname']));
+		$stmt->execute([$U['nickname'], $U['nickname']]);
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}elseif($U['status']>=3 && !$U['incognito']){
 		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
@@ -2479,7 +2479,7 @@ function parse_sessions(){
 	// delete old sessions
 	$time=time();
 	$result=$db->prepare('SELECT nickname, status FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='guestexpire'))) OR (status>2 AND lastpost<(?-60*(SELECT value FROM " . PREFIX . "settings WHERE setting='memberexpire')));");
-	$result->execute(array($time, $time));
+	$result->execute([$time, $time]);
 	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 		$stmt1=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
@@ -2494,7 +2494,7 @@ function parse_sessions(){
 	// look for our session
 	if(isSet($_REQUEST['session'])){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
-		$stmt->execute(array($_REQUEST['session']));
+		$stmt->execute([$_REQUEST['session']]);
 		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$U=$tmp;
 		}
@@ -2506,13 +2506,13 @@ function parse_sessions(){
 function check_member(){
 	global $I, $U, $db;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?;');
-	$stmt->execute(array($U['nickname']));
+	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		if($temp['passhash']===$U['passhash']){
 			$U=$temp;
 			$time=time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET lastlogin=? WHERE nickname=?;');
-			$stmt->execute(array($time, $U['nickname']));
+			$stmt->execute([$time, $U['nickname']]);
 			return true;
 		}else{
 			send_error("$I[regednick]<br>$I[wrongpass]");
@@ -2525,9 +2525,9 @@ function delete_account(){
 	global $U, $db;
 	if($U['status']<8){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
-		$stmt->execute(array($U['nickname']));
+		$stmt->execute([$U['nickname']]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
-		$stmt->execute(array($U['nickname']));
+		$stmt->execute([$U['nickname']]);
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 		$U['status']=1;
 	}
@@ -2541,16 +2541,16 @@ function register_guest($status, $nick){
 		return sprintf($I['alreadyreged'], style_this(htmlspecialchars($nick), $tmp[0]));
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND status=1;');
-	$stmt->execute(array($nick));
+	$stmt->execute([$nick]);
 	if($reg=$stmt->fetch(PDO::FETCH_ASSOC)){
 		$reg['status']=$status;
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=? WHERE session=?;');
-		$stmt->execute(array($reg['status'], $reg['session']));
+		$stmt->execute([$reg['status'], $reg['session']]);
 	}else{
 		return sprintf($I['cantreg'], htmlspecialchars($nick));
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, boxwidth, boxheight, regedby, timestamps, embed, style, incognito, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
-	$stmt->execute(array($reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['style'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']));
+	$stmt->execute([$reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['boxwidth'], $reg['boxheight'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['style'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']]);
 	if($reg['status']==3){
 		add_system_message(sprintf(get_setting('msgmemreg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])));
 	}else{
@@ -2581,7 +2581,7 @@ function register_new($nick, $pass){
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['alreadyreged'], htmlspecialchars($nick));
 	}
-	$reg=array(
+	$reg=[
 		'nickname'	=>$nick,
 		'passhash'	=>md5(sha1(md5($nick.$pass))),
 		'status'	=>3,
@@ -2598,9 +2598,9 @@ function register_new($nick, $pass){
 		'eninbox'	=>0,
 		'sortupdown'	=>get_setting('sortupdown'),
 		'hidechatters'	=>get_setting('hidechatters'),
-	);
+	];
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, timestamps, style, embed, incognito, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
-	$stmt->execute(array($reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['regedby'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']));
+	$stmt->execute([$reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['regedby'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']]);
 	return sprintf($I['successreg'], htmlspecialchars($reg['nickname']));
 }
 
@@ -2612,15 +2612,15 @@ function change_status($nick, $status){
 		return sprintf($I['cantchgstat'], htmlspecialchars($nick));
 	}
 	$stmt=$db->prepare('SELECT incognito, style FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
-	$stmt->execute(array($nick, $U['status']));
+	$stmt->execute([$nick, $U['status']]);
 	if(!$old=$stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['cantchgstat'], htmlspecialchars($nick));
 	}
 	if($_REQUEST['set']==='-'){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
-		$stmt->execute(array($nick));
+		$stmt->execute([$nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
-		$stmt->execute(array($nick));
+		$stmt->execute([$nick]);
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 		return sprintf($I['succdel'], style_this(htmlspecialchars($nick), $old[1]));
 	}else{
@@ -2628,9 +2628,9 @@ function change_status($nick, $status){
 			$old[0]=0;
 		}
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET status=?, incognito=? WHERE nickname=?;');
-		$stmt->execute(array($status, $old[0], $nick));
+		$stmt->execute([$status, $old[0], $nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=?, incognito=? WHERE nickname=?;');
-		$stmt->execute(array($status, $old[0], $nick));
+		$stmt->execute([$status, $old[0], $nick]);
 		return sprintf($I['succchg'], style_this(htmlspecialchars($nick), $old[1]));
 	}
 }
@@ -2641,13 +2641,13 @@ function passreset($nick, $pass){
 		return '';
 	}
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
-	$stmt->execute(array($nick, $U['status']));
+	$stmt->execute([$nick, $U['status']]);
 	if($stmt->fetch(PDO::FETCH_ASSOC)){
 		$passhash=md5(sha1(md5($nick.$pass)));
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
-		$stmt->execute(array($passhash, $nick));
+		$stmt->execute([$passhash, $nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE nickname=?;');
-		$stmt->execute(array($passhash, $nick));
+		$stmt->execute([$passhash, $nick]);
 		return sprintf($I['succpassreset'], htmlspecialchars($nick));
 	}else{
 		return sprintf($I['cantresetpass'], htmlspecialchars($nick));
@@ -2730,21 +2730,21 @@ function save_profile(){
 	global $I, $U, $db;
 	amend_profile();
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET refresh=?, style=?, boxwidth=?, boxheight=?, bgcolour=?, timestamps=?, embed=?, incognito=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=? WHERE session=?;');
-	$stmt->execute(array($U['refresh'], $U['style'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['session']));
+	$stmt->execute([$U['refresh'], $U['style'], $U['boxwidth'], $U['boxheight'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['session']]);
 	if($U['status']>=2){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET refresh=?, bgcolour=?, boxwidth=?, boxheight=?, notesboxwidth=?, notesboxheight=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=? WHERE nickname=?;');
-		$stmt->execute(array($U['refresh'], $U['bgcolour'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nickname']));
+		$stmt->execute([$U['refresh'], $U['bgcolour'], $U['boxwidth'], $U['boxheight'], $U['notesboxwidth'], $U['notesboxheight'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nickname']]);
 	}
 	if(!empty($_REQUEST['unignore'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? AND ignby=?;');
-		$stmt->execute(array($_REQUEST['unignore'], $U['nickname']));
+		$stmt->execute([$_REQUEST['unignore'], $U['nickname']]);
 	}
 	if(!empty($_REQUEST['ignore'])){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND (status<=? OR status<=3) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
 		$stmt->execute([$_REQUEST['ignore'], $U['status'], $U['nickname']]);
 		if($U['nickname']!==$_REQUEST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
-			$stmt->execute(array($_REQUEST['ignore'], $U['nickname']));
+			$stmt->execute([$_REQUEST['ignore'], $U['nickname']]);
 		}
 	}
 	if($U['status']>1 && !empty($_REQUEST['newpass'])){
@@ -2768,9 +2768,9 @@ function save_profile(){
 		}
 		$U['passhash']=$U['newhash'];
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE session=?;');
-		$stmt->execute(array($U['passhash'], $U['session']));
+		$stmt->execute([$U['passhash'], $U['session']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
-		$stmt->execute(array($U['passhash'], $U['nickname']));
+		$stmt->execute([$U['passhash'], $U['nickname']]);
 		if(!empty($_REQUEST['newnickname'])){
 			$msg=set_new_nickname();
 			if($msg!==''){
@@ -2789,24 +2789,24 @@ function set_new_nickname(){
 	}
 	$U['passhash']=md5(sha1(md5($_REQUEST['newnickname'].$_REQUEST['newpass'])));
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'sessions WHERE nickname=? UNION SELECT id FROM ' . PREFIX . 'members WHERE nickname=?;');
-	$stmt->execute(array($_REQUEST['newnickname'], $_REQUEST['newnickname']));
+	$stmt->execute([$_REQUEST['newnickname'], $_REQUEST['newnickname']]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return $I['nicknametaken'];
 	}else{
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET nickname=?, passhash=? WHERE nickname=?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['passhash'], $U['nickname']));
+		$stmt->execute([$_REQUEST['newnickname'], $U['passhash'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET nickname=?, passhash=? WHERE nickname=?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['passhash'], $U['nickname']));
+		$stmt->execute([$_REQUEST['newnickname'], $U['passhash'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET poster=? WHERE poster=?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET recipient=? WHERE recipient=?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'ignored SET ignby=? WHERE ignby=?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'ignored SET ign=? WHERE ign=?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'inbox SET poster=? WHERE poster=?;');
-		$stmt->execute(array($_REQUEST['newnickname'], $U['nickname']));
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$U['nickname']=$_REQUEST['newnickname'];
 	}
 	return '';
@@ -2917,22 +2917,22 @@ function validate_input(){
 	if(add_message()){
 		$U['lastpost']=time();
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
-		$stmt->execute(array($U['lastpost'], $_REQUEST['postid'], $U['session']));
+		$stmt->execute([$U['lastpost'], $_REQUEST['postid'], $U['session']]);
 		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poster=? ORDER BY id DESC LIMIT 1;');
-		$stmt->execute(array($U['nickname']));
+		$stmt->execute([$U['nickname']]);
 		$id=$stmt->fetch(PDO::FETCH_NUM);
 		if($inbox && $id){
-			$message=array(
+			$message=[
 				'postdate'	=>time(),
 				'poster'	=>$U['nickname'],
 				'recipient'	=>$U['recipient'],
 				'text'		=>"<span class=\"usermsg\">$U[displaysend]".style_this($U['message'], $U['style']).'</span>'
-			);
+			];
 			if(MSGENCRYPTED){
 				$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 			}
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?)');
-			$stmt->execute(array($message['postdate'], $id[0], $message['poster'], $message['recipient'], $message['text']));
+			$stmt->execute([$message['postdate'], $id[0], $message['poster'], $message['recipient'], $message['text']]);
 		}
 		if(isset($hash) && $id){
 			if(!empty($_FILES['file']['type'])){
@@ -3001,7 +3001,7 @@ function apply_filter(){
 			}
 		}
 		if(isSet($count) && $count>0 && $filter['kick']){
-			kick_chatter(array($U['nickname']), $filter['replace'], false);
+			kick_chatter([$U['nickname']], $filter['replace'], false);
 			setcookie(COOKIENAME, false);
 			send_error("$I[kicked]<br>$filter[replace]");
 		}
@@ -3078,14 +3078,14 @@ function add_message(){
 	if(empty($U['message'])){
 		return false;
 	}
-	$message=array(
+	$message=[
 		'postdate'	=>time(),
 		'poststatus'	=>$U['poststatus'],
 		'poster'	=>$U['nickname'],
 		'recipient'	=>$U['recipient'],
 		'text'		=>"<span class=\"usermsg\">$U[displaysend]".style_this($U['message'], $U['style']).'</span>',
 		'delstatus'	=>$U['status']
-	);
+	];
 	//prevent posting the same message twice, if no other message was posted in-between.
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poststatus=? AND poster=? AND recipient=? AND text=? AND id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages ORDER BY id DESC LIMIT 1) AS t);');
 	$stmt->execute([$message['poststatus'], $message['poster'], $message['recipient'], $message['text']]);
@@ -3100,14 +3100,14 @@ function add_system_message($mes){
 	if(empty($mes)){
 		return;
 	}
-	$sysmessage=array(
+	$sysmessage=[
 		'postdate'	=>time(),
 		'poststatus'	=>1,
 		'poster'	=>'',
 		'recipient'	=>'',
 		'text'		=>"<span class=\"sysmsg\">$mes</span>",
 		'delstatus'	=>4
-	);
+	];
 	write_message($sysmessage);
 }
 
@@ -3120,7 +3120,7 @@ function write_message($message){
 		$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES (?, ?, ?, ?, ?, ?);');
-	$stmt->execute(array($message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']));
+	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']]);
 	$limit=get_setting('messagelimit');
 	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT 1 OFFSET $limit;");
 	if($id=$stmt->fetch(PDO::FETCH_NUM)){
@@ -3148,7 +3148,7 @@ function clean_selected($status, $nick){
 	if(isSet($_REQUEST['mid'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR (poststatus<? AND delstatus<?));');
 		foreach($_REQUEST['mid'] as $mid){
-			$stmt->execute(array($mid, $nick, $nick, $status, $status));
+			$stmt->execute([$mid, $nick, $nick, $status, $status]);
 		}
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
@@ -3159,7 +3159,7 @@ function clean_inbox_selected(){
 	if(isSet($_REQUEST['mid'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE id=? AND recipient=?;');
 		foreach($_REQUEST['mid'] as $mid){
-			$stmt->execute(array($mid, $U['nickname']));
+			$stmt->execute([$mid, $U['nickname']]);
 		}
 		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
@@ -3566,7 +3566,7 @@ function init_chat(){
 		foreach($settings as $pair){
 			$stmt->execute($pair);
 		}
-		$reg=array(
+		$reg=[
 			'nickname'	=>$_REQUEST['sunick'],
 			'passhash'	=>md5(sha1(md5($_REQUEST['sunick'].$_REQUEST['supass']))),
 			'status'	=>8,
@@ -3582,9 +3582,9 @@ function init_chat(){
 			'eninbox'	=>0,
 			'sortupdown'	=>0,
 			'hidechatters'	=>0,
-		);
+		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, timestamps, style, embed, incognito, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
-		$stmt->execute(array($reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']));
+		$stmt->execute([$reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']]);
 		$suwrite=$I['susuccess'];
 	}
 	print_start('init');
@@ -3675,7 +3675,7 @@ function update_db(){
 					$fontface='';
 				}
 				$style=get_style("#$temp[colour] $fontface <$temp[fonttags]>");
-				$stmt->execute(array($style, $temp['id']));
+				$stmt->execute([$style, $temp['id']]);
 			}
 			$db->exec('ALTER TABLE ' . PREFIX . 'members DROP colour, DROP fontface, DROP fonttags;');
 			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('colbg', '000000'), ('coltxt', 'FFFFFF'), ('maxname', '20'), ('minpass', '5'), ('defaultrefresh', '20'), ('dismemcaptcha', '0'), ('suguests', '0'), ('imgembed', '1'), ('timestamps', '1'), ('trackip', '0'), ('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), ('memkick', '1'), ('forceredirect', '0'), ('redirect', ''), ('incognito', '1');");
@@ -3880,7 +3880,7 @@ function update_db(){
 				}else{
 					$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 				}
-				$stmt->execute(array($message['text'], $message['id']));
+				$stmt->execute([$message['text'], $message['id']]);
 			}
 			$result=$db->query('SELECT id, text FROM ' . PREFIX . 'notes;');
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET text=? WHERE id=?;');
@@ -3890,7 +3890,7 @@ function update_db(){
 				}else{
 					$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 				}
-				$stmt->execute(array($message['text'], $message['id']));
+				$stmt->execute([$message['text'], $message['id']]);
 			}
 			update_setting('msgencrypted', (int) MSGENCRYPTED);
 		}
@@ -3902,7 +3902,7 @@ function get_setting($setting){
 	global $db, $memcached;
 	if(!MEMCACHED || !$value=$memcached->get(DBNAME . '-' . PREFIX . "settings-$setting")){
 		$stmt=$db->prepare('SELECT value FROM ' . PREFIX . 'settings WHERE setting=?;');
-		$stmt->execute(array($setting));
+		$stmt->execute([$setting]);
 		$stmt->bindColumn(1, $value);
 		$stmt->fetch(PDO::FETCH_BOUND);
 		if(MEMCACHED){
@@ -3915,7 +3915,7 @@ function get_setting($setting){
 function update_setting($setting, $value){
 	global $db, $memcached;
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'settings SET value=? WHERE setting=?;');
-	$stmt->execute(array($value, $setting));
+	$stmt->execute([$value, $setting]);
 	if(MEMCACHED){
 		$memcached->set(DBNAME . '-' . PREFIX . "settings-$setting", $value);
 	}
@@ -3925,7 +3925,7 @@ function update_setting($setting, $value){
 
 function check_db(){
 	global $I, $db, $memcached;
-	$options=array(PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>PERSISTENT);
+	$options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>PERSISTENT];
 	try{
 		if(DBDRIVER===0){
 			if(!extension_loaded('pdo_mysql')){
@@ -3987,7 +3987,7 @@ function check_db(){
 
 function load_fonts(){
 	global $F;
-	$F=array(
+	$F=[
 		'Arial'			=>"font-family:'Arial','Helvetica','sans-serif';",
 		'Book Antiqua'		=>"font-family:'Book Antiqua','MS Gothic';",
 		'Comic'			=>"font-family:'Comic Sans MS','Papyrus';",
@@ -4002,29 +4002,29 @@ function load_fonts(){
 		'Times New Roman'	=>"font-family:'Times New Roman','Times','serif';",
 		'Verdana'		=>"font-family:'Verdana','Geneva','Arial','Helvetica','sans-serif';",
 		'Verdana small'		=>"font-family:'Verdana','Geneva','Arial','Helvetica','sans-serif';font-size:smaller;"
-	);
+	];
 }
 
 function load_html(){
 	global $H, $I, $language;
-	$H=array(// default HTML
+	$H=[// default HTML
 		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\"",
 		'meta_html'	=>'<meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">',
 		'credit'	=>'<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>',
 		'commonform'	=>hidden('lang', $language).hidden('nc', substr(time(), -6))
-	);
+	];
 	if(isSet($_REQUEST['session'])){
 		$H['commonform'].=hidden('session', $_REQUEST['session']);
 	}
-	$H=$H+array(
+	$H=$H+[
 		'backtologin'	=>"<$H[form] target=\"_parent\">".hidden('lang', $language).submit($I['backtologin'], 'class="backbutton"').'</form>',
 		'backtochat'	=>"<$H[form]>$H[commonform]".hidden('action', 'view').submit($I['backtochat'], 'class="backbutton"').'</form>'
-	);
+	];
 }
 
 function load_lang(){
 	global $I, $L, $language;
-	$L=array(
+	$L=[
 		'de'	=>'Deutsch',
 		'en'	=>'English',
 		'es_AR'	=>'Español (Argentina)',
@@ -4032,7 +4032,7 @@ function load_lang(){
 		'fr'	=>'Français',
 		'id'	=>'Bahasa Indonesia',
 		'ru'	=>'Русский'
-	);
+	];
 	if(isSet($_REQUEST['lang']) && isSet($L[$_REQUEST['lang']])){
 		$language=$_REQUEST['lang'];
 		if(!isSet($_COOKIE['language']) || $_COOKIE['language']!==$language){

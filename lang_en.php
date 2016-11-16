@@ -19,7 +19,7 @@
 */
 
 //Native language name: English
-$I=array(
+$I=[
 	'nodb' => 'No connection to database!',
 	'nodbsetup' => 'No connection to database, please create a database and edit the script to use the correct database with given username and password!',
 	'changelang' => 'Change language:',
@@ -364,5 +364,5 @@ $I=array(
 	'maxuploadsize' => 'Maximum upload size in KB',
 	'maxsize' => 'Max %d KB',
 	'cssupdate' => 'Note: Default CSS is now hardcoded and can be removed from the CSS setting',
-);
+];
 ?>
