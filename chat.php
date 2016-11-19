@@ -2246,7 +2246,11 @@ function write_new_session(){
 		// create new session
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
 		do{
-			$U['session']=md5(time().mt_rand().$U['nickname']);
+			if(function_exists('random_bytes')){
+				$U['session']=bin2hex(random_bytes(16));
+			}else{
+				$U['session']=md5(uniqid($U['nickname'], true).mt_rand());
+			}
 			$stmt->execute([$U['session']]);
 		}while($stmt->fetch(PDO::FETCH_NUM)); // check for hash collision
 		if(isSet($_SERVER['HTTP_USER_AGENT'])){
