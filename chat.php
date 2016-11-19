@@ -1729,8 +1729,8 @@ function send_post(){
 	$disablepm=(bool) get_setting('disablepm');
 	if(!$disablepm){
 		$users=[];
-		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) UNION SELECT nickname, style, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0 UNION SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?)) AS t ORDER BY LOWER(nickname);');
-		$stmt->execute([$U['nickname'], $U['nickname'], $U['status'], $U['nickname'], $U['nickname']]);
+		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY LOWER(nickname);');
+		$stmt->execute([$U['status'], $U['nickname'], $U['nickname']]);
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			if($tmp['offline']){
 				$users[]=["$tmp[nickname] $I[offline]", $tmp['style'], $tmp['nickname']];
@@ -2894,8 +2894,8 @@ function validate_input(){
 		if(get_setting('disablepm')){
 			return;
 		}
-		$stmt=$db->prepare('SELECT style, 1 AS inbox FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions UNION SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?) UNION SELECT style, 0 AS inbox FROM ' . PREFIX . 'sessions WHERE nickname=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-		$stmt->execute([$_REQUEST['sendto'], $U['status'], $U['nickname'], $U['nickname'], $_REQUEST['sendto'], $U['nickname'], $U['nickname']]);
+		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, 1 AS inbox FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions) UNION SELECT nickname, style, 0 AS inbox FROM ' . PREFIX . 'sessions WHERE nickname=?) AS t WHERE nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
+		$stmt->execute([$_REQUEST['sendto'], $U['status'], $_REQUEST['sendto'], $U['nickname'], $U['nickname']]);
 		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$U['recipient']=$_REQUEST['sendto'];
 			$U['poststatus']=9;
