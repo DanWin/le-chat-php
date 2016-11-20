@@ -2171,12 +2171,11 @@ function print_chatters(){
 
 //  session management
 
-function create_session($setup){
+function create_session($setup, $nickname, $password){
 	global $I, $U, $db, $memcached;
-	$U['nickname']=str_replace(' ', '', $_REQUEST['nick']);
-	$U['passhash']=md5(sha1(md5($U['nickname'].$_REQUEST['pass'])));
-	if(!check_member()){
-		add_user_defaults();
+	$U['nickname']=str_replace(' ', '', $nickname);
+	if(!check_member($password)){
+		add_user_defaults($password);
 	}
 	$U['entry']=$U['lastpost']=time();
 	if($setup){
@@ -2214,7 +2213,7 @@ function create_session($setup){
 		if(!valid_nick($U['nickname'])){
 			send_error(sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex')));
 		}
-		if(!valid_pass($_REQUEST['pass'])){
+		if(!valid_pass($password)){
 			send_error(sprintf($I['invalpass'], get_setting('minpass'), get_setting('passregex')));
 		}
 		if($ga===0){
@@ -2226,16 +2225,16 @@ function create_session($setup){
 			send_error($I['wrongglobalpass']);
 		}
 	}
-	write_new_session();
+	write_new_session($password);
 }
 
-function write_new_session(){
+function write_new_session($password){
 	global $I, $U, $db;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		// check whether alrady logged in
-		if($U['passhash']===$temp['passhash']){
+		if(password_verify($password, $temp['passhash'])){
 			$U=$temp;
 			check_kicked();
 			setcookie(COOKIENAME, $U['session']);
@@ -2326,7 +2325,7 @@ function check_login(){
 		if(!empty($_REQUEST['regpass']) && $_REQUEST['regpass']!==$_REQUEST['pass']){
 			send_error($I['noconfirm']);
 		}
-		create_session(false);
+		create_session(false, $_REQUEST['nick'], $_REQUEST['pass']);
 		if(!empty($_REQUEST['regpass'])){
 			$guestreg=(int) get_setting('guestreg');
 			if($guestreg===1){
@@ -2507,16 +2506,21 @@ function parse_sessions(){
 
 //  member handling
 
-function check_member(){
+function check_member($password){
 	global $I, $U, $db;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
-		if($temp['passhash']===$U['passhash']){
+		if($temp['passhash']===md5(sha1(md5($U['nickname'].$password)))){
+			// old hashing method, update on the fly
+			$temp['passhash']=password_hash($password, PASSWORD_DEFAULT);
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
+			$stmt->execute([$temp['passhash'], $U['nickname']]);
+		}
+		if(password_verify($password, $temp['passhash'])){
 			$U=$temp;
-			$time=time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET lastlogin=? WHERE nickname=?;');
-			$stmt->execute([$time, $U['nickname']]);
+			$stmt->execute([time(), $U['nickname']]);
 			return true;
 		}else{
 			send_error("$I[regednick]<br>$I[wrongpass]");
@@ -2587,7 +2591,7 @@ function register_new($nick, $pass){
 	}
 	$reg=[
 		'nickname'	=>$nick,
-		'passhash'	=>md5(sha1(md5($nick.$pass))),
+		'passhash'	=>password_hash($pass, PASSWORD_DEFAULT),
 		'status'	=>3,
 		'refresh'	=>get_setting('defaultrefresh'),
 		'bgcolour'	=>get_setting('colbg'),
@@ -2647,7 +2651,7 @@ function passreset($nick, $pass){
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
 	$stmt->execute([$nick, $U['status']]);
 	if($stmt->fetch(PDO::FETCH_ASSOC)){
-		$passhash=md5(sha1(md5($nick.$pass)));
+		$passhash=password_hash($pass, PASSWORD_DEFAULT);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
 		$stmt->execute([$passhash, $nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE nickname=?;');
@@ -2764,10 +2768,9 @@ function save_profile(){
 		if($_REQUEST['newpass']!==$_REQUEST['confirmpass']){
 			return $I['noconfirm'];
 		}else{
-			$U['oldhash']=md5(sha1(md5($U['nickname'].$_REQUEST['oldpass'])));
-			$U['newhash']=md5(sha1(md5($U['nickname'].$_REQUEST['newpass'])));
+			$U['newhash']=password_hash($_REQUEST['newpass'], PASSWORD_DEFAULT);
 		}
-		if($U['passhash']!==$U['oldhash']){
+		if(!password_verify($_REQUEST['oldpass'], $U['passhash'])){
 			return $I['wrongpass'];
 		}
 		$U['passhash']=$U['newhash'];
@@ -2791,7 +2794,7 @@ function set_new_nickname(){
 	if(!valid_nick($_REQUEST['newnickname'])){
 		return sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex'));
 	}
-	$U['passhash']=md5(sha1(md5($_REQUEST['newnickname'].$_REQUEST['newpass'])));
+	$U['passhash']=password_hash($_REQUEST['newpass'], PASSWORD_DEFAULT);
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'sessions WHERE nickname=? UNION SELECT id FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute([$_REQUEST['newnickname'], $_REQUEST['newnickname']]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
@@ -2817,7 +2820,7 @@ function set_new_nickname(){
 }
 
 //sets default settings for guests
-function add_user_defaults(){
+function add_user_defaults($password){
 	global $U;
 	$U['refresh']=get_setting('defaultrefresh');
 	$U['bgcolour']=get_setting('colbg');
@@ -2845,6 +2848,7 @@ function add_user_defaults(){
 	$U['eninbox']=0;
 	$U['sortupdown']=get_setting('sortupdown');
 	$U['hidechatters']=get_setting('hidechatters');
+	$U['passhash']=password_hash($password, PASSWORD_DEFAULT);
 }
 
 // message handling
@@ -3366,7 +3370,7 @@ function valid_admin(){
 	if(isSet($_REQUEST['session'])){
 		check_session();
 	}elseif(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
-		create_session(true);
+		create_session(true, $_REQUEST['nick'], $_REQUEST['pass']);
 	}
 	if(isSet($U['status'])){
 		if($U['status']>=7){
@@ -3551,7 +3555,7 @@ function init_chat(){
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
 		$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash char(32) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash varchar(255) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$diskengine$charset;");
 		$db->exec('ALTER TABLE ' . PREFIX . 'inbox ADD FOREIGN KEY (recipient) REFERENCES ' . PREFIX . 'members(nickname) ON DELETE CASCADE ON UPDATE CASCADE;');
 		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
@@ -3559,7 +3563,7 @@ function init_chat(){
 		$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
 		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash char(32) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$memengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash varchar(255) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$memengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'status ON ' . PREFIX . 'sessions(status);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'lastpost ON ' . PREFIX . 'sessions(lastpost);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
@@ -3572,7 +3576,7 @@ function init_chat(){
 		}
 		$reg=[
 			'nickname'	=>$_REQUEST['sunick'],
-			'passhash'	=>md5(sha1(md5($_REQUEST['sunick'].$_REQUEST['supass']))),
+			'passhash'	=>password_hash($_REQUEST['supass'], PASSWORD_DEFAULT),
 			'status'	=>8,
 			'refresh'	=>20,
 			'bgcolour'	=>'000000',
@@ -3871,6 +3875,10 @@ function update_db(){
 		if($dbversion<35){
 			$db->exec('ALTER TABLE ' . PREFIX . 'inbox ADD FOREIGN KEY (recipient) REFERENCES ' . PREFIX . 'members(nickname) ON DELETE CASCADE ON UPDATE CASCADE;');
 		}
+		if($dbversion<36){
+			$db->exec('ALTER TABLE ' . PREFIX . 'members MODIFY passhash varchar(255) NOT NULL;');
+			$db->exec('ALTER TABLE ' . PREFIX . 'sessions MODIFY passhash varchar(255) NOT NULL;');
+		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
 			if(!extension_loaded('openssl')){
@@ -4062,7 +4070,7 @@ function load_config(){
 	date_default_timezone_set('UTC');
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.22.1'); // Script version
-	define('DBVERSION', 35); // Database layout version
+	define('DBVERSION', 36); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host
