@@ -35,7 +35,6 @@
 send_headers();
 // initialize and load variables/configuration
 $F=[];// Fonts
-$H=[];// HTML-stuff
 $I=[];// Translations
 $L=[];// Languages
 $U=[];// This user data
@@ -49,7 +48,6 @@ if(!isSet($_REQUEST['session']) && isSet($_COOKIE[COOKIENAME])){
 }
 load_fonts();
 load_lang();
-load_html();
 check_db();
 route();
 
@@ -80,7 +78,7 @@ function route(){
 				}
 			}
 		}elseif(isSet($_REQUEST['message']) && isSet($_REQUEST['sendto'])){
-			validate_input();
+			send_post(validate_input());
 		}
 		send_post();
 	}elseif($_REQUEST['action']==='login'){
@@ -263,7 +261,7 @@ function print_stylesheet($init=false){
 	//default css
 	echo '<style type="text/css">';
 	echo 'body{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center;} ';
-	echo 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} ';
+	echo 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} #messages{overflow-wrap:break-word;} ';
 	echo 'input,select,textarea{color:#FFFFFF;background-color:#000000;} .messages a img{width:15%} .messages a:hover img{width:35%} ';
 	echo '.error{color:#FF0033;text-align:left;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} ';
 	echo '.setup table table,.admin table table,.profile table table{width:100%;text-align:left} ';
@@ -296,14 +294,36 @@ function print_end(){
 	exit;
 }
 
-function frmpst($arg1=''){
-	global $H;
-	echo "<$H[form]>$H[commonform]".hidden('action', $arg1);
+function credit(){
+	return '<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>';
 }
 
-function frmadm($arg1=''){
-	global $H;
-	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', $arg1);
+function meta_html(){
+	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">';
+}
+
+function form($action, $do=''){
+	global $language;
+	$form="<form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\">".hidden('lang', $language).hidden('nc', substr(time(), -6)).hidden('action', $action);
+	if(!empty($_REQUEST['session'])){
+		$form.=hidden('session', $_REQUEST['session']);
+	}
+	if($do!==''){
+		$form.=hidden('do', $do);
+	}
+	return $form;
+}
+
+function form_target($target, $action, $do=''){
+	global $language;
+	return "<form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\" target=\"$target\">".hidden('lang', $language).hidden('nc', substr(time(), -6)).hidden('action', $action);
+	if(!empty($_REQUEST['session'])){
+		$form.=hidden('session', $_REQUEST['session']);
+	}
+	if($do!==''){
+		$form.=hidden('do', $do);
+	}
+	return $form;
 }
 
 function hidden($arg1='', $arg2=''){
@@ -319,12 +339,12 @@ function thr(){
 }
 
 function print_start($class='', $ref=0, $url=''){
-	global $H, $I;
+	global $I;
 	if(!empty($url)){
 		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers and js refresh!
 		header("Refresh: $ref; URL=$url");
 	}
-	echo "<!DOCTYPE html><html><head>$H[meta_html]";
+	echo '<!DOCTYPE html><html><head>'.meta_html();
 	if(!empty($url)){
 		echo "<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
 		$ref+=5;//only use js if browser refresh stopped working
@@ -366,11 +386,11 @@ function send_redirect($url){
 }
 
 function send_access_denied(){
-	global $H, $I, $U;
+	global $I, $U;
 	header('HTTP/1.1 403 Forbidden');
 	print_start('access_denied');
-	echo "<h1>$I[accessdenied]</h1>".sprintf($I['loggedinas'], style_this(htmlspecialchars($U['nickname']), $U['style']));
-	echo "<br><$H[form]>$H[commonform]".hidden('action', 'logout');
+	echo "<h1>$I[accessdenied]</h1>".sprintf($I['loggedinas'], style_this(htmlspecialchars($U['nickname']), $U['style'])).'<br>';
+	echo form('logout');
 	if(!isSet($_REQUEST['session'])){
 		echo hidden('session', $U['session']);
 	}
@@ -482,9 +502,9 @@ function send_captcha(){
 }
 
 function send_setup($C){
-	global $H, $I, $U;
+	global $I, $U;
 	print_start('setup');
-	echo "<h2>$I[setup]</h2><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'save');
+	echo "<h2>$I[setup]</h2>".form('setup', 'save');
 	if(!isSet($_REQUEST['session'])){
 		echo hidden('session', $U['session']);
 	}
@@ -668,23 +688,23 @@ function send_setup($C){
 	thr();
 	echo '<tr><td>'.submit($I['apply']).'</td></tr></table></form><br>';
 	if($U['status']==8){
-		echo '<table id="actions"><tr>';
-		echo "<td><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'backup');
+		echo '<table id="actions"><tr><td>';
+		echo form('setup', 'backup');
 		if(!isSet($_REQUEST['session'])){
 			echo hidden('session', $U['session']);
 		}
-		echo submit($I['backuprestore']).'</form></td>';
-		echo "<td><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'destroy');
+		echo submit($I['backuprestore']).'</form></td><td>';
+		echo form('setup', 'destroy');
 		if(!isSet($_REQUEST['session'])){
 			echo hidden('session', $U['session']);
 		}
 		echo submit($I['destroy'], 'class="delbutton"').'</form></td></tr></table><br>';
 	}
-	echo "<$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'logout');
+	echo form_target('parent', 'logout');
 	if(!isSet($_REQUEST['session'])){
 		echo hidden('session', $U['session']);
 	}
-	echo submit($I['logout'], 'id="exitbutton"')."</form>$H[credit]";
+	echo submit($I['logout'], 'id="exitbutton"').'</form>'.credit();
 	print_end();
 }
 
@@ -744,7 +764,7 @@ function restore_backup($C){
 }
 
 function send_backup($C){
-	global $H, $I, $db;
+	global $I, $db;
 	$code=[];
 	if($_REQUEST['do']==='backup'){
 		if(isSet($_REQUEST['settings'])){
@@ -801,7 +821,7 @@ function send_backup($C){
 	if(!extension_loaded('json')){
 		echo "<tr><td>$I[jsonextrequired]</td></tr>";
 	}else{
-		echo "<tr><td><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'backup');
+		echo '<tr><td>'.form('setup', 'backup');
 		echo '<table id="backup"><tr><td id="backupcheck">';
 		echo "<label><input type=\"checkbox\" name=\"settings\" id=\"backupsettings\" value=\"1\"$chksettings>$I[settings]</label>";
 		echo "<label><input type=\"checkbox\" name=\"filter\" id=\"backupfilter\" value=\"1\"$chkfilters>$I[filter]</label>";
@@ -809,7 +829,7 @@ function send_backup($C){
 		echo "<label><input type=\"checkbox\" name=\"notes\" id=\"backupnotes\" value=\"1\"$chknotes>$I[notes]</label>";
 		echo '</td><td id="backupsubmit">'.submit($I['backup']).'</td></tr></table></form></td></tr>';
 		thr();
-		echo "<tr><td><$H[form]>$H[commonform]".hidden('action', 'setup').hidden('do', 'restore');
+		echo '<tr><td>'.form('setup', 'restore');
 		echo '<table id="restore">';
 		echo "<tr><td colspan=\"2\"><textarea name=\"restore\" rows=\"4\" cols=\"60\">".htmlspecialchars(json_encode($code)).'</textarea></td></tr>';
 		echo "<tr><td id=\"restorecheck\"><label><input type=\"checkbox\" name=\"settings\" id=\"restoresettings\" value=\"1\"$chksettings>$I[settings]</label>";
@@ -820,34 +840,34 @@ function send_backup($C){
 		echo '</form></td></tr>';
 	}
 	thr();
-	echo "<tr><td><$H[form]>$H[commonform]".hidden('action', 'setup').submit($I['initgosetup'], 'class="backbutton"')."</form></tr></td>";
+	echo '<tr><td>'.form('setup').submit($I['initgosetup'], 'class="backbutton"')."</form></tr></td>";
 	echo '</table>';
 	print_end();
 }
 
 function send_destroy_chat(){
-	global $H, $I;
+	global $I;
 	print_start('destroy_chat');
 	echo "<table><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>";
-	echo "<$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'setup').hidden('do', 'destroy').hidden('confirm', 'yes').submit($I['yes'], 'class="delbutton"').'</form></td><td>';
-	echo "<$H[form]>$H[commonform]".hidden('action', 'setup').submit($I['no'], 'class="backbutton"').'</form></td><tr></table>';
+	echo form_target('_parent', 'setup', 'destroy').hidden('confirm', 'yes').submit($I['yes'], 'class="delbutton"').'</form></td><td>';
+	echo form('setup').submit($I['no'], 'class="backbutton"').'</form></td><tr></table>';
 	print_end();
 }
 
 function send_delete_account(){
-	global $H, $I;
+	global $I;
 	print_start('delete_account');
 	echo "<table><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>";
-	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'delete').hidden('confirm', 'yes').submit($I['yes'], 'class="delbutton"').'</form></td><td>';
-	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').submit($I['no'], 'class="backbutton"').'</form></td><tr></table>';
+	echo form('profile', 'delete').hidden('confirm', 'yes').submit($I['yes'], 'class="delbutton"').'</form></td><td>';
+	echo form('profile').submit($I['no'], 'class="backbutton"').'</form></td><tr></table>';
 	print_end();
 }
 
 function send_init(){
-	global $H, $I, $L;
+	global $I, $L;
 	print_start('init');
 	echo "<h2>$I[init]</h2>";
-	echo "<$H[form]>$H[commonform]".hidden('action', 'init')."<table><tr><td><h3>$I[sulogin]</h3><table>";
+	echo form('init')."<table><tr><td><h3>$I[sulogin]</h3><table>";
 	echo "<tr><td>$I[sunick]</td><td><input type=\"text\" name=\"sunick\" size=\"15\"></td></tr>";
 	echo "<tr><td>$I[supass]</td><td><input type=\"password\" name=\"supass\" size=\"15\"></td></tr>";
 	echo "<tr><td>$I[suconfirm]</td><td><input type=\"password\" name=\"supassc\" size=\"15\"></td></tr>";
@@ -856,21 +876,21 @@ function send_init(){
 	foreach($L as $lang=>$name){
 		echo " <a href=\"$_SERVER[SCRIPT_NAME]?action=setup&amp;lang=$lang\">$name</a>";
 	}
-	echo "</p>$H[credit]";
+	echo '</p>'.credit();
 	print_end();
 }
 
 function send_update($msg){
-	global $H, $I;
+	global $I;
 	print_start('update');
-	echo "<h2>$I[dbupdate]</h2><br><$H[form]>$H[commonform]".hidden('action', 'setup').submit($I['initgosetup'])."</form>$msg<br>$H[credit]";
+	echo "<h2>$I[dbupdate]</h2><br>".form('setup').submit($I['initgosetup'])."</form>$msg<br>".credit();
 	print_end();
 }
 
 function send_alogin(){
-	global $H, $I, $L;
+	global $I, $L;
 	print_start('alogin');
-	echo "<$H[form]>$H[commonform]".hidden('action', 'setup').'<table>';
+	echo form('setup').'<table>';
 	echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autofocus></td></tr>";
 	echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 	send_captcha();
@@ -879,12 +899,12 @@ function send_alogin(){
 	foreach($L as $lang=>$name){
 		echo " <a href=\"$_SERVER[SCRIPT_NAME]?action=setup&amp;lang=$lang\">$name</a>";
 	}
-	echo "</p>$H[credit]";
+	echo '</p>'.credit();
 	print_end();
 }
 
 function send_admin($arg=''){
-	global $H, $I, $U, $db;
+	global $I, $U, $db;
 	$ga=(int) get_setting('guestaccess');
 	print_start('admin');
 	$chlist="<select name=\"name[]\" size=\"5\" multiple><option value=\"\">$I[choose]</option>";
@@ -903,11 +923,11 @@ function send_admin($arg=''){
 	echo "<h2>$I[admfunc]</h2><i>$arg</i><table>";
 	if($U['status']>=7){
 		thr();
-		echo "<tr><td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'setup').submit($I['initgosetup']).'</form></td></tr>';
+		echo '<tr><td>'.form_target('view', 'setup').submit($I['initgosetup']).'</form></td></tr>';
 	}
 	thr();
 	echo "<tr><td><table id=\"clean\"><tr><th>$I[cleanmsgs]</th><td>";
-	frmadm('clean');
+	echo form('admin', 'clean');
 	echo '<table><tr><td><label><input type="radio" name="what" id="room" value="room">';
 	echo "$I[room]</label></td><td>&nbsp;</td><td><label><input type=\"radio\" name=\"what\" id=\"choose\" value=\"choose\" checked>";
 	echo "$I[selection]</label></td><td>&nbsp;</td></tr><tr><td colspan=\"3\"><label><input type=\"radio\" name=\"what\" id=\"nick\" value=\"nick\">";
@@ -921,30 +941,30 @@ function send_admin($arg=''){
 	echo submit($I['clean'], 'class="delbutton"').'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo '<tr><td><table id="kick"><tr><th>'.sprintf($I['kickchat'], get_setting('kickpenalty')).'</th></tr><tr><td>';
-	frmadm('kick');
+	echo form('admin', 'kick');
 	echo "<table><tr><td>$I[kickreason]</td><td><input type=\"text\" name=\"kickmessage\" size=\"30\"></td><td>&nbsp;</td></tr>";
 	echo "<tr><td><label><input type=\"checkbox\" name=\"what\" value=\"purge\" id=\"purge\">$I[kickpurge]</label></td><td>$chlist</td><td>";
 	echo submit($I['kick']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table id=\"logout\"><tr><th>$I[logoutinact]</th><td>";
-	frmadm('logout');
+	echo form('admin', 'logout');
 	echo "<table><tr><td>$chlist</td><td>";
 	echo submit($I['logout']).'</td></tr></table></form></td></tr></table></td></tr>';
 	$views=['sessions', 'filter', 'linkfilter'];
 	foreach($views as $view){
 		thr();
 		echo "<tr><td><table id=\"$view\"><tr><th>".$I[$view].'</th><td>';
-		frmadm($view);
+		echo form('admin', $view);
 		echo submit($I['view']).'</form></td></tr></table></td></tr>';
 	}
 	thr();
 	echo "<tr><td><table id=\"topic\"><tr><th>$I[topic]</th><td>";
-	frmadm('topic');
+	echo form('admin', 'topic');
 	echo '<table><tr><td><input type="text" name="topic" size="20" value="'.get_setting('topic').'"></td><td>';
 	echo submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
 	echo "<tr><td><table id=\"guestaccess\"><tr><th>$I[guestacc]</th><td>";
-	frmadm('guestaccess');
+	echo form('admin', 'guestaccess');
 	echo '<table>';
 	echo '<tr><td><select name="guestaccess">';
 	echo '<option value="1"';
@@ -975,7 +995,7 @@ function send_admin($arg=''){
 	thr();
 	if(get_setting('suguests')){
 		echo "<tr><td><table id=\"suguests\"><tr><th>$I[addsuguest]</th><td>";
-		frmadm('superguest');
+		echo form('admin', 'superguest');
 		echo "<table><tr><td><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		foreach($users as $user){
 			if($user[2]==1){
@@ -987,7 +1007,7 @@ function send_admin($arg=''){
 	}
 	if($U['status']>=7){
 		echo "<tr><td><table id=\"status\"><tr><th>$I[admmembers]</th><td>";
-		frmadm('status');
+		echo form('admin', 'status');
 		echo "<table><td><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		$members=[];
 		$result=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
@@ -1025,7 +1045,7 @@ function send_admin($arg=''){
 		echo '</select></td><td>'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 		echo "<tr><td><table id=\"passreset\"><tr><th>$I[passreset]</th><td>";
-		frmadm('passreset');
+		echo form('admin', 'passreset');
 		echo "<table><td><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		foreach($members as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]</option>";
@@ -1033,7 +1053,7 @@ function send_admin($arg=''){
 		echo '</select></td><td><input type="password" name="pass"></td><td>'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 		echo "<tr><td><table id=\"register\"><tr><th>$I[regguest]</th><td>";
-		frmadm('register');
+		echo form('admin', 'register');
 		echo "<table><tr><td><select name=\"name\" size=\"1\"><option value=\"\">$I[choose]</option>";
 		foreach($users as $user){
 			if($user[2]==1){
@@ -1043,19 +1063,19 @@ function send_admin($arg=''){
 		echo '</select></td><td>'.submit($I['register']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 		echo "<tr><td><table id=\"regnew\"><tr><th>$I[regmem]</th></tr><tr><td>";
-		frmadm('regnew');
+		echo form('admin', 'regnew');
 		echo "<table><tr><td>$I[nick]</td><td>&nbsp;</td><td><input type=\"text\" name=\"name\" size=\"20\"></td><td>&nbsp;</td></tr>";
 		echo "<tr><td>$I[pass]</td><td>&nbsp;</td><td><input type=\"password\" name=\"pass\" size=\"20\"></td><td>";
 		echo submit($I['register']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 	}
 	echo "</table><br>";
-	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').submit($I['reload']).'</form>';
+	echo form('admin').submit($I['reload']).'</form>';
 	print_end();
 }
 
 function send_sessions(){
-	global $H, $I, $U, $db;
+	global $I, $U, $db;
 	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE entry!=0 AND (incognito=0 OR status<? OR nickname=?) ORDER BY status DESC, lastpost DESC;');
 	$stmt->execute([$U['status'], $U['nickname']]);
 	if(!$lines=$stmt->fetchAll(PDO::FETCH_ASSOC)){
@@ -1102,12 +1122,12 @@ function send_sessions(){
 				echo '<table><tr>';
 				if($temp['status']!=0){
 					echo '<td>';
-					frmadm('sessions');
+					echo form('admin', 'sessions');
 					echo hidden('kick', '1').hidden('nick', htmlspecialchars($temp['nickname'])).submit($I['kick']).'</form>';
 					echo '</td>';
 				}
 				echo '<td>';
-				frmadm('sessions');
+				echo form('admin', 'sessions');
 				echo hidden('logout', '1').hidden('nick', htmlspecialchars($temp['nickname'])).submit($temp['status']==0 ? $I['unban'] : $I['logout']).'</form>';
 				echo '</td></tr></table>';
 			}else{
@@ -1123,7 +1143,7 @@ function send_sessions(){
 		}
 	}
 	echo "</table><br>";
-	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'sessions').submit($I['reload']).'</form>';
+	echo form('admin', 'sessions').submit($I['reload']).'</form>';
 	print_end();
 }
 
@@ -1247,7 +1267,7 @@ function get_linkfilters(){
 }
 
 function send_filter($arg=''){
-	global $H, $I, $U;
+	global $I, $U;
 	print_start('filter');
 	echo "<h2>$I[filter]</h2><i>$arg</i><table>";
 	thr();
@@ -1285,8 +1305,7 @@ function send_filter($arg=''){
 			$checkedcs='';
 		}
 		echo '<tr><td>';
-		frmadm('filter');
-		echo hidden('id', $filter['id']);
+		echo form('admin', 'filter').hidden('id', $filter['id']);
 		echo "<table style=\"width:100%;\"><tr><th style=\"width:8em;\">$I[filter] $filter[id]:</th>";
 		echo "<td style=\"width:12em;\"><input type=\"text\" name=\"match\" value=\"$filter[match]\" size=\"20\" style=\"$U[style]\"></td>";
 		echo '<td style="width:12em;"><input type="text" name="replace" value="'.htmlspecialchars($filter['replace'])."\" size=\"20\" style=\"$U[style]\"></td>";
@@ -1297,8 +1316,7 @@ function send_filter($arg=''){
 		echo '<td class="filtersubmit" style="width:5em;">'.submit($I['change']).'</td></tr></table></form></td></tr>';
 	}
 	echo '<tr><td>';
-	frmadm('filter');
-	echo hidden('id', '+');
+	echo form('admin', 'filter').hidden('id', '+');
 	echo "<table style=\"width:100%;\"><tr><th style=\"width:8em\">$I[newfilter]</th>";
 	echo "<td style=\"width:12em;\"><input type=\"text\" name=\"match\" value=\"\" size=\"20\" style=\"$U[style]\"></td>";
 	echo "<td style=\"width:12em;\"><input type=\"text\" name=\"replace\" value=\"\" size=\"20\" style=\"$U[style]\"></td>";
@@ -1308,12 +1326,12 @@ function send_filter($arg=''){
 	echo "<td style=\"width:5em;\"><label><input type=\"checkbox\" name=\"cs\" id=\"cs\" value=\"1\">$I[cs]</label></td>";
 	echo '<td class="filtersubmit" style="width:5em;">'.submit($I['add']).'</td></tr></table></form></td></tr>';
 	echo "</table><br>";
-	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'filter').submit($I['reload']).'</form>';
+	echo form('admin', 'filter').submit($I['reload']).'</form>';
 	print_end();
 }
 
 function send_linkfilter($arg=''){
-	global $H, $I, $U;
+	global $I, $U;
 	print_start('linkfilter');
 	echo "<h2>$I[linkfilter]</h2><i>$arg</i><table>";
 	thr();
@@ -1333,8 +1351,7 @@ function send_linkfilter($arg=''){
 			$filter['match']=preg_replace('/(\\\\(.))/u', "$2", $filter['match']);
 		}
 		echo '<tr><td>';
-		frmadm('linkfilter');
-		echo hidden('id', $filter['id']);
+		echo form('admin', 'linkfilter').hidden('id', $filter['id']);
 		echo "<table style=\"width:100%;\"><tr><th style=\"width:8em;\">$I[filter] $filter[id]:</th>";
 		echo "<td style=\"width:12em;\"><input type=\"text\" name=\"match\" value=\"$filter[match]\" size=\"20\" style=\"$U[style]\"></td>";
 		echo '<td style="width:12em;"><input type="text" name="replace" value="'.htmlspecialchars($filter['replace'])."\" size=\"20\" style=\"$U[style]\"></td>";
@@ -1342,21 +1359,20 @@ function send_linkfilter($arg=''){
 		echo '<td class="filtersubmit" style="width:5em;">'.submit($I['change']).'</td></tr></table></form></td></tr>';
 	}
 	echo '<tr><td>';
-	frmadm('linkfilter');
-	echo hidden('id', '+');
+	echo form('admin', 'linkfilter').hidden('id', '+');
 	echo "<table style=\"width:100%;\"><tr><th style=\"width:8em;\">$I[newfilter]</th>";
 	echo "<td style=\"width:12em;\"><input type=\"text\" name=\"match\" value=\"\" size=\"20\" style=\"$U[style]\"></td>";
 	echo "<td style=\"width:12em;\"><input type=\"text\" name=\"replace\" value=\"\" size=\"20\" style=\"$U[style]\"></td>";
 	echo "<td style=\"width:5em;\"><label><input type=\"checkbox\" name=\"regex\" value=\"1\">$I[regex]</label></td>";
 	echo '<td class="filtersubmit" style="width:5em;">'.submit($I['add']).'</td></tr></table></form></td></tr>';
 	echo "</table><br>";
-	echo "<$H[form]>$H[commonform]".hidden('action', 'admin').hidden('do', 'linkfilter').submit($I['reload']).'</form>';
+	echo form('admin', 'linkfilter').submit($I['reload']).'</form>';
 	print_end();
 }
 
 function send_frameset(){
-	global $H, $I, $U, $db, $language;
-	echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Frameset//EN\" \"http://www.w3.org/TR/html4/frameset.dtd\"><html><head>$H[meta_html]";
+	global $I, $U, $db, $language;
+	echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"><html><head>'.meta_html();
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
 	echo '</head>';
@@ -1408,7 +1424,7 @@ function send_frameset(){
 		}
 		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
 	}
-	echo "<noframes><body>$I[noframes]$H[backtologin]</body></noframes></frameset></html>";
+	echo "<noframes><body>$I[noframes]".form_target('_parent', 'login').submit($I['backtologin'], 'class="backbutton"').'</form></body></noframes></frameset></html>';
 	exit;
 }
 
@@ -1447,9 +1463,9 @@ function send_messages(){
 }
 
 function send_inbox(){
-	global $H, $I, $U, $db;
+	global $I, $U, $db;
 	print_start('inbox');
-	echo "<$H[form]>$H[commonform]".hidden('action', 'inbox').hidden('do', 'clean').submit($I['delselmes'], 'class="delbutton"').'<br><br>';
+	echo form('inbox', 'clean').submit($I['delselmes'], 'class="delbutton"').'<br><br>';
 	$dateformat=get_setting('dateformat');
 	$tz=3600*$U['tz'];
 	if(!$U['embed'] && get_setting('imgembed')){
@@ -1482,16 +1498,16 @@ function send_inbox(){
 		}
 		echo " $message[text]</label></div>";
 	}
-	echo "</form><br>$H[backtochat]";
+	echo '</form><br>'.form('view').submit($I['backtochat'], 'class="backbutton"').'</form>';
 	print_end();
 }
 
 function send_notes($type){
-	global $H, $I, $U, $db;
+	global $I, $U, $db;
 	print_start('notes');
 	if($U['status']>=6){
-		echo "<table><tr><td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'notes').hidden('do', 'admin').submit($I['admnotes']).'</form></td>';
-		echo "<td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'notes').submit($I['notes']).'</form></td></tr></table>';
+		echo '<table><tr><td>'.form_target('view', 'notes', 'admin').submit($I['admnotes']).'</form></td>';
+		echo '<td>'.form_target('view', 'notes').submit($I['notes']).'</form></td></tr></table>';
 	}
 	if($type==='staff'){
 		echo "<h2>$I[staffnotes]</h2><p>";
@@ -1542,23 +1558,23 @@ function send_notes($type){
 		}
 		$note['text']=openssl_decrypt($note['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 	}
-	echo "</p><$H[form]>$H[commonform]";
+	echo "</p>".form('notes');
 	if($type==='admin'){
 		echo hidden('do', 'admin');
 	}
-	echo hidden('action', 'notes')."<textarea name=\"text\" rows=\"$settings[notesboxheight]\" cols=\"$settings[notesboxwidth]\">".htmlspecialchars($note['text']).'</textarea><br>';
+	echo "<textarea name=\"text\" rows=\"$settings[notesboxheight]\" cols=\"$settings[notesboxwidth]\">".htmlspecialchars($note['text']).'</textarea><br>';
 	echo submit($I['savenotes']).'</form><br>';
 	if($num[0]>1){
 		echo "<br><table><tr><td>$I[revisions]</td>";
 		if($revision<$num[0]-1){
-			echo "<td><$H[form]>$H[commonform]".hidden('action', 'notes').hidden('revision', $revision+1);
+			echo '<td>'.form('notes').hidden('revision', $revision+1);
 			if($type==='admin'){
 				echo hidden('do', 'admin');
 			}
 			echo submit($I['older']).'</form></td>';
 		}
 		if($revision>0){
-			echo "<td><$H[form]>$H[commonform]".hidden('action', 'notes').hidden('revision', $revision-1);
+			echo '<td>'.form('notes').hidden('revision', $revision-1);
 			if($type==='admin'){
 				echo hidden('do', 'admin');
 			}
@@ -1570,12 +1586,12 @@ function send_notes($type){
 }
 
 function send_approve_waiting(){
-	global $H, $I, $db;
+	global $I, $db;
 	print_start('approve_waiting');
 	echo "<h2>$I[waitingroom]</h2>";
 	$result=$db->query('SELECT * FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1 ORDER BY id;');
 	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
-		frmadm('approve');
+		echo form('admin', 'approve');
 		echo '<table>';
 		echo "<tr><th>$I[sessnick]</th><th>$I[sessua]</th></tr>";
 		foreach($tmp as $temp){
@@ -1592,12 +1608,12 @@ function send_approve_waiting(){
 	}else{
 		echo "$I[waitempty]<br>";
 	}
-	echo "<br>$H[backtochat]";
+	echo '<br>'.form('view').submit($I['backtochat'], 'class="backbutton"').'</form>';
 	print_end();
 }
 
 function send_waiting_room(){
-	global $H, $I, $U, $db, $language;
+	global $I, $U, $db, $language;
 	$ga=(int) get_setting('guestaccess');
 	if($ga===3 && (get_count_mods()>0 || !get_setting('modfallback'))){
 		$wait=false;
@@ -1626,16 +1642,16 @@ function send_waiting_room(){
 		echo '</p><br><p>';
 		printf($I['waitreload'], $refresh);
 		echo '</p><br><br>';
-		echo "<hr><$H[form]>$H[commonform]";
+		echo '<hr>'.form('wait');
 		if(!isSet($_REQUEST['session'])){
 			echo hidden('session', $U['session']);
 		}
-		echo hidden('action', 'wait').submit($I['reload']).'</form><br>';
-		echo "<$H[form]>$H[commonform]";
+		echo submit($I['reload']).'</form><br>';
+		echo form('logout');
 		if(!isSet($_REQUEST['session'])){
 			echo hidden('session', $U['session']);
 		}
-		echo hidden('action', 'logout').submit($I['exit'], 'id="exitbutton"').'</form>';
+		echo submit($I['exit'], 'id="exitbutton"').'</form>';
 		$rulestxt=get_setting('rulestxt');
 		if(!empty($rulestxt)){
 			echo "<div id=\"rules\"><h2>$I[rules]</h2><b>$rulestxt</b></div>";
@@ -1647,7 +1663,7 @@ function send_waiting_room(){
 function send_choose_messages(){
 	global $I, $U;
 	print_start('choose_messages');
-	frmadm('clean');
+	echo form('admin', 'clean');
 	echo hidden('what', 'selected').submit($I['delselmes'], 'class="delbutton"').'<br><br>';
 	print_messages($U['status']);
 	echo '<br>'.submit($I['delselmes'], 'class="delbutton"')."</form>";
@@ -1657,16 +1673,14 @@ function send_choose_messages(){
 function send_del_confirm(){
 	global $I;
 	print_start('del_confirm');
-	echo "<table><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>";
-	frmpst('delete');
+	echo "<table><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>".form('delete');
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
 	}
 	if(isSet($_REQUEST['sendto'])){
 		echo hidden('sendto', $_REQUEST['sendto']);
 	}
-	echo hidden('confirm', 'yes').hidden('what', $_REQUEST['what']).submit($I['yes'], 'class="delbutton"').'</form></td><td>';
-	frmpst('post');
+	echo hidden('confirm', 'yes').hidden('what', $_REQUEST['what']).submit($I['yes'], 'class="delbutton"').'</form></td><td>'.form('post');
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
 	}
@@ -1677,27 +1691,22 @@ function send_del_confirm(){
 	print_end();
 }
 
-function send_post(){
+function send_post($rejected=''){
 	global $I, $U, $db;
-	$U['postid']=substr(time(), -6);
 	print_start('post');
 	if(!isSet($_REQUEST['sendto'])){
 		$_REQUEST['sendto']='';
 	}
-	echo '<table><tr><td>';
-	frmpst('post');
-	echo hidden('postid', $U['postid']);
+	echo '<table><tr><td>'.form('post');
+	echo hidden('postid', substr(time(), -6));
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
 	}
 	echo '<table><tr><td><table><tr id="firstline"><td>'.style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
-	if(!isSet($U['rejected'])){
-		$U['rejected']='';
-	}
 	if(isSet($_REQUEST['multi'])){
-		echo "<td><textarea name=\"message\" rows=\"$U[boxheight]\" cols=\"$U[boxwidth]\" style=\"$U[style]\" autofocus>$U[rejected]</textarea></td>";
+		echo "<td><textarea name=\"message\" rows=\"$U[boxheight]\" cols=\"$U[boxwidth]\" style=\"$U[style]\" autofocus>$rejected</textarea></td>";
 	}else{
-		echo "<td><input type=\"text\" name=\"message\" value=\"$U[rejected]\" size=\"$U[boxwidth]\" style=\"$U[style]\" autofocus></td>";
+		echo "<td><input type=\"text\" name=\"message\" value=\"$rejected\" size=\"$U[boxwidth]\" style=\"$U[style]\" autofocus></td>";
 	}
 	echo '<td>'.submit($I['talkto']).'</td><td><select name="sendto" size="1">';
 	echo '<option ';
@@ -1759,20 +1768,17 @@ function send_post(){
 		echo "<td><label><input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\">$I[kick]</label></td>";
 		echo "<td><label><input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked>$I[alsopurge]</label></td>";
 	}
-	echo '</tr></table></td></tr></table></form></td></tr><tr><td><table><tr id="thirdline"><td>';
-	frmpst('delete');
+	echo '</tr></table></td></tr></table></form></td></tr><tr><td><table><tr id="thirdline"><td>'.form('delete');
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
 	}
 	echo hidden('sendto', $_REQUEST['sendto']).hidden('what', 'last');
-	echo submit($I['dellast'], 'class="delbutton"').'</form></td><td>';
-	frmpst('delete', 'all');
+	echo submit($I['dellast'], 'class="delbutton"').'</form></td><td>'.form('delete');
 	if(isSet($_REQUEST['multi'])){
 		echo hidden('multi', 'on');
 	}
 	echo hidden('sendto', $_REQUEST['sendto']).hidden('what', 'all');
-	echo submit($I['delall'], 'class="delbutton"').'</form></td><td style="width:10px;"></td><td>';
-	frmpst('post');
+	echo submit($I['delall'], 'class="delbutton"').'</form></td><td style="width:10px;"></td><td>'.form('post');
 	if(isSet($_REQUEST['multi'])){
 		echo submit($I['switchsingle']);
 	}else{
@@ -1796,7 +1802,7 @@ function send_greeting(){
 }
 
 function send_help(){
-	global $H, $I, $U;
+	global $I, $U;
 	print_start('help');
 	$rulestxt=get_setting('rulestxt');
 	if(!empty($rulestxt)){
@@ -1815,14 +1821,14 @@ function send_help(){
 			}
 		}
 	}
-	echo "<br><hr><div id=\"backcredit\">$H[backtochat]$H[credit]</div>";
+	echo '<br><hr><div id="backcredit">'.form('view').submit($I['backtochat'], 'class="backbutton"').'</form>'.credit().'</div>';
 	print_end();
 }
 
 function send_profile($arg=''){
-	global $F, $H, $I, $L, $U, $db, $language;
+	global $F, $I, $L, $U, $db, $language;
 	print_start('profile');
-	echo "<$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'save')."<h2>$I[profile]</h2><i>$arg</i><table>";
+	echo form('profile', 'save')."<h2>$I[profile]</h2><i>$arg</i><table>";
 	thr();
 	$ignored=[];
 	$stmt=$db->prepare('SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?;');
@@ -1959,38 +1965,38 @@ function send_profile($arg=''){
 	}
 	echo '<tr><td>'.submit($I['savechanges']).'</td></tr></table></form>';
 	if($U['status']>1 && $U['status']<8){
-		echo "<br><$H[form]>$H[commonform]".hidden('action', 'profile').hidden('do', 'delete').submit($I['deleteacc'], 'class="delbutton"').'</form>';
+		echo '<br>'.form('profile', 'delete').submit($I['deleteacc'], 'class="delbutton"').'</form>';
 	}
 	echo "<br><p id=\"changelang\">$I[changelang]";
 	foreach($L as $lang=>$name){
 		echo " <a href=\"$_SERVER[SCRIPT_NAME]?lang=$lang&amp;session=$U[session]&amp;action=controls\" target=\"controls\">$name</a>";
 	}
-	echo "</p><br>$H[backtochat]";
+	echo '</p><br>'.form('view').submit($I['backtochat'], 'class="backbutton"').'</form>';
 	print_end();
 }
 
 function send_controls(){
-	global $H, $I, $U;
+	global $I, $U;
 	print_start('controls');
 	echo '<table><tr>';
-	echo "<td><$H[form] target=\"post\">$H[commonform]".hidden('action', 'post').submit($I['reloadpb']).'</form></td>';
-	echo "<td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'view').submit($I['reloadmsgs']).'</form></td>';
-	echo "<td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'profile').submit($I['chgprofile']).'</form></td>';
+	echo '<td>'.form_target('post', 'post').submit($I['reloadpb']).'</form></td>';
+	echo '<td>'.form_target('view', 'view').submit($I['reloadmsgs']).'</form></td>';
+	echo '<td>'.form_target('view', 'profile').submit($I['chgprofile']).'</form></td>';
 	if($U['status']>=5){
-		echo "<td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'admin').submit($I['adminbtn']).'</form></td>';
-		echo "<td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'notes').submit($I['notes']).'</form></td>';
+		echo '<td>'.form_target('view', 'admin').submit($I['adminbtn']).'</form></td>';
+		echo '<td>'.form_target('view', 'notes').submit($I['notes']).'</form></td>';
 	}
 	if($U['status']>=3){
-		echo "<td><$H[form] target=\"_blank\">$H[commonform]".hidden('action', 'login').submit($I['clone']).'</form></td>';
+		echo '<td>'.form_target('_blank', 'login').submit($I['clone']).'</form></td>';
 	}
 	if(!isset($_REQUEST['sort'])){
 		$sort=0;
 	}else{
 		$sort=$_REQUEST['sort'];
 	}
-	echo "<td><$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'login').hidden('sort', $sort).submit($I['sortframe']).'</form></td>';
-	echo "<td><$H[form] target=\"view\">$H[commonform]".hidden('action', 'help').submit($I['randh']).'</form></td>';
-	echo "<td><$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'logout').submit($I['exit'], 'id="exitbutton"').'</form></td>';
+	echo '<td>'.form_target('_parent', 'login').hidden('sort', $sort).submit($I['sortframe']).'</form></td>';
+	echo '<td>'.form_target('view', 'help').submit($I['randh']).'</form></td>';
+	echo '<td>'.form_target('_parent', 'logout').submit($I['exit'], 'id="exitbutton"').'</form></td>';
 	echo '</tr></table>';
 	print_end();
 }
@@ -2016,14 +2022,14 @@ function send_download(){
 }
 
 function send_logout(){
-	global $H, $I, $U;
+	global $I, $U;
 	print_start('logout');
-	echo '<h1>'.sprintf($I['bye'], style_this(htmlspecialchars($U['nickname']), $U['style']))."</h1>$H[backtologin]";
+	echo '<h1>'.sprintf($I['bye'], style_this(htmlspecialchars($U['nickname']), $U['style'])).'</h1>'.form_target('_parent', 'login').submit($I['backtologin'], 'class="backbutton"').'</form>';
 	print_end();
 }
 
 function send_colours(){
-	global $H, $I;
+	global $I;
 	print_start('colours');
 	echo "<h2>$I[colourtable]</h2><kbd><b>";
 	for($red=0x00;$red<=0xFF;$red+=0x33){
@@ -2036,12 +2042,12 @@ function send_colours(){
 		}
 		echo '<br>';
 	}
-	echo "</b></kbd><$H[form]>$H[commonform]".hidden('action', 'profile').submit($I['backtoprofile'], ' class="backbutton"').'</form>';
+	echo '</b></kbd>'.form('profile').submit($I['backtoprofile'], ' class="backbutton"').'</form>';
 	print_end();
 }
 
 function send_login(){
-	global $H, $I, $L;
+	global $I, $L;
 	$ga=(int) get_setting('guestaccess');
 	if($ga===4){
 		send_chat_disabled();
@@ -2049,7 +2055,7 @@ function send_login(){
 	print_start('login');
 	$englobal=(int) get_setting('englobalpass');
 	echo '<h1>'.get_setting('chatname').'</h1>';
-	echo "<$H[form] target=\"_parent\">$H[commonform]".hidden('action', 'login');
+	echo form_target('_parent', 'login');
 	if($englobal===1 && isSet($_POST['globalpass'])){
 		echo hidden('globalpass', $_POST['globalpass']);
 	}
@@ -2091,7 +2097,7 @@ function send_login(){
 	foreach($L as $lang=>$name){
 		echo " <a href=\"$_SERVER[SCRIPT_NAME]?lang=$lang\">$name</a>";
 	}
-	echo "</p>$H[credit]";
+	echo '</p>'.credit();
 	print_end();
 }
 
@@ -2102,15 +2108,15 @@ function send_chat_disabled(){
 }
 
 function send_error($err){
-	global $H, $I;
+	global $I;
 	print_start('error');
-	echo "<h2>$I[error]: $err</h2>$H[backtologin]";
+	echo "<h2>$I[error]: $err</h2>".form_target('_parent', 'login').submit($I['backtologin'], 'class="backbutton"').'</form>';
 	print_end();
 }
 
 function send_fatal_error($err){
-	global $H, $I;
-	echo "<!DOCTYPE html><html><head>$H[meta_html]";
+	global $I;
+	echo '<!DOCTYPE html><html><head>'.meta_html();
 	echo "<title>$I[fatalerror]</title>";
 	echo "<style type=\"text/css\">body{background-color:#000000;color:#FF0033;}</style>";
 	echo '</head><body>';
@@ -2119,15 +2125,14 @@ function send_fatal_error($err){
 }
 
 function print_notifications(){
-	global $H, $I, $U, $db;
+	global $I, $U, $db;
 	echo '<span id="notifications">';
 	if($U['status']>=2 && $U['eninbox']!=0){
 		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
 		$stmt->execute([$U['nickname']]);
 		$tmp=$stmt->fetch(PDO::FETCH_NUM);
 		if($tmp[0]>0){
-			echo "<p><$H[form]>$H[commonform]".hidden('action', 'inbox');
-			echo submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
+			echo '<p>'.form('inbox').submit(sprintf($I['inboxmsgs'], $tmp[0])).'</form></p>';
 		}
 	}
 	if($U['status']>=5 && get_setting('guestaccess')==3){
@@ -2135,7 +2140,7 @@ function print_notifications(){
 		$temp=$result->fetch(PDO::FETCH_NUM);
 		if($temp[0]>0){
 			echo '<p>';
-			frmadm('approve');
+			echo form('admin', 'approve');
 			echo submit(sprintf($I['approveguests'], $temp[0])).'</form></p>';
 		}
 	}
@@ -2311,6 +2316,7 @@ function check_login(){
 			setcookie(COOKIENAME, $U['session']);
 		}else{
 			setcookie(COOKIENAME, false);
+			$_REQUEST['session']='';
 			send_error($I['expire']);
 
 		}
@@ -2352,6 +2358,7 @@ function kill_session(){
 	check_expired();
 	check_kicked();
 	setcookie(COOKIENAME, false);
+	$_REQUEST['session']='';
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
 	$stmt->execute([$U['session']]);
 	if($U['status']==1){
@@ -2444,6 +2451,7 @@ function check_expired(){
 	global $I, $U;
 	if(!isSet($U['session'])){
 		setcookie(COOKIENAME, false);
+		$_REQUEST['session']='';
 		send_error($I['expire']);
 	}
 }
@@ -2458,6 +2466,7 @@ function check_kicked(){
 	global $I, $U;
 	if($U['status']==0){
 		setcookie(COOKIENAME, false);
+		$_REQUEST['session']='';
 		send_error("$I[kicked]<br>$U[kickmessage]");
 	}
 }
@@ -2857,43 +2866,43 @@ function validate_input(){
 	global $U, $db;
 	$inbox=false;
 	$maxmessage=get_setting('maxmessage');
-	$U['message']=mb_substr($_REQUEST['message'], 0, $maxmessage);
-	$U['rejected']=mb_substr($_REQUEST['message'], $maxmessage);
+	$message=mb_substr($_REQUEST['message'], 0, $maxmessage);
+	$rejected=mb_substr($_REQUEST['message'], $maxmessage);
 	if($U['postid']===$_REQUEST['postid']){// ignore double post=reload from browser or proxy
-		$U['message']='';
+		$message='';
 	}elseif((time()-$U['lastpost'])<=1){// time between posts too short, reject!
-		$U['rejected']=$_REQUEST['message'];
-		$U['message']='';
+		$rejected=$_REQUEST['message'];
+		$message='';
 	}
-	if(!empty($U['rejected'])){
-		$U['rejected']=trim($U['rejected']);
-		$U['rejected']=htmlspecialchars($U['rejected']);
+	if(!empty($rejected)){
+		$rejected=trim($rejected);
+		$rejected=htmlspecialchars($rejected);
 	}
-	$U['message']=htmlspecialchars($U['message']);
-	$U['message']=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $U['message']);
+	$message=htmlspecialchars($message);
+	$message=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $message);
 	if(isSet($_REQUEST['multi'])){
-		$U['message']=preg_replace('/\s*<br>/u', '<br>', $U['message']);
-		$U['message']=preg_replace('/<br>(<br>)+/u', '<br><br>', $U['message']);
-		$U['message']=preg_replace('/<br><br>\s*$/u', '<br>', $U['message']);
-		$U['message']=preg_replace('/^<br>\s*$/u', '', $U['message']);
+		$message=preg_replace('/\s*<br>/u', '<br>', $message);
+		$message=preg_replace('/<br>(<br>)+/u', '<br><br>', $message);
+		$message=preg_replace('/<br><br>\s*$/u', '<br>', $message);
+		$message=preg_replace('/^<br>\s*$/u', '', $message);
 	}else{
-		$U['message']=str_replace('<br>', ' ', $U['message']);
+		$message=str_replace('<br>', ' ', $message);
 	}
-	$U['message']=trim($U['message']);
-	$U['message']=preg_replace('/\s+/u', ' ', $U['message']);
-	$U['recipient']='';
+	$message=trim($message);
+	$message=preg_replace('/\s+/u', ' ', $message);
+	$recipient='';
 	if($_REQUEST['sendto']==='s *'){
-		$U['poststatus']=1;
-		$U['displaysend']=sprintf(get_setting('msgsendall'), style_this(htmlspecialchars($U['nickname']), $U['style']));
+		$poststatus=1;
+		$displaysend=sprintf(get_setting('msgsendall'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}elseif($_REQUEST['sendto']==='s ?' && $U['status']>=3){
-		$U['poststatus']=3;
-		$U['displaysend']=sprintf(get_setting('msgsendmem'), style_this(htmlspecialchars($U['nickname']), $U['style']));
+		$poststatus=3;
+		$displaysend=sprintf(get_setting('msgsendmem'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}elseif($_REQUEST['sendto']==='s #' && $U['status']>=5){
-		$U['poststatus']=5;
-		$U['displaysend']=sprintf(get_setting('msgsendmod'), style_this(htmlspecialchars($U['nickname']), $U['style']));
+		$poststatus=5;
+		$displaysend=sprintf(get_setting('msgsendmod'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}elseif($_REQUEST['sendto']==='s &' && $U['status']>=6){
-		$U['poststatus']=6;
-		$U['displaysend']=sprintf(get_setting('msgsendadm'), style_this(htmlspecialchars($U['nickname']), $U['style']));
+		$poststatus=6;
+		$displaysend=sprintf(get_setting('msgsendadm'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}else{// known nick in room?
 		if(get_setting('disablepm')){
 			return;
@@ -2901,28 +2910,32 @@ function validate_input(){
 		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, 1 AS inbox FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions) UNION SELECT nickname, style, 0 AS inbox FROM ' . PREFIX . 'sessions WHERE nickname=?) AS t WHERE nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
 		$stmt->execute([$_REQUEST['sendto'], $U['status'], $_REQUEST['sendto'], $U['nickname'], $U['nickname']]);
 		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-			$U['recipient']=$_REQUEST['sendto'];
-			$U['poststatus']=9;
-			$U['displaysend']=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($U['recipient']), $tmp['style']));
+			$recipient=$_REQUEST['sendto'];
+			$poststatus=9;
+			$displaysend=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($recipient), $tmp['style']));
 			$inbox=$tmp['inbox'];
 		}
-		if(empty($U['recipient'])){// nick left already or ignores us
-			$U['message']='';
-			$U['rejected']='';
+		if(empty($recipient)){// nick left already or ignores us
+			$message='';
+			$rejected='';
 			return;
 		}
 	}
-	apply_filter();
-	create_hotlinks();
-	apply_linkfilter();
+	if($poststatus!==9 && preg_match('~^/me~iu', $message)){
+		$displaysend=style_this(htmlspecialchars($U['nickname']), $U['style']);
+		$message=preg_replace("~^/me~iu", '', $message);
+	}
+	$message=apply_filter($message, $poststatus, $U['nickname']);
+	$message=create_hotlinks($message);
+	$message=apply_linkfilter($message);
 	if(isSet($_FILES['file']) && get_setting('enfileupload')){
 		if($_FILES['file']['error']===UPLOAD_ERR_OK && $_FILES['file']['size']<=(1024*get_setting('maxuploadsize'))){
 			$hash=sha1_file($_FILES['file']['tmp_name']);
 			$name=htmlspecialchars($_FILES['file']['name']);
-			$U['message']=sprintf(get_setting('msgattache'), "<a class=\"attachement\" href=\"$_SERVER[SCRIPT_NAME]?action=download&amp;id=$hash\" target=\"_blank\">$name</a>", $U['message']);
+			$message=sprintf(get_setting('msgattache'), "<a class=\"attachement\" href=\"$_SERVER[SCRIPT_NAME]?action=download&amp;id=$hash\" target=\"_blank\">$name</a>", $message);
 		}
 	}
-	if(add_message()){
+	if(add_message($message, $recipient, $U['nickname'], $U['status'], $poststatus, $displaysend, $U['style'])){
 		$U['lastpost']=time();
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
 		$stmt->execute([$U['lastpost'], $_REQUEST['postid'], $U['session']]);
@@ -2930,17 +2943,17 @@ function validate_input(){
 		$stmt->execute([$U['nickname']]);
 		$id=$stmt->fetch(PDO::FETCH_NUM);
 		if($inbox && $id){
-			$message=[
+			$newmessage=[
 				'postdate'	=>time(),
 				'poster'	=>$U['nickname'],
-				'recipient'	=>$U['recipient'],
-				'text'		=>"<span class=\"usermsg\">$U[displaysend]".style_this($U['message'], $U['style']).'</span>'
+				'recipient'	=>$recipient,
+				'text'		=>"<span class=\"usermsg\">$displaysend".style_this($message, $U['style']).'</span>'
 			];
 			if(MSGENCRYPTED){
-				$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
+				$newmessage['text']=openssl_encrypt($newmessage['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 			}
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?)');
-			$stmt->execute([$message['postdate'], $id[0], $message['poster'], $message['recipient'], $message['text']]);
+			$stmt->execute([$newmessage['postdate'], $id[0], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
 		}
 		if(isset($hash) && $id){
 			if(!empty($_FILES['file']['type'])){
@@ -2953,16 +2966,99 @@ function validate_input(){
 			unlink($_FILES['file']['tmp_name']);
 		}
 	}
+	return $rejected;
 }
 
-function apply_filter(){
-	global $I, $U;
-	if($U['poststatus']!==9 && preg_match('~^/me~iu', $U['message'])){
-		$U['displaysend']=style_this(htmlspecialchars($U['nickname']), $U['style']);
-		$U['message']=preg_replace("~^/me~iu", '', $U['message']);
+function apply_filter($message, $poststatus, $nickname){
+	global $I;
+	$message=str_replace('<br>', "\n", $message);
+	$message=apply_mention($message);
+	$filters=get_filters();
+	foreach($filters as $filter){
+		if($poststatus!==9 || !$filter['allowinpm']){
+			if($filter['cs']){
+				$message=preg_replace("/$filter[match]/u", $filter['replace'], $message, -1, $count);
+			}else{
+				$message=preg_replace("/$filter[match]/iu", $filter['replace'], $message, -1, $count);
+			}
+		}
+		if(isSet($count) && $count>0 && $filter['kick']){
+			kick_chatter([$nickname], $filter['replace'], false);
+			setcookie(COOKIENAME, false);
+			$_REQUEST['session']='';
+			send_error("$I[kicked]<br>$filter[replace]");
+		}
 	}
-	$U['message']=str_replace('<br>', "\n", $U['message']);
-	$U['message']=preg_replace_callback('/\@([^\s]+)/iu', function ($matched){
+	$message=str_replace("\n", '<br>', $message);
+	return $message;
+}
+
+function apply_linkfilter($message){
+	$filters=get_linkfilters();
+	foreach($filters as $filter){
+		$message=preg_replace_callback("/<a href=\"([^\"]+)\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/iu",
+			function ($matched) use(&$filter){
+				return "<a href=\"$matched[1]\" target=\"_blank\">".preg_replace("/$filter[match]/iu", $filter['replace'], $matched[2]).'</a>';
+			}
+		, $message);
+	}
+	$redirect=get_setting('redirect');
+	if(get_setting('imgembed')){
+		$message=preg_replace_callback('/\[img\]\s?<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/iu',
+			function ($matched){
+				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\"><img src=\"$matched[1]\"></a><br>");
+			}
+		, $message);
+	}
+	if(empty($redirect)){
+		$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
+	}
+	if(get_setting('forceredirect')){
+		$message=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/u',
+			function ($matched) use($redirect){
+				return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
+			}
+		, $message);
+	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/u', $message, $matches)){
+		foreach($matches[1] as $match){
+			if(!preg_match('~^http(s)?://~u', $match)){
+				$message=preg_replace_callback('/<a href="('.str_replace('/', '\/', $match).')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/u',
+					function ($matched) use($redirect){
+						return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
+					}
+				, $message);
+			}
+		}
+	}
+	return $message;
+}
+
+function create_hotlinks($message){
+	//Make hotlinks for URLs, redirect through dereferrer script to prevent session leakage
+	// 1. all explicit schemes with whatever xxx://yyyyyyy
+	$message=preg_replace('~(^|[^\w"])(\w+://[^\s<>]+)~iu', "$1<<$2>>", $message);
+	// 2. valid URLs without scheme:
+	$message=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d*)?/[^\s<>]*)(?![^<>]*>)~iu', "<<$1>>", $message); // server/path given
+	$message=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+:\d+)(?![^<>]*>)~iu', "<<$1>>", $message); // server:port given
+	$message=preg_replace('~([^\s<>]*:[^\s<>]*@[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d+)?)(?![^<>]*>)~iu', "<<$1>>", $message); // au:th@server given
+	// 3. likely servers without any hints but not filenames like *.rar zip exe etc.
+	$message=preg_replace('~((?:[a-z0-9\-]+\.)*[a-z2-7]{16}\.onion)(?![^<>]*>)~iu', "<<$1>>", $message);// *.onion
+	$message=preg_replace('~([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\.(?!rar|zip|exe|gz|7z|bat|doc)[a-z]{2,}))(?=[^a-z0-9\-\.]|$)(?![^<>]*>)~iu', "<<$1>>", $message);// xxx.yyy.zzz
+	// Convert every <<....>> into proper links:
+	$message=preg_replace_callback('/<<([^<>]+)>>/u',
+		function ($matches){
+			if(strpos($matches[1], '://')===false){
+				return "<a href=\"http://$matches[1]\" target=\"_blank\">$matches[1]</a>";
+			}else{
+				return "<a href=\"$matches[1]\" target=\"_blank\">$matches[1]</a>";
+			}
+		}
+	, $message);
+	return $message;
+}
+
+function apply_mention($message){
+	return preg_replace_callback('/\@([^\s]+)/iu', function ($matched){
 		global $db;
 		$nick=htmlspecialchars_decode($matched[1]);
 		$rest='';
@@ -2998,109 +3094,29 @@ function apply_filter(){
 			$nick=mb_substr($nick, 0, -1);
 		}
 		return $matched[0];
-	}, $U['message']);
-	$filters=get_filters();
-	foreach($filters as $filter){
-		if($U['poststatus']!==9 || !$filter['allowinpm']){
-			if($filter['cs']){
-				$U['message']=preg_replace("/$filter[match]/u", $filter['replace'], $U['message'], -1, $count);
-			}else{
-				$U['message']=preg_replace("/$filter[match]/iu", $filter['replace'], $U['message'], -1, $count);
-			}
-		}
-		if(isSet($count) && $count>0 && $filter['kick']){
-			kick_chatter([$U['nickname']], $filter['replace'], false);
-			setcookie(COOKIENAME, false);
-			send_error("$I[kicked]<br>$filter[replace]");
-		}
-	}
-	$U['message']=str_replace("\n", '<br>', $U['message']);
+	}, $message);
 }
 
-function apply_linkfilter(){
-	global $U;
-	$filters=get_linkfilters();
-	foreach($filters as $filter){
-		$U['message']=preg_replace_callback("/<a href=\"([^\"]+)\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/iu",
-			function ($matched) use(&$filter){
-				return "<a href=\"$matched[1]\" target=\"_blank\">".preg_replace("/$filter[match]/iu", $filter['replace'], $matched[2]).'</a>';
-			}
-		, $U['message']);
-	}
-	$redirect=get_setting('redirect');
-	if(get_setting('imgembed')){
-		$U['message']=preg_replace_callback('/\[img\]\s?<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/iu',
-			function ($matched){
-				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\"><img src=\"$matched[1]\"></a><br>");
-			}
-		, $U['message']);
-	}
-	if(empty($redirect)){
-		$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
-	}
-	if(get_setting('forceredirect')){
-		$U['message']=preg_replace_callback('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/u',
-			function ($matched) use($redirect){
-				return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
-			}
-		, $U['message']);
-	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/u', $U['message'], $matches)){
-		foreach($matches[1] as $match){
-			if(!preg_match('~^http(s)?://~u', $match)){
-				$U['message']=preg_replace_callback('/<a href="('.str_replace('/', '\/', $match).')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/u',
-					function ($matched) use($redirect){
-						return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
-					}
-				, $U['message']);
-			}
-		}
-	}
-}
-
-function create_hotlinks(){
-	global $U;
-	//Make hotlinks for URLs, redirect through dereferrer script to prevent session leakage
-	// 1. all explicit schemes with whatever xxx://yyyyyyy
-	$U['message']=preg_replace('~(^|[^\w"])(\w+://[^\s<>]+)~iu', "$1<<$2>>", $U['message']);
-	// 2. valid URLs without scheme:
-	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d*)?/[^\s<>]*)(?![^<>]*>)~iu', "<<$1>>", $U['message']); // server/path given
-	$U['message']=preg_replace('~((?:[^\s<>]*:[^\s<>]*@)?[a-z0-9\-]+(?:\.[a-z0-9\-]+)+:\d+)(?![^<>]*>)~iu', "<<$1>>", $U['message']); // server:port given
-	$U['message']=preg_replace('~([^\s<>]*:[^\s<>]*@[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d+)?)(?![^<>]*>)~iu', "<<$1>>", $U['message']); // au:th@server given
-	// 3. likely servers without any hints but not filenames like *.rar zip exe etc.
-	$U['message']=preg_replace('~((?:[a-z0-9\-]+\.)*[a-z2-7]{16}\.onion)(?![^<>]*>)~iu', "<<$1>>", $U['message']);// *.onion
-	$U['message']=preg_replace('~([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\.(?!rar|zip|exe|gz|7z|bat|doc)[a-z]{2,}))(?=[^a-z0-9\-\.]|$)(?![^<>]*>)~iu', "<<$1>>", $U['message']);// xxx.yyy.zzz
-	// Convert every <<....>> into proper links:
-	$U['message']=preg_replace_callback('/<<([^<>]+)>>/u',
-		function ($matches){
-			if(strpos($matches[1], '://')===false){
-				return "<a href=\"http://$matches[1]\" target=\"_blank\">$matches[1]</a>";
-			}else{
-				return "<a href=\"$matches[1]\" target=\"_blank\">$matches[1]</a>";
-			}
-		}
-	, $U['message']);
-}
-
-function add_message(){
-	global $U, $db;
-	if(empty($U['message'])){
+function add_message($message, $recipient, $poster, $delstatus, $poststatus, $displaysend, $style){
+	global $db;
+	if(empty($message)){
 		return false;
 	}
-	$message=[
+	$newmessage=[
 		'postdate'	=>time(),
-		'poststatus'	=>$U['poststatus'],
-		'poster'	=>$U['nickname'],
-		'recipient'	=>$U['recipient'],
-		'text'		=>"<span class=\"usermsg\">$U[displaysend]".style_this($U['message'], $U['style']).'</span>',
-		'delstatus'	=>$U['status']
+		'poststatus'	=>$poststatus,
+		'poster'	=>$poster,
+		'recipient'	=>$recipient,
+		'text'		=>"<span class=\"usermsg\">$displaysend".style_this($message, $style).'</span>',
+		'delstatus'	=>$delstatus
 	];
 	//prevent posting the same message twice, if no other message was posted in-between.
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poststatus=? AND poster=? AND recipient=? AND text=? AND id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages ORDER BY id DESC LIMIT 1) AS t);');
-	$stmt->execute([$message['poststatus'], $message['poster'], $message['recipient'], $message['text']]);
+	$stmt->execute([$newmessage['poststatus'], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return false;
 	}
-	write_message($message);
+	write_message($newmessage);
 	return true;
 }
 
@@ -3479,8 +3495,9 @@ function check_init(){
 }
 
 function destroy_chat($C){
-	global $H, $I, $db, $language, $memcached;
+	global $I, $db, $language, $memcached;
 	setcookie(COOKIENAME, false);
+	$_REQUEST['session']='';
 	print_start('destory');
 	$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
 	$db->exec('DROP TABLE ' . PREFIX . 'files;');
@@ -3503,12 +3520,12 @@ function destroy_chat($C){
 		$memcached->delete(DBNAME . '-' . PREFIX . 'settings-msgencrypted');
 	}
 	echo "<h2>$I[destroyed]</h2><br><br><br>";
-	echo "<$H[form]>".hidden('lang', $language).hidden('action', 'setup').submit($I['init'])."</form>$H[credit]";
+	echo form('setup').hidden('lang', $language).submit($I['init']).'</form>'.credit();
 	print_end();
 }
 
 function init_chat(){
-	global $H, $I, $db;
+	global $I, $db;
 	$suwrite='';
 	if(check_init()){
 		$suwrite=$I['initdbexist'];
@@ -3597,7 +3614,7 @@ function init_chat(){
 	}
 	print_start('init');
 	echo "<h2>$I[init]</h2><br><h3>$I[sulogin]</h3>$suwrite<br><br><br>";
-	echo "<$H[form]>$H[commonform]".hidden('action', 'setup').submit($I['initgosetup'])."</form>$H[credit]";
+	echo form('setup').submit($I['initgosetup']).'</form>'.credit();
 	print_end();
 }
 
@@ -4014,23 +4031,6 @@ function load_fonts(){
 		'Times New Roman'	=>"font-family:'Times New Roman','Times','serif';",
 		'Verdana'		=>"font-family:'Verdana','Geneva','Arial','Helvetica','sans-serif';",
 		'Verdana small'		=>"font-family:'Verdana','Geneva','Arial','Helvetica','sans-serif';font-size:smaller;"
-	];
-}
-
-function load_html(){
-	global $H, $I, $language;
-	$H=[// default HTML
-		'form'		=>"form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\"",
-		'meta_html'	=>'<meta name="robots" content="noindex,nofollow"><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">',
-		'credit'	=>'<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>',
-		'commonform'	=>hidden('lang', $language).hidden('nc', substr(time(), -6))
-	];
-	if(isSet($_REQUEST['session'])){
-		$H['commonform'].=hidden('session', $_REQUEST['session']);
-	}
-	$H=$H+[
-		'backtologin'	=>"<$H[form] target=\"_parent\">".hidden('lang', $language).submit($I['backtologin'], 'class="backbutton"').'</form>',
-		'backtochat'	=>"<$H[form]>$H[commonform]".hidden('action', 'view').submit($I['backtochat'], 'class="backbutton"').'</form>'
 	];
 }
 
