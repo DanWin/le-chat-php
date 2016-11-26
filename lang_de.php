@@ -151,6 +151,7 @@ $T=[
 	'roomdefault' => 'Raumstandard',
 	'bold' => 'Fett',
 	'italic' => 'Kursiv',
+	'small' => 'Klein',
 	'fontexample' => 'Beispiel für Ihre gewählte Schrift',
 	'timestamps' => 'Zeitstempel anzeigen',
 	'embed' => 'Bilder einbetten',

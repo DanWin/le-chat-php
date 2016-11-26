@@ -1882,7 +1882,11 @@ function send_profile($arg=''){
 		if(strpos($U['style'], 'font-style:italic;')!==false){
 			echo ' checked';
 		}
-		echo "><i>$I[italic]</i></label></td></tr></table></td></tr></table></td></tr>";
+		echo "><i>$I[italic]</i></label></td><td>&nbsp;</td><td><label><input type=\"checkbox\" name=\"small\" id=\"small\" value=\"on\"";
+		if(strpos($U['style'], 'font-size:smaller;')!==false){
+			echo ' checked';
+		}
+		echo "><small>$I[small]</small></label></td></tr></table></td></tr></table></td></tr>";
 		thr();
 	}
 	echo '<tr><td>'.style_this(htmlspecialchars($U['nickname'])." : $I[fontexample]", $U['style']).'</td></tr>';
@@ -2682,27 +2686,29 @@ function amend_profile(){
 		$U['refresh']=150;
 	}
 	if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST['colour'], $match)){
-		$U['colour']=$match[1];
+		$colour=$match[1];
 	}else{
 		preg_match('/#([0-9a-f]{6})/i', $U['style'], $matches);
-		$U['colour']=$matches[1];
+		$colour=$matches[1];
 	}
 	if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST['bgcolour'], $match)){
 		$U['bgcolour']=$match[1];
 	}
-	$fonttags='';
-	if($U['status']>=3 && isSet($_REQUEST['bold'])){
-		$fonttags.='b';
+	$U['style']="color:#$colour;";
+	if($U['status']>=3){
+		if(isSet($F[$_REQUEST['font']])){
+			$U['style'].=$F[$_REQUEST['font']];
+		}
+		if(isSet($_REQUEST['small'])){
+			$U['style'].='font-size:smaller;';
+		}
+		if(isSet($_REQUEST['italic'])){
+			$U['style'].='font-style:italic;';
+		}
+		if(isSet($_REQUEST['bold'])){
+			$U['style'].='font-weight:bold;';
+		}
 	}
-	if($U['status']>=3 && isSet($_REQUEST['italic'])){
-		$fonttags.='i';
-	}
-	if($U['status']>=3 && isSet($F[$_REQUEST['font']])){
-		$fontface=$F[$_REQUEST['font']];
-	}else{
-		$fontface='';
-	}
-	$U['style']=get_style("#$U[colour] $fontface <$fonttags>");
 	if($_REQUEST['boxwidth']>0 && $_REQUEST['boxwidth']<1000){
 		$U['boxwidth']=$_REQUEST['boxwidth'];
 	}
@@ -2835,12 +2841,12 @@ function add_user_defaults($password){
 	$U['bgcolour']=get_setting('colbg');
 	if(!isSet($_REQUEST['colour']) || !preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colour']) || abs(greyval($_REQUEST['colour'])-greyval(get_setting('colbg')))<75){
 		do{
-			$U['colour']=sprintf('%02X', mt_rand(0, 256)).sprintf('%02X', mt_rand(0, 256)).sprintf('%02X', mt_rand(0, 256));
-		}while(abs(greyval($U['colour'])-greyval(get_setting('colbg')))<75);
+			$colour=sprintf('%02X', mt_rand(0, 256)).sprintf('%02X', mt_rand(0, 256)).sprintf('%02X', mt_rand(0, 256));
+		}while(abs(greyval($colour)-greyval(get_setting('colbg')))<75);
 	}else{
-		$U['colour']=$_REQUEST['colour'];
+		$colour=$_REQUEST['colour'];
 	}
-	$U['style']=get_style("#$U[colour]");
+	$U['style']="color:#$colour;";
 	$U['boxwidth']=40;
 	$U['boxheight']=3;
 	$U['timestamps']=get_setting('timestamps');
@@ -3454,37 +3460,6 @@ function greyval($colour){
 	return hexdec(substr($colour, 0, 2))*.3+hexdec(substr($colour, 2, 2))*.59+hexdec(substr($colour, 4, 2))*.11;
 }
 
-function get_style($styleinfo){
-	$fbold=preg_match('/(<i?bi?>|:bold)/', $styleinfo);
-	$fitalic=preg_match('/(<b?ib?>|:italic)/', $styleinfo);
-	$fsmall=strpos($styleinfo, ':smaller');
-	preg_match('/(#[a-f0-9]{6})/i', $styleinfo, $match);
-	if(isSet($match[0])){
-		$fcolour=$match[0];
-	}
-	preg_match('/font-family:([^;]+);/', $styleinfo, $match);
-	if(isSet($match[1])){
-		$sface=$match[1];
-	}
-	$fstyle='';
-	if(isSet($fcolour)){
-		$fstyle.="color:$fcolour;";
-	}
-	if(isSet($sface)){
-		$fstyle.="font-family:$sface;";
-	}
-	if($fsmall){
-		$fstyle.='font-size:smaller;';
-	}
-	if($fitalic){
-		$fstyle.='font-style:italic;';
-	}
-	if($fbold){
-		$fstyle.='font-weight:bold;';
-	}
-	return $fstyle;
-}
-
 function style_this($text, $styleinfo){
 	return "<span style=\"$styleinfo\">$text</span>";
 }
@@ -3694,12 +3669,16 @@ function update_db(){
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'members;');
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET style=? WHERE id=?;');
 			while($temp=$result->fetch(PDO::FETCH_ASSOC)){
+				$style="color:#$temp[colour];";
 				if(isSet($F[$temp['fontface']])){
-					$fontface=$F[$temp['fontface']];
-				}else{
-					$fontface='';
+					$style.=$F[$temp['fontface']];
 				}
-				$style=get_style("#$temp[colour] $fontface <$temp[fonttags]>");
+				if(strpos($temp['fonttags'], 'i')!==false){
+					$style.='font-style:italic;';
+				}
+				if(strpos($temp['fonttags'], 'b')!==false){
+					$style.='font-weight:bold;';
+				}
 				$stmt->execute([$style, $temp['id']]);
 			}
 			$db->exec('ALTER TABLE ' . PREFIX . 'members DROP colour, DROP fontface, DROP fonttags;');
@@ -4020,7 +3999,6 @@ function load_fonts(){
 		'Arial'			=>"font-family:'Arial','Helvetica','sans-serif';",
 		'Book Antiqua'		=>"font-family:'Book Antiqua','MS Gothic';",
 		'Comic'			=>"font-family:'Comic Sans MS','Papyrus';",
-		'Comic small'		=>"font-family:'Comic Sans MS','Papyrus';font-size:smaller;",
 		'Courier'		=>"font-family:'Courier New','Courier','monospace';",
 		'Cursive'		=>"font-family:'Cursive','Papyrus';",
 		'Fantasy'		=>"font-family:'Fantasy','Futura','Papyrus';",
@@ -4030,7 +4008,6 @@ function load_fonts(){
 		'System'		=>"font-family:'System','Chicago','sans-serif';",
 		'Times New Roman'	=>"font-family:'Times New Roman','Times','serif';",
 		'Verdana'		=>"font-family:'Verdana','Geneva','Arial','Helvetica','sans-serif';",
-		'Verdana small'		=>"font-family:'Verdana','Geneva','Arial','Helvetica','sans-serif';font-size:smaller;"
 	];
 }
 

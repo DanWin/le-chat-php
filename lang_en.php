@@ -151,6 +151,7 @@ $I=[
 	'roomdefault' => 'Room Default',
 	'bold' => 'Bold',
 	'italic' => 'Italic',
+	'small' => 'Small',
 	'fontexample' => 'Example for your chosen font',
 	'timestamps' => 'Show Timestamps',
 	'embed' => 'Embed images',
