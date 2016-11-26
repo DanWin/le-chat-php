@@ -34,7 +34,6 @@
 
 send_headers();
 // initialize and load variables/configuration
-$F=[];// Fonts
 $I=[];// Translations
 $L=[];// Languages
 $U=[];// This user data
@@ -46,7 +45,6 @@ load_config();
 if(!isSet($_REQUEST['session']) && isSet($_COOKIE[COOKIENAME])){
 	$_REQUEST['session']=$_COOKIE[COOKIENAME];
 }
-load_fonts();
 load_lang();
 check_db();
 route();
@@ -316,7 +314,7 @@ function form($action, $do=''){
 
 function form_target($target, $action, $do=''){
 	global $language;
-	return "<form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\" target=\"$target\">".hidden('lang', $language).hidden('nc', substr(time(), -6)).hidden('action', $action);
+	$form="<form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\" target=\"$target\">".hidden('lang', $language).hidden('nc', substr(time(), -6)).hidden('action', $action);
 	if(!empty($_REQUEST['session'])){
 		$form.=hidden('session', $_REQUEST['session']);
 	}
@@ -1826,7 +1824,7 @@ function send_help(){
 }
 
 function send_profile($arg=''){
-	global $F, $I, $L, $U, $db, $language;
+	global $I, $L, $U, $db, $language;
 	print_start('profile');
 	echo form('profile', 'save')."<h2>$I[profile]</h2><i>$arg</i><table>";
 	thr();
@@ -1867,6 +1865,7 @@ function send_profile($arg=''){
 	if($U['status']>=3){
 		echo "<tr><td><table id=\"font\"><tr><th>$I[fontface]</th><td><table>";
 		echo "<tr><td>&nbsp;</td><td><select name=\"font\" size=\"1\"><option value=\"\">* $I[roomdefault] *</option>";
+		$F=load_fonts();
 		foreach($F as $name=>$font){
 			echo "<option style=\"$font\" ";
 			if(strpos($U['style'], $font)!==false){
@@ -2676,7 +2675,7 @@ function passreset($nick, $pass){
 }
 
 function amend_profile(){
-	global $F, $U;
+	global $U;
 	if(isSet($_REQUEST['refresh'])){
 		$U['refresh']=$_REQUEST['refresh'];
 	}
@@ -2696,6 +2695,7 @@ function amend_profile(){
 	}
 	$U['style']="color:#$colour;";
 	if($U['status']>=3){
+		$F=load_fonts();
 		if(isSet($F[$_REQUEST['font']])){
 			$U['style'].=$F[$_REQUEST['font']];
 		}
@@ -3594,7 +3594,7 @@ function init_chat(){
 }
 
 function update_db(){
-	global $F, $I, $db, $memcached;
+	global $I, $db, $memcached;
 	$dbversion=(int) get_setting('dbversion');
 	if($dbversion<DBVERSION || get_setting('msgencrypted')!=MSGENCRYPTED){
 		ignore_user_abort(true);
@@ -3668,6 +3668,7 @@ function update_db(){
 			$db->exec('ALTER TABLE ' . PREFIX . 'members ADD style varchar(255) NOT NULL;');
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'members;');
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET style=? WHERE id=?;');
+			$F=load_fonts();
 			while($temp=$result->fetch(PDO::FETCH_ASSOC)){
 				$style="color:#$temp[colour];";
 				if(isSet($F[$temp['fontface']])){
@@ -3994,8 +3995,7 @@ function check_db(){
 }
 
 function load_fonts(){
-	global $F;
-	$F=[
+	return [
 		'Arial'			=>"font-family:'Arial','Helvetica','sans-serif';",
 		'Book Antiqua'		=>"font-family:'Book Antiqua','MS Gothic';",
 		'Comic'			=>"font-family:'Comic Sans MS','Papyrus';",
