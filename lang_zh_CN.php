@@ -1,6 +1,6 @@
 <?php
 /*
-* LE CHAT-PHP - a PHP Chat based on LE CHAT - English translation
+* LE CHAT-PHP - a PHP Chat based on LE CHAT - Simplified Chinese translation
 *
 * Copyright (C) 2015-2016 Daniel Winzen <d@winzen4.de>
 *
@@ -18,8 +18,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Native language name: English
-$I=[
+//Native language name: 简体中文
+$T=[
 	'nodb' => '没有连接到数据库!',
 	'nodbsetup' => '没有连接到数据库，请创建一个数据库并编辑脚本并修改为用户名密码正确的数据库!',
 	'changelang' => '修改语言:',
@@ -41,7 +41,7 @@ $I=[
 	'susuccess' => '成功注册!',
 	'initbtn' => '初始化聊天室',
 	'initdbexist' => '数据库表已经存在！，要继续，您必须先手动删除这些表',
-    'initsuexist' => '超级管理员已经存在！',
+	'initsuexist' => '超级管理员已经存在！',
 	'initgosetup' => '去设置界面',
 	'captcha' => '验证码',
 	'enabled' => '启用',
@@ -56,7 +56,7 @@ $I=[
 	'login' => '登录',
 	'dbupdate' => '数据库更新成功',
 	'sysmessages' => '系统信息',
-    'msgenter' => '入口',
+	'msgenter' => '入口',
 	'msgexit' => '离开',
 	'msgmemreg' => '成员注册',
 	'msgsureg' => '邀请人注册',

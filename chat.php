@@ -4043,7 +4043,8 @@ function load_lang(){
 		'es_ES'	=>'Español (España)',
 		'fr'	=>'Français',
 		'id'	=>'Bahasa Indonesia',
-		'ru'	=>'Русский'
+		'ru'	=>'Русский',
+		'zh_CN'	=>'简体中文',
 	];
 	if(isSet($_REQUEST['lang']) && isSet($L[$_REQUEST['lang']])){
 		$language=$_REQUEST['lang'];
