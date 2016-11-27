@@ -160,6 +160,7 @@ $I=[
 	'nbsize' => 'Notes box size',
 	'width' => 'Width:',
 	'height' => 'Height:',
+	'changenick' => 'Change Nickname',
 	'changepass' => 'Change Password',
 	'oldpass' => 'Old password:',
 	'newpass' => 'New password:',

@@ -1962,7 +1962,10 @@ function send_profile($arg=''){
 		echo "<tr><td>&nbsp;</td><td>$I[oldpass]</td><td><input type=\"password\" name=\"oldpass\" size=\"20\"></td></tr>";
 		echo "<tr><td>&nbsp;</td><td>$I[newpass]</td><td><input type=\"password\" name=\"newpass\" size=\"20\"></td></tr>";
 		echo "<tr><td>&nbsp;</td><td>$I[confirmpass]</td><td><input type=\"password\" name=\"confirmpass\" size=\"20\"></td></tr>";
-		echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\" placeholder=\"$I[optional]\"></td></tr>";
+		echo '</table></td></tr></table></td></tr>';
+		thr();
+		echo "<tr><td><table id=\"changenick\"><tr><th>$I[changenick]</th><td><table>";
+		echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\">";
 		echo '</table></td></tr></table></td></tr>';
 		thr();
 	}
@@ -2793,11 +2796,11 @@ function save_profile(){
 		$stmt->execute([$U['passhash'], $U['session']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
 		$stmt->execute([$U['passhash'], $U['nickname']]);
-		if(!empty($_REQUEST['newnickname'])){
-			$msg=set_new_nickname();
-			if($msg!==''){
-				return $msg;
-			}
+	}
+	if($U['status']>1 && !empty($_REQUEST['newnickname'])){
+		$msg=set_new_nickname();
+		if($msg!==''){
+			return $msg;
 		}
 	}
 	return $I['succprofile'];
@@ -2809,16 +2812,15 @@ function set_new_nickname(){
 	if(!valid_nick($_REQUEST['newnickname'])){
 		return sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex'));
 	}
-	$U['passhash']=password_hash($_REQUEST['newpass'], PASSWORD_DEFAULT);
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'sessions WHERE nickname=? UNION SELECT id FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute([$_REQUEST['newnickname'], $_REQUEST['newnickname']]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return $I['nicknametaken'];
 	}else{
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET nickname=?, passhash=? WHERE nickname=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['passhash'], $U['nickname']]);
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET nickname=?, passhash=? WHERE nickname=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['passhash'], $U['nickname']]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET nickname=? WHERE nickname=?;');
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET nickname=? WHERE nickname=?;');
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET poster=? WHERE poster=?;');
 		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET recipient=? WHERE recipient=?;');
@@ -3470,7 +3472,7 @@ function check_init(){
 }
 
 function destroy_chat($C){
-	global $I, $db, $language, $memcached;
+	global $I, $db, $memcached;
 	setcookie(COOKIENAME, false);
 	$_REQUEST['session']='';
 	print_start('destory');
@@ -3495,7 +3497,7 @@ function destroy_chat($C){
 		$memcached->delete(DBNAME . '-' . PREFIX . 'settings-msgencrypted');
 	}
 	echo "<h2>$I[destroyed]</h2><br><br><br>";
-	echo form('setup').hidden('lang', $language).submit($I['init']).'</form>'.credit();
+	echo form('setup').submit($I['init']).'</form>'.credit();
 	print_end();
 }
 

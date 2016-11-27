@@ -160,6 +160,7 @@ $T=[
 	'nbsize' => 'Notizboxgröße',
 	'width' => 'Breite:',
 	'height' => 'Höhe:',
+	'changenick' => 'Nickname ändern',
 	'changepass' => 'Passwort ändern',
 	'oldpass' => 'Altes Passwort:',
 	'newpass' => 'Neues Passwort:',
