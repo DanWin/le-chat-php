@@ -1,5 +1,9 @@
+Optimizations
+More secure session key generation and password storage
 Add option to make your own font small
 Separate changing nickname and password
+Use PHPs native timezones
+Add message asking for manual refresh, when it stopped working
 
 Version 1.22.1 - Nov. 13, 2016
 Performance optimizations
