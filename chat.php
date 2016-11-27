@@ -2062,11 +2062,11 @@ function send_login(){
 	$englobal=(int) get_setting('englobalpass');
 	echo '<h1>'.get_setting('chatname').'</h1>';
 	echo form_target('_parent', 'login');
-	if($englobal===1 && isSet($_POST['globalpass'])){
-		echo hidden('globalpass', $_POST['globalpass']);
+	if($englobal===1 && isSet($_REQUEST['globalpass'])){
+		echo hidden('globalpass', $_REQUEST['globalpass']);
 	}
 	echo '<table>';
-	if($englobal!==1 || (isSet($_POST['globalpass']) && $_POST['globalpass']==get_setting('globalpass'))){
+	if($englobal!==1 || (isSet($_REQUEST['globalpass']) && $_REQUEST['globalpass']==get_setting('globalpass'))){
 		echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autofocus></td></tr>";
 		echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 		send_captcha();
@@ -2314,19 +2314,12 @@ function approve_session(){
 function check_login(){
 	global $I, $U, $db;
 	$ga=(int) get_setting('guestaccess');
-	if(isSet($_POST['session'])){
-		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
-		$stmt->execute([$_POST['session']]);
-		if($U=$stmt->fetch(PDO::FETCH_ASSOC)){
-			check_kicked();
-			setcookie(COOKIENAME, $U['session']);
-		}else{
-			setcookie(COOKIENAME, false);
-			$_REQUEST['session']='';
-			send_error($I['expire']);
-
-		}
-	}elseif(get_setting('englobalpass')==1 && (!isSet($_POST['globalpass']) || $_POST['globalpass']!=get_setting('globalpass'))){
+	if(isSet($_REQUEST['session'])){
+		parse_sessions();
+	}
+	if(isset($U['session'])){
+		check_kicked();
+	}elseif(get_setting('englobalpass')==1 && (!isSet($_REQUEST['globalpass']) || $_REQUEST['globalpass']!=get_setting('globalpass'))){
 		send_error($I['wrongglobalpass']);
 	}elseif(!isSet($_REQUEST['nick']) || !isSet($_REQUEST['pass'])){
 		send_login();
@@ -3392,8 +3385,9 @@ function save_setup($C){
 function valid_admin(){
 	global $U;
 	if(isSet($_REQUEST['session'])){
-		check_session();
-	}elseif(isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
+		parse_sessions();
+	}
+	if(!isset($U['session']) && isSet($_REQUEST['nick']) && isSet($_REQUEST['pass'])){
 		create_session(true, $_REQUEST['nick'], $_REQUEST['pass']);
 	}
 	if(isSet($U['status'])){
