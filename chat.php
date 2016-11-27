@@ -60,8 +60,8 @@ function route(){
 	}elseif($_REQUEST['action']==='view'){
 		check_session();
 		send_messages();
-	}elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
-		send_redirect($_GET['url']);
+	}elseif($_REQUEST['action']==='redirect' && !empty($_REQUEST['url'])){
+		send_redirect($_REQUEST['url']);
 	}elseif($_REQUEST['action']==='wait'){
 		parse_sessions();
 		send_waiting_room();
@@ -645,11 +645,14 @@ function send_setup($C){
 	thr();
 	echo "<tr><td><table id=\"defaulttz\"><tr><th>$I[defaulttz]</th><td>";
 	echo "<select name=\"defaulttz\">";
-	$tzs=[-12=>'-12', -11=>'-11', -10=>'-10', -9=>'-9', -8=>'-8', -7=>'-7', -6=>'-6', -5=>'-5', -4=>'-4', -3=>'-3', -2=>'-2', -1=>'-1', 0=>'', 1=>'+1', 2=>'+2', 3=>'+3', 4=>'+4', 5=>'+5', 6=>'+6', 7=>'+7', 8=>'+8', 9=>'+9', 10=>'+10', 11=>'+11', 12=>'+12', 13=>'+13', 14=>'+14'];
+	$tzs=timezone_identifiers_list();
 	$defaulttz=get_setting('defaulttz');
-	foreach($tzs as $tz=>$name){
-		$select = $defaulttz==$tz ? ' selected' : '';
-		echo "<option value=\"$tz\"$select>UTC $name</option>";
+	foreach($tzs as $tz){
+		echo "<option value=\"$tz\"";
+		if($defaulttz==$tz){
+			echo ' selected';
+		}
+		echo ">$tz</option>";
 	}
 	echo '</select>';
 	echo '</td></tr></table></td></tr>';
@@ -1465,7 +1468,6 @@ function send_inbox(){
 	print_start('inbox');
 	echo form('inbox', 'clean').submit($I['delselmes'], 'class="delbutton"').'<br><br>';
 	$dateformat=get_setting('dateformat');
-	$tz=3600*$U['tz'];
 	if(!$U['embed'] && get_setting('imgembed')){
 		$removeEmbed=true;
 	}else{
@@ -1492,7 +1494,7 @@ function send_inbox(){
 		prepare_message_print($message, $removeEmbed);
 		echo "<div class=\"msg\"><label><input type=\"checkbox\" name=\"mid[]\" value=\"$message[id]\">";
 		if($timestamps){
-			echo ' <small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
+			echo ' <small>'.date($dateformat, $message['postdate']).' - </small>';
 		}
 		echo " $message[text]</label></div>";
 	}
@@ -1543,7 +1545,7 @@ function send_notes($type){
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $revision;");
 	$stmt->execute([$type]);
 	if($note=$stmt->fetch(PDO::FETCH_ASSOC)){
-			printf($I['lastedited'], htmlspecialchars($note['editedby']), date($dateformat, $note['lastedited']+3600*$U['tz']));
+			printf($I['lastedited'], htmlspecialchars($note['editedby']), date($dateformat, $note['lastedited']));
 	}else{
 		$note['text']='';
 	}
@@ -1934,10 +1936,13 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table id=\"tz\"><tr><th>$I[tz]</th><td>";
 	echo "<select name=\"tz\">";
-	$tzs=[-12=>'-12', -11=>'-11', -10=>'-10', -9=>'-9', -8=>'-8', -7=>'-7', -6=>'-6', -5=>'-5', -4=>'-4', -3=>'-3', -2=>'-2', -1=>'-1', 0=>'', 1=>'+1', 2=>'+2', 3=>'+3', 4=>'+4', 5=>'+5', 6=>'+6', 7=>'+7', 8=>'+8', 9=>'+9', 10=>'+10', 11=>'+11', 12=>'+12', 13=>'+13', 14=>'+14'];
-	foreach($tzs as $tz=>$name){
-		$select = $U['tz']==$tz ? ' selected' : '';
-		echo "<option value=\"$tz\"$select>UTC $name</option>";
+	$tzs=timezone_identifiers_list();
+	foreach($tzs as $tz){
+		echo "<option value=\"$tz\"";
+		if($U['tz']==$tz){
+			echo ' selected';
+		}
+		echo ">$tz</option>";
 	}
 	echo '</select></td></tr></table></td></tr>';
 	thr();
@@ -2060,7 +2065,7 @@ function send_login(){
 	}
 	print_start('login');
 	$englobal=(int) get_setting('englobalpass');
-	echo '<h1>'.get_setting('chatname').'</h1>';
+	echo '<h1 id="chatname">'.get_setting('chatname').'</h1>';
 	echo form_target('_parent', 'login');
 	if($englobal===1 && isset($_REQUEST['globalpass'])){
 		echo hidden('globalpass', $_REQUEST['globalpass']);
@@ -2510,6 +2515,7 @@ function parse_sessions(){
 			$U=$tmp;
 		}
 	}
+	set_default_tz();
 }
 
 //  member handling
@@ -2727,8 +2733,8 @@ function amend_profile(){
 		$U['incognito']=0;
 	}
 	if(isset($_REQUEST['tz'])){
-		settype($_REQUEST['tz'], 'int');
-		if($_REQUEST['tz']>=-12 && $_REQUEST['tz']<=14){
+		$tzs=timezone_identifiers_list();
+		if(in_array($_REQUEST['tz'], $tzs)){
 			$U['tz']=$_REQUEST['tz'];
 		}
 	}
@@ -3224,7 +3230,6 @@ function del_last_message(){
 function print_messages($delstatus=0){
 	global $I, $U, $db;
 	$dateformat=get_setting('dateformat');
-	$tz=3600*$U['tz'];
 	if(!$U['embed'] && get_setting('imgembed')){
 		$removeEmbed=true;
 	}else{
@@ -3263,7 +3268,7 @@ function print_messages($delstatus=0){
 			prepare_message_print($message, $removeEmbed);
 			echo "<div class=\"msg\"><label><input type=\"checkbox\" name=\"mid[]\" value=\"$message[id]\">";
 			if($timestamps){
-				echo ' <small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
+				echo ' <small>'.date($dateformat, $message['postdate']).' - </small>';
 			}
 			echo " $message[text]</label></div>";
 		}
@@ -3276,7 +3281,7 @@ function print_messages($delstatus=0){
 			prepare_message_print($message, $removeEmbed);
 			echo '<div class="msg">';
 			if($timestamps){
-				echo '<small>'.date($dateformat, $message['postdate']+$tz).' - </small>';
+				echo '<small>'.date($dateformat, $message['postdate']).' - </small>';
 			}
 			echo "$message[text]</div>";
 		}
@@ -3337,9 +3342,11 @@ function save_setup($C){
 	settype($_REQUEST['captcha'], 'int');
 	settype($_REQUEST['dismemcaptcha'], 'int');
 	settype($_REQUEST['guestreg'], 'int');
-	settype($_REQUEST['defaulttz'], 'int');
-	if($_REQUEST['defaulttz']<-12 || $_REQUEST['defaulttz']>14){
-		unset($_REQUEST['defaulttz']);
+	if(isset($_REQUEST['defaulttz'])){
+		$tzs=timezone_identifiers_list();
+		if(!in_array($_REQUEST['defaulttz'], $tzs)){
+			unset($_REQUEST['defualttz']);
+		}
 	}
 	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $_REQUEST['rulestxt']);
 	$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
@@ -3379,6 +3386,15 @@ function save_setup($C){
 		if(isset($_REQUEST[$setting])){
 			update_setting($setting, $_REQUEST[$setting]);
 		}
+	}
+}
+
+function set_default_tz(){
+	global $U;
+	if(isset($U['tz'])){
+		date_default_timezone_set($U['tz']);
+	}else{
+		date_default_timezone_set(get_setting('defaulttz'));
 	}
 }
 
@@ -3557,7 +3573,74 @@ function init_chat(){
 		$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
 		$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value text NOT NULL)$diskengine$charset;");
 
-		$settings=[['guestaccess', '0'], ['globalpass', ''], ['englobalpass', '0'], ['captcha', '0'], ['dateformat', 'm-d H:i:s'], ['rulestxt', ''], ['msgencrypted', '0'], ['dbversion', DBVERSION], ['css', ''], ['memberexpire', '60'], ['guestexpire', '15'], ['kickpenalty', '10'], ['entrywait', '120'], ['messageexpire', '14400'], ['messagelimit', '150'], ['maxmessage', 2000], ['captchatime', '600'], ['colbg', '000000'], ['coltxt', 'FFFFFF'], ['maxname', '20'], ['minpass', '5'], ['defaultrefresh', '20'], ['dismemcaptcha', '0'], ['suguests', '0'], ['imgembed', '1'], ['timestamps', '1'], ['trackip', '0'], ['captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'], ['memkick', '1'], ['forceredirect', '0'], ['redirect', ''], ['incognito', '1'], ['chatname', 'My Chat'], ['topic', ''], ['msgsendall', $I['sendallmsg']], ['msgsendmem', $I['sendmemmsg']], ['msgsendmod', $I['sendmodmsg']], ['msgsendadm', $I['sendadmmsg']], ['msgsendprv', $I['sendprvmsg']], ['msgenter', $I['entermsg']], ['msgexit', $I['exitmsg']], ['msgmemreg', $I['memregmsg']], ['msgsureg', $I['suregmsg']], ['msgkick', $I['kickmsg']], ['msgmultikick', $I['multikickmsg']], ['msgallkick', $I['allkickmsg']], ['msgclean', $I['cleanmsg']], ['numnotes', '3'], ['mailsender', 'www-data <www-data@localhost>'], ['mailreceiver', 'Webmaster <webmaster@localhost>'], ['sendmail', '0'], ['modfallback', '1'], ['guestreg', '0'], ['disablepm', '0'], ['disabletext', "<h1>$I[disabledtext]</h1>"], ['defaulttz', '0'], ['eninbox', '0'], ['passregex', '.*'], ['nickregex', '^[A-Za-z0-9]*$'], ['externalcss', ''], ['enablegreeting', '0'], ['sortupdown', '0'], ['hidechatters', '0'], ['enfileupload', '0'], ['msgattache', '%2$s [%1$s]'], ['maxuploadsize', '1024']];
+		$settings=[
+			['guestaccess', '0'],
+			['globalpass', ''],
+			['englobalpass', '0'],
+			['captcha', '0'],
+			['dateformat', 'm-d H:i:s'],
+			['rulestxt', ''],
+			['msgencrypted', '0'],
+			['dbversion', DBVERSION],
+			['css', ''],
+			['memberexpire', '60'],
+			['guestexpire', '15'],
+			['kickpenalty', '10'],
+			['entrywait', '120'],
+			['messageexpire', '14400'],
+			['messagelimit', '150'],
+			['maxmessage', 2000],
+			['captchatime', '600'],
+			['colbg', '000000'],
+			['coltxt', 'FFFFFF'],
+			['maxname', '20'],
+			['minpass', '5'],
+			['defaultrefresh', '20'],
+			['dismemcaptcha', '0'],
+			['suguests', '0'],
+			['imgembed', '1'],
+			['timestamps', '1'],
+			['trackip', '0'],
+			['captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'],
+			['memkick', '1'],
+			['forceredirect', '0'],
+			['redirect', ''],
+			['incognito', '1'],
+			['chatname', 'My Chat'],
+			['topic', ''],
+			['msgsendall', $I['sendallmsg']],
+			['msgsendmem', $I['sendmemmsg']],
+			['msgsendmod', $I['sendmodmsg']],
+			['msgsendadm', $I['sendadmmsg']],
+			['msgsendprv', $I['sendprvmsg']],
+			['msgenter', $I['entermsg']],
+			['msgexit', $I['exitmsg']],
+			['msgmemreg', $I['memregmsg']],
+			['msgsureg', $I['suregmsg']],
+			['msgkick', $I['kickmsg']],
+			['msgmultikick', $I['multikickmsg']],
+			['msgallkick', $I['allkickmsg']],
+			['msgclean', $I['cleanmsg']],
+			['numnotes', '3'],
+			['mailsender', 'www-data <www-data@localhost>'],
+			['mailreceiver', 'Webmaster <webmaster@localhost>'],
+			['sendmail', '0'],
+			['modfallback', '1'],
+			['guestreg', '0'],
+			['disablepm', '0'],
+			['disabletext', "<h1>$I[disabledtext]</h1>"],
+			['defaulttz', 'UTC'],
+			['eninbox', '0'],
+			['passregex', '.*'],
+			['nickregex', '^[A-Za-z0-9]*$'],
+			['externalcss', ''],
+			['enablegreeting', '0'],
+			['sortupdown', '0'],
+			['hidechatters', '0'],
+			['enfileupload', '0'],
+			['msgattache', '%2$s [%1$s]'],
+			['maxuploadsize', '1024']
+		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
 			$stmt->execute($pair);
@@ -3722,7 +3805,7 @@ function update_db(){
 		}
 		if($dbversion<20){
 			$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN tz smallint NOT NULL DEFAULT 0;');
-			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('defaulttz', '0');");
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('defaulttz', 'UTC');");
 		}
 		if($dbversion<21){
 			$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN eninbox smallint NOT NULL DEFAULT 0;');
@@ -3871,6 +3954,13 @@ function update_db(){
 		if($dbversion<36){
 			$db->exec('ALTER TABLE ' . PREFIX . 'members MODIFY passhash varchar(255) NOT NULL;');
 			$db->exec('ALTER TABLE ' . PREFIX . 'sessions MODIFY passhash varchar(255) NOT NULL;');
+		}
+		if($dbversion<37){
+			$db->exec('ALTER TABLE ' . PREFIX . 'members MODIFY tz varchar(255) NOT NULL;');
+			$db->exec('ALTER TABLE ' . PREFIX . 'sessions MODIFY tz varchar(255) NOT NULL;');
+			$db->exec('UPDATE ' . PREFIX . "members SET tz='UTC';");
+			$db->exec('UPDATE ' . PREFIX . "sessions SET tz='UTC';");
+			$db->exec('UPDATE ' . PREFIX . "settings SET value='UTC' WHERE setting='defaulttz';");
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
@@ -4041,10 +4131,9 @@ function load_lang(){
 }
 
 function load_config(){
-	date_default_timezone_set('UTC');
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.22.1'); // Script version
-	define('DBVERSION', 36); // Database layout version
+	define('DBVERSION', 37); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host
