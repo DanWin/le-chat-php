@@ -3038,7 +3038,7 @@ function apply_linkfilter($message){
 	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/u', $message, $matches)){
 		foreach($matches[1] as $match){
 			if(!preg_match('~^http(s)?://~u', $match)){
-				$message=preg_replace_callback('/<a href="('.str_replace('/', '\/', $match).')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/u',
+				$message=preg_replace_callback('/<a href="('.preg_quote($match, '/').')\" target=\"_blank\">(.*?(?=<\/a>))<\/a>/u',
 					function ($matched) use($redirect){
 						return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\">$matched[2]</a>";
 					}
