@@ -83,6 +83,6 @@ If you never used regex before, check out [this starting guide](http://docs.acti
 Live demo:
 ----------
 
-If you want to see the script in action, you can visit my [TOR hidden service](http://tt3j2x4k5ycaa5zt.onion/chat.php) or via a tor2web proxy like [this one](https://danwin1210.tk/chat.php) if you don't have TOR installed.
+If you want to see the script in action, you can visit my [TOR hidden service](http://tt3j2x4k5ycaa5zt.onion/chat.php) or via a tor2web proxy like [this one](https://danwin1210.me/chat.php) if you don't have TOR installed.
 Considering this is a hidden service, you should be prepared for the worst case, as people tend to do illegal activities in the TOR network. I'm not online 24/7 so it might not be possible to remove such content right away.
 If you should see illegal content, don't panic. Use the contact form on my site to notify me and clean your browser cache afterwards. I will remove the content as soon as possible.

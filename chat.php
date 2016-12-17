@@ -709,7 +709,7 @@ function send_setup($C){
 		}
 		echo submit($I['destroy'], 'class="delbutton"').'</form></td></tr></table><br>';
 	}
-	echo form_target('parent', 'logout');
+	echo form_target('_parent', 'logout');
 	if(!isset($_REQUEST['session'])){
 		echo hidden('session', $U['session']);
 	}
@@ -1856,8 +1856,8 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table id=\"ignore\"><tr><th>$I[ignore]</th><td>";
 	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (' .  PREFIX . 'messages.poster=' . PREFIX . 'sessions.nickname) WHERE poster!=? AND (status<=? OR status<=3) AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
-	$stmt->execute([$U['nickname'], $U['status'], $U['nickname']]);
+	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN ' . PREFIX . 'sessions ON (' .  PREFIX . 'messages.poster=' . PREFIX . 'sessions.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster;');
+	$stmt->execute([$U['nickname'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
 	}
@@ -2774,8 +2774,8 @@ function save_profile(){
 		$stmt->execute([$_REQUEST['unignore'], $U['nickname']]);
 	}
 	if(!empty($_REQUEST['ignore'])){
-		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND (status<=? OR status<=3) AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
-		$stmt->execute([$_REQUEST['ignore'], $U['status'], $U['nickname']]);
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
+		$stmt->execute([$_REQUEST['ignore'], $U['nickname']]);
 		if($U['nickname']!==$_REQUEST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
 			$stmt->execute([$_REQUEST['ignore'], $U['nickname']]);
@@ -2972,7 +2972,7 @@ function validate_input(){
 			$stmt->execute([$newmessage['postdate'], $id[0], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
 		}
 		if(isset($hash) && $id){
-			if(!empty($_FILES['file']['type'])){
+			if(!empty($_FILES['file']['type']) && preg_match('~^[a-z0-9/\-\.]*$~i', $_FILES['file']['type'])){
 				$type=$_FILES['file']['type'];
 			}else{
 				$type='application/octet-stream';
