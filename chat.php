@@ -47,15 +47,16 @@ if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 }
 load_lang();
 check_db();
+if(!check_init()){
+	send_init();
+}
+cron();
 route();
 
 //  main program: decide what to do based on queries
 function route(){
 	global $U;
 	if(!isset($_REQUEST['action'])){
-		if(!check_init()){
-			send_init();
-		}
 		send_login();
 	}elseif($_REQUEST['action']==='view'){
 		check_session();
@@ -221,9 +222,6 @@ function route_admin(){
 
 function route_setup(){
 	global $U;
-	if(!check_init()){
-		send_init();
-	}
 	update_db();
 	if(!valid_admin()){
 		send_alogin();
@@ -2374,11 +2372,7 @@ function kill_session(){
 	$_REQUEST['session']='';
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
 	$stmt->execute([$U['session']]);
-	if($U['status']==1){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
-		$stmt->execute([$U['nickname'], $U['nickname']]);
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
-	}elseif($U['status']>=3 && !$U['incognito']){
+	if($U['status']>=3 && !$U['incognito']){
 		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
 	}
 }
@@ -2428,9 +2422,7 @@ function kick_chatter($names, $mes, $purge){
 
 function logout_chatter($names){
 	global $U, $db;
-	$check=$db->prepare('SELECT status FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<?;');
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
-	$stmt1=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<?;');
 	if($names[0]==='s &'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
@@ -2439,15 +2431,8 @@ function logout_chatter($names){
 		}
 	}
 	foreach($names as $name){
-		$check->execute([$name, $U['status']]);
-		if($temp=$check->fetch(PDO::FETCH_NUM)){
-			$stmt->execute([$name]);
-			if($temp[0]==1){
-				$stmt1->execute([$name, $name]);
-			}
-		}
+		$stmt->execute([$name, $U['status']]);
 	}
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
 function check_session(){
@@ -2501,21 +2486,6 @@ function get_nowchatting(){
 
 function parse_sessions(){
 	global $U, $db;
-	// delete old sessions
-	$time=time();
-	$result=$db->prepare('SELECT nickname, status FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='guestexpire'))) OR (status>2 AND lastpost<(?-60*(SELECT value FROM " . PREFIX . "settings WHERE setting='memberexpire')));");
-	$result->execute([$time, $time]);
-	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
-		$stmt1=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? OR ignby=?;');
-		foreach($tmp as $temp){
-			$stmt->execute([$temp['nickname']]);
-			if($temp['status']<=1){
-				$stmt1->execute([$temp['nickname'], $temp['nickname']]);
-			}
-		}
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
-	}
 	// look for our session
 	if(isset($_REQUEST['session'])){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
@@ -2559,7 +2529,8 @@ function delete_account(){
 		$stmt->execute([$U['nickname']]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
 		$stmt->execute([$U['nickname']]);
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;'); // delete inbox of members who deleted themselves
+		$stmt->execute([$U['nickname']]);
 		$U['status']=1;
 	}
 }
@@ -2652,7 +2623,6 @@ function change_status($nick, $status){
 		$stmt->execute([$nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute([$nick]);
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 		return sprintf($I['succdel'], style_this(htmlspecialchars($nick), $old[1]));
 	}else{
 		if($status<5){
@@ -3161,13 +3131,6 @@ function write_message($message){
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES (?, ?, ?, ?, ?, ?);');
 	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']]);
-	$limit=get_setting('messagelimit');
-	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT 1 OFFSET $limit;");
-	if($id=$stmt->fetch(PDO::FETCH_NUM)){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id<=?;');
-		$stmt->execute($id);
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
-	}
 	if($message['poststatus']<9 && get_setting('sendmail')){
 		$subject='New Chat message';
 		$headers='From: '.get_setting('mailsender')."\r\nX-Mailer: PHP/".phpversion()."\r\nContent-Type: text/html; charset=UTF-8\r\n";
@@ -3179,7 +3142,6 @@ function write_message($message){
 function clean_room(){
 	global $db;
 	$db->query('DELETE FROM ' . PREFIX . 'messages;');
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT postid FROM ' . PREFIX . 'inbox);');
 	add_system_message(sprintf(get_setting('msgclean'), get_setting('chatname')));
 }
 
@@ -3190,7 +3152,6 @@ function clean_selected($status, $nick){
 		foreach($_REQUEST['mid'] as $mid){
 			$stmt->execute([$mid, $nick, $nick, $status, $status]);
 		}
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 }
 
@@ -3201,7 +3162,6 @@ function clean_inbox_selected(){
 		foreach($_REQUEST['mid'] as $mid){
 			$stmt->execute([$mid, $U['nickname']]);
 		}
-		$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	}
 }
 
@@ -3214,7 +3174,6 @@ function del_all_messages($nick, $entry){
 	$stmt->execute([$nick, $entry]);
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=? AND postdate>=?;');
 	$stmt->execute([$nick, $entry]);
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 }
 
 function del_last_message(){
@@ -3230,8 +3189,6 @@ function del_last_message(){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=?;');
 		$stmt->execute($id);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE postid=?;');
-		$stmt->execute($id);
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'files WHERE postid=?;');
 		$stmt->execute($id);
 	}
 }
@@ -3264,10 +3221,6 @@ function print_messages($delstatus=0){
 	}else{
 		$entry=$U['entry'];
 	}
-	$time=time();
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages WHERE postdate<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='messageexpire'))) AS t);");
-	$stmt->execute([$time]);
-	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
 	echo '<div id="messages">';
 	if($delstatus>0){
 		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
@@ -3490,6 +3443,32 @@ function check_init(){
 	return @$db->query('SELECT * FROM ' . PREFIX . 'settings LIMIT 1;');
 }
 
+// run every minute doing various database cleanup task
+function cron(){
+	global $db;
+	$time=time();
+	if(get_setting('nextcron')>$time){
+		return;
+	}
+	// delete old sessions
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='guestexpire'))) OR (status>2 AND lastpost<(?-60*(SELECT value FROM " . PREFIX . "settings WHERE setting='memberexpire')));");
+	$stmt->execute([$time, $time]);
+	// delete old messages
+	$limit=get_setting('messagelimit');
+	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT 1 OFFSET $limit;");
+	if($id=$stmt->fetch(PDO::FETCH_NUM)){
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id<=?;');
+		$stmt->execute($id);
+	}
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages WHERE postdate<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='messageexpire'))) AS t);");
+	$stmt->execute([$time]);
+	// delete expired ignored people
+	$db->exec('DELETE FROM ' . PREFIX . 'ignored WHERE ign NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions UNION SELECT nickname FROM ' . PREFIX . 'members UNION SELECT poster FROM ' . PREFIX . 'messages) OR ignby NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions UNION SELECT nickname FROM ' . PREFIX . 'members UNION SELECT poster FROM ' . PREFIX . 'messages);');
+	// delete files that do not belong to any message
+	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
+	update_setting('nextcron', $time+10);
+}
+
 function destroy_chat($C){
 	global $I, $db, $memcached;
 	setcookie(COOKIENAME, false);
@@ -3648,7 +3627,8 @@ function init_chat(){
 			['hidechatters', '0'],
 			['enfileupload', '0'],
 			['msgattache', '%2$s [%1$s]'],
-			['maxuploadsize', '1024']
+			['maxuploadsize', '1024'],
+			['nextcron', '0'],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -3831,9 +3811,6 @@ function update_db(){
 		if($dbversion<23){
 			$db->exec('DELETE FROM ' . PREFIX . "settings WHERE setting='enablejs';");
 		}
-		if($dbversion<24){
-			$db->exec('DELETE FROM ' . PREFIX . 'ignored WHERE id IN (SELECT id FROM (SELECT ' . PREFIX . 'ignored.id, ign, ignby FROM ' . PREFIX . 'ignored, ' . PREFIX . 'members WHERE nickname=ignby AND status < (SELECT status FROM ' . PREFIX . 'members WHERE nickname=ign) ) AS t);');
-		}
 		if($dbversion<25){
 			$db->exec('DELETE FROM ' . PREFIX . "settings WHERE setting='keeplimit';");
 		}
@@ -3946,7 +3923,6 @@ function update_db(){
 			$db->exec('CREATE TABLE ' . PREFIX . "files (id $primary, postid integer NOT NULL UNIQUE, filename varchar(255) NOT NULL, hash char(40) NOT NULL, type varchar(255) NOT NULL, data $longtext NOT NULL)$diskengine$charset;");
 			$db->exec('CREATE INDEX ' . PREFIX . 'files_hash ON ' . PREFIX . 'files(hash);');
 			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('enfileupload', '0'), ('msgattache', '%2\$s [%1\$s]'), ('maxuploadsize', '1024');");
-			$db->exec('DELETE FROM ' . PREFIX . 'inbox WHERE recipient NOT IN (SELECT nickname FROM ' . PREFIX . 'members);'); // delete inbox of members who deleted themselves
 		}
 		if($dbversion<34){
 			$msg.="<br>$I[cssupdate]";
@@ -3970,6 +3946,10 @@ function update_db(){
 			$db->exec('UPDATE ' . PREFIX . "members SET tz='UTC';");
 			$db->exec('UPDATE ' . PREFIX . "sessions SET tz='UTC';");
 			$db->exec('UPDATE ' . PREFIX . "settings SET value='UTC' WHERE setting='defaulttz';");
+		}
+		if($dbversion<38){
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('nextcron', '0');");
+			$db->exec('DELETE FROM ' . PREFIX . 'inbox WHERE recipient NOT IN (SELECT nickname FROM ' . PREFIX . 'members);'); // delete inbox of members who deleted themselves
 		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
@@ -4142,7 +4122,7 @@ function load_lang(){
 function load_config(){
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.22.1'); // Script version
-	define('DBVERSION', 37); // Database layout version
+	define('DBVERSION', 38); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host
