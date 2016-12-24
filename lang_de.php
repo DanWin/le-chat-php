@@ -367,5 +367,6 @@ $T=[
 	'maxsize' => 'Max %d KB',
 	'cssupdate' => 'Hinweis: Standard CSS ist jetzt hardcoded und kann aus der CSS Einstellung entfernt werden',
 	'manualrefresh' => 'Manuelles Neuladen erforderlich',
+	'personalnotes' => 'Persönliche Notizen',
 ];
 ?>

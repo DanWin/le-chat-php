@@ -124,12 +124,14 @@ function route(){
 	}elseif($_REQUEST['action']==='notes'){
 		check_session();
 		if(isset($_REQUEST['do']) && $_REQUEST['do']==='admin' && $U['status']>6){
-			send_notes('admin');
+			send_notes(0);
+		}elseif(isset($_REQUEST['do']) && $_REQUEST['do']==='staff' && $U['status']>=5){
+			send_notes(1);
 		}
-		if($U['status']<5){
+		if($U['status']<3 || !get_setting('personalnotes')){
 			send_access_denied();
 		}
-		send_notes('staff');
+		send_notes(2);
 	}elseif($_REQUEST['action']==='help'){
 		check_session();
 		send_help();
@@ -765,6 +767,11 @@ function restore_backup($C){
 		$db->exec('DELETE FROM ' . PREFIX . 'notes;');
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
 		foreach($code['notes'] as $note){
+			if($note['type']==='admin'){
+				$note['type']=0;
+			}elseif($note['type']==='staff'){
+				$note['type']=1;
+			}
 			$stmt->execute([$note['type'], $note['lastedited'], $note['editedby'], $note['text']]);
 		}
 	}
@@ -796,10 +803,10 @@ function send_backup($C){
 			}
 		}
 		if(isset($_REQUEST['notes'])){
-			$result=$db->query('SELECT * FROM ' . PREFIX . "notes WHERE type='admin' ORDER BY id DESC LIMIT 1;");
-			$code['notes'][]=$result->fetch(PDO::FETCH_ASSOC);
-			$result=$db->query('SELECT * FROM ' . PREFIX . "notes WHERE type='staff' ORDER BY id DESC LIMIT 1;");
-			$code['notes'][]=$result->fetch(PDO::FETCH_ASSOC);
+			$result=$db->query('SELECT * FROM ' . PREFIX . "notes;");
+			while($note=$result->fetch(PDO::FETCH_ASSOC)){
+				$code['notes'][]=$note;
+			}
 		}
 	}
 	if(isset($_REQUEST['settings'])){
@@ -1512,14 +1519,27 @@ function send_inbox(){
 function send_notes($type){
 	global $I, $U, $db;
 	print_start('notes');
-	if($U['status']>=6){
-		echo '<table><tr><td>'.form_target('view', 'notes', 'admin').submit($I['admnotes']).'</form></td>';
-		echo '<td>'.form_target('view', 'notes').submit($I['notes']).'</form></td></tr></table>';
+	$personalnotes=(bool) get_setting('personalnotes');
+	if($U['status']>=5 && ($personalnotes || $U['status']>6)){
+		echo '<table><tr>';
+		if($U['status']>6){
+			echo '<td>'.form_target('view', 'notes', 'admin').submit($I['admnotes']).'</form></td>';
+		}
+		echo '<td>'.form_target('view', 'notes', 'staff').submit($I['staffnotes']).'</form></td>';
+		if($personalnotes){
+			echo '<td>'.form_target('view', 'notes').submit($I['personalnotes']).'</form></td>';
+		}
+		echo '</tr></table>';
 	}
-	if($type==='staff'){
+	if($type===1){
 		echo "<h2>$I[staffnotes]</h2><p>";
-	}else{
+		$hiddendo=hidden('do', 'staff');
+	}elseif($type===0){
 		echo "<h2>$I[adminnotes]</h2><p>";
+		$hiddendo=hidden('do', 'admin');
+	}else{
+		echo "<h2>$I[personalnotes]</h2><p>";
+		$hiddendo='';
 	}
 	if(isset($_REQUEST['text'])){
 		if(MSGENCRYPTED){
@@ -1531,28 +1551,31 @@ function send_notes($type){
 		$time=time();
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
 		$stmt->execute([$type, $time, $U['nickname'], $_REQUEST['text']]);
-		$offset=get_setting('numnotes');
-		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $offset;");
-		$stmt->execute([$type]);
-		if($id=$stmt->fetch(PDO::FETCH_NUM)){
-			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE type=? AND id <=?;');
-			$stmt->execute([$type, $id[0]]);
-		}
 		echo "<b>$I[notessaved]</b> ";
 	}
 	$dateformat=get_setting('dateformat');
-	$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'notes WHERE type=?;');
-	$stmt->execute([$type]);
+	if($type!==2){
+		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'notes WHERE type=?;');
+		$stmt->execute([$type]);
+	}else{
+		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'notes WHERE type=? AND editedby=?;');
+		$stmt->execute([$type, $U['nickname']]);
+	}
 	$num=$stmt->fetch(PDO::FETCH_NUM);
 	if(!empty($_REQUEST['revision'])){
 		$revision=intval($_REQUEST['revision']);
 	}else{
 		$revision=0;
 	}
-	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $revision;");
-	$stmt->execute([$type]);
+	if($type!==2){
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $revision;");
+		$stmt->execute([$type]);
+	}else{
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . "notes WHERE type=? AND editedby=? ORDER BY id DESC LIMIT 1 OFFSET $revision;");
+		$stmt->execute([$type, $U['nickname']]);
+	}
 	if($note=$stmt->fetch(PDO::FETCH_ASSOC)){
-			printf($I['lastedited'], htmlspecialchars($note['editedby']), date($dateformat, $note['lastedited']));
+		printf($I['lastedited'], htmlspecialchars($note['editedby']), date($dateformat, $note['lastedited']));
 	}else{
 		$note['text']='';
 	}
@@ -1566,26 +1589,17 @@ function send_notes($type){
 		$note['text']=openssl_decrypt($note['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
 	}
 	echo "</p>".form('notes');
-	if($type==='admin'){
-		echo hidden('do', 'admin');
-	}
-	echo "<textarea name=\"text\" rows=\"$settings[notesboxheight]\" cols=\"$settings[notesboxwidth]\">".htmlspecialchars($note['text']).'</textarea><br>';
+	echo "$hiddendo<textarea name=\"text\" rows=\"$settings[notesboxheight]\" cols=\"$settings[notesboxwidth]\">".htmlspecialchars($note['text']).'</textarea><br>';
 	echo submit($I['savenotes']).'</form><br>';
 	if($num[0]>1){
 		echo "<br><table><tr><td>$I[revisions]</td>";
 		if($revision<$num[0]-1){
 			echo '<td>'.form('notes').hidden('revision', $revision+1);
-			if($type==='admin'){
-				echo hidden('do', 'admin');
-			}
-			echo submit($I['older']).'</form></td>';
+			echo $hiddendo.submit($I['older']).'</form></td>';
 		}
 		if($revision>0){
 			echo '<td>'.form('notes').hidden('revision', $revision-1);
-			if($type==='admin'){
-				echo hidden('do', 'admin');
-			}
-			echo submit($I['newer']).'</form></td>';
+			echo $hiddendo.submit($I['newer']).'</form></td>';
 		}
 		echo '</tr></table>';
 	}
@@ -1996,15 +2010,21 @@ function send_profile($arg=''){
 function send_controls(){
 	global $I, $U;
 	print_start('controls');
+	$personalnotes=(bool) get_setting('personalnotes');
 	echo '<table><tr>';
 	echo '<td>'.form_target('post', 'post').submit($I['reloadpb']).'</form></td>';
 	echo '<td>'.form_target('view', 'view').submit($I['reloadmsgs']).'</form></td>';
 	echo '<td>'.form_target('view', 'profile').submit($I['chgprofile']).'</form></td>';
 	if($U['status']>=5){
 		echo '<td>'.form_target('view', 'admin').submit($I['adminbtn']).'</form></td>';
-		echo '<td>'.form_target('view', 'notes').submit($I['notes']).'</form></td>';
+		if(!$personalnotes){
+			echo '<td>'.form_target('view', 'notes', 'staff').submit($I['notes']).'</form></td>';
+		}
 	}
 	if($U['status']>=3){
+		if($personalnotes){
+			echo '<td>'.form_target('view', 'notes').submit($I['notes']).'</form></td>';
+		}
 		echo '<td>'.form_target('_blank', 'login').submit($I['clone']).'</form></td>';
 	}
 	if(!isset($_REQUEST['sort'])){
@@ -2529,7 +2549,9 @@ function delete_account(){
 		$stmt->execute([$U['nickname']]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
 		$stmt->execute([$U['nickname']]);
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;'); // delete inbox of members who deleted themselves
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
+		$stmt->execute([$U['nickname']]);
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE type=2 AND editedby=?;');
 		$stmt->execute([$U['nickname']]);
 		$U['status']=1;
 	}
@@ -2808,6 +2830,8 @@ function set_new_nickname(){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'ignored SET ign=? WHERE ign=?;');
 		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'inbox SET poster=? WHERE poster=?;');
+		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET editedby=? WHERE editedby=?;');
 		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
 		$U['nickname']=$_REQUEST['newnickname'];
 	}
@@ -3466,6 +3490,14 @@ function cron(){
 	$db->exec('DELETE FROM ' . PREFIX . 'ignored WHERE ign NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions UNION SELECT nickname FROM ' . PREFIX . 'members UNION SELECT poster FROM ' . PREFIX . 'messages) OR ignby NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions UNION SELECT nickname FROM ' . PREFIX . 'members UNION SELECT poster FROM ' . PREFIX . 'messages);');
 	// delete files that do not belong to any message
 	$db->exec('DELETE FROM ' . PREFIX . 'files WHERE postid NOT IN (SELECT id FROM ' . PREFIX . 'messages UNION SELECT postid FROM ' . PREFIX . 'inbox);');
+	// delete old notes
+	$limit=get_setting('numnotes');
+	$db->exec('DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND id NOT IN (SELECT * FROM ( (SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit) UNION (SELECT id FROM " . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit) ) AS t);");
+	$result=$db->query('SELECT editedby, COUNT(*) AS cnt FROM ' . PREFIX . "notes WHERE type=2 GROUP BY editedby HAVING cnt>$limit;");
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE type=2 AND editedby=? AND id NOT IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "notes WHERE type=2 AND editedby=? ORDER BY id DESC LIMIT $limit) AS t);");
+	while($tmp=$result->fetch(PDO::FETCH_NUM)){
+		$stmt->execute([$tmp[0], $tmp[0]]);
+	}
 	update_setting('nextcron', $time+10);
 }
 
@@ -3554,7 +3586,9 @@ function init_chat(){
 		$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
-		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
+		$db->exec('CREATE INDEX ' . PREFIX . 'notes_editedby ON ' . PREFIX . 'notes(editedby);');
 		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash varchar(255) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', boxwidth smallint NOT NULL DEFAULT 40, boxheight smallint NOT NULL DEFAULT 3, useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, notesboxheight smallint NOT NULL DEFAULT 30, notesboxwidth smallint NOT NULL DEFAULT 80, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$memengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'status ON ' . PREFIX . 'sessions(status);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'lastpost ON ' . PREFIX . 'sessions(lastpost);');
@@ -3629,6 +3663,7 @@ function init_chat(){
 			['msgattache', '%2$s [%1$s]'],
 			['maxuploadsize', '1024'],
 			['nextcron', '0'],
+			['personalnotes', '1'],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -3951,6 +3986,25 @@ function update_db(){
 			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('nextcron', '0');");
 			$db->exec('DELETE FROM ' . PREFIX . 'inbox WHERE recipient NOT IN (SELECT nickname FROM ' . PREFIX . 'members);'); // delete inbox of members who deleted themselves
 		}
+		if($dbversion<39){
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('personalnotes', '1');");
+			$result=$db->query('SELECT type, id FROM ' . PREFIX . 'notes;');
+			while($tmp=$result->fetch(PDO::FETCH_NUM)){
+				if($tmp[0]==='admin'){
+					$tmp[0]=0;
+				}else{
+					$tmp[0]=1;
+				}
+				$data[]=$tmp;
+			}
+			$db->exec('ALTER TABLE ' . PREFIX . 'notes MODIFY type smallint NOT NULL;');
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET type=? WHERE id=?;');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
+			$db->exec('CREATE INDEX ' . PREFIX . 'notes_editedby ON ' . PREFIX . 'notes(editedby);');
+		}
 		update_setting('dbversion', DBVERSION);
 		if(get_setting('msgencrypted')!=MSGENCRYPTED){
 			if(!extension_loaded('openssl')){
@@ -4122,7 +4176,7 @@ function load_lang(){
 function load_config(){
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.22.1'); // Script version
-	define('DBVERSION', 38); // Database layout version
+	define('DBVERSION', 39); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
 	define('DBHOST', 'localhost'); // Database host

@@ -367,5 +367,6 @@ $I=[
 	'maxsize' => 'Max %d KB',
 	'cssupdate' => 'Note: Default CSS is now hardcoded and can be removed from the CSS setting',
 	'manualrefresh' => 'Manual refresh required',
+	'personalnotes' => 'Personal notes',
 ];
 ?>
