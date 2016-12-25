@@ -368,5 +368,6 @@ $T=[
 	'cssupdate' => 'Hinweis: Standard CSS ist jetzt hardcoded und kann aus der CSS Einstellung entfernt werden',
 	'manualrefresh' => 'Manuelles Neuladen erforderlich',
 	'personalnotes' => 'Persönliche Notizen',
+	'filtermodkick' => 'Kickfilter auf Moderatoren anwenden',
 ];
 ?>

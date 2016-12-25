@@ -368,5 +368,6 @@ $I=[
 	'cssupdate' => 'Note: Default CSS is now hardcoded and can be removed from the CSS setting',
 	'manualrefresh' => 'Manual refresh required',
 	'personalnotes' => 'Personal notes',
+	'filtermodkick' => 'Apply kick filter on moderators',
 ];
 ?>

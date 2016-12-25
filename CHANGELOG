@@ -1,3 +1,4 @@
+Version 1.23 - Dec. 25, 2016
 Optimizations
 More secure session key generation and password storage
 Add option to make your own font small
@@ -5,6 +6,7 @@ Separate changing nickname and password
 Use PHPs native timezones
 Add message asking for manual refresh, when it stopped working
 Add personal notes
+Allow disabling applying of kick filters on moderators
 
 Version 1.22.1 - Nov. 13, 2016
 Performance optimizations
