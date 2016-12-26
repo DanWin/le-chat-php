@@ -273,13 +273,13 @@ function print_stylesheet($init=false){
 	echo '.approve_waiting #action td:only-child,.help #backcredit,.login td:only-child,.alogin td:only-child,.init td:only-child{text-align:center;} .sessions td,.sessions th,.approve_waiting td,.approve_waiting th{padding: 5px;} ';
 	echo '.sessions td td{padding: 1px;} .messages #bottom_link{position:fixed;top:0.5em;right:0.5em;} .messages #top_link{position:fixed;bottom:0.5em;right:0.5em;} ';
 	echo '.post table,.controls table,.login table{border-spacing:0px;margin-left:auto;margin-right:auto;} .login table{border:2px solid;} .controls{overflow-y:none;} ';
-	echo '#manualrefresh{display:block;position:fixed;text-align:center;left:25%;width:50%;animation:timeout_messages ';
+	echo '#manualrefresh{display:block;position:fixed;text-align:center;left:25%;width:50%;top:-200%;animation:timeout_messages ';
 	if(isset($U['refresh'])){
 		echo $U['refresh']+20;
 	}else{
 		echo '160';
 	}
-	echo 's;z-index:2;background-color:#500000;border:2px solid #ff0000;} ';
+	echo 's forwards;z-index:2;background-color:#500000;border:2px solid #ff0000;} ';
 	echo '@keyframes timeout_messages{0%{top:-200%;} 99%{top:-200%;} 100%{top:0%;}}';
 	echo '</style>';
 	if($init){
