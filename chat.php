@@ -2726,7 +2726,7 @@ function save_profile(){
 		$stmt->execute([$_REQUEST['unignore'], $U['nickname']]);
 	}
 	if(!empty($_REQUEST['ignore'])){
-		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=? AND nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
+		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'messages WHERE poster=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
 		$stmt->execute([$_REQUEST['ignore'], $U['nickname']]);
 		if($U['nickname']!==$_REQUEST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
