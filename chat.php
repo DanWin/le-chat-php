@@ -2197,7 +2197,7 @@ function create_session($setup, $nickname, $password){
 		add_user_defaults($password);
 	}
 	$U['entry']=$U['lastpost']=time();
-	if($setup){
+	if($setup && $U['status']>=7){
 		$U['incognito']=1;
 	}
 	$captcha=(int) get_setting('captcha');
