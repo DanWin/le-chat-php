@@ -1859,7 +1859,7 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table id=\"ignore\"><tr><th>$I[ignore]</th><td>";
 	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' .  PREFIX . 'messages.poster=' . PREFIX . 't.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster ORDER BY LOWER(poster);');
+	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' .  PREFIX . 'messages.poster=t.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster ORDER BY LOWER(poster);');
 	$stmt->execute([$U['nickname'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
@@ -2049,7 +2049,7 @@ function send_colours(){
 	for($red=0x00;$red<=0xFF;$red+=0x33){
 		for($green=0x00;$green<=0xFF;$green+=0x33){
 			for($blue=0x00;$blue<=0xFF;$blue+=0x33){
-				$hcol=sprintf('%02X', $red).sprintf('%02X', $green).sprintf('%02X', $blue);
+				$hcol=sprintf('%02X%02X%02X', $red, $green, $blue);
 				echo "<span style=\"color:#$hcol\">$hcol</span> ";
 			}
 			echo '<br>';
@@ -2805,7 +2805,7 @@ function add_user_defaults($password){
 	$U['bgcolour']=get_setting('colbg');
 	if(!isset($_REQUEST['colour']) || !preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colour']) || abs(greyval($_REQUEST['colour'])-greyval(get_setting('colbg')))<75){
 		do{
-			$colour=sprintf('%02X', mt_rand(0, 256)).sprintf('%02X', mt_rand(0, 256)).sprintf('%02X', mt_rand(0, 256));
+			$colour=sprintf('%06X', mt_rand(0, 16581375));
 		}while(abs(greyval($colour)-greyval(get_setting('colbg')))<75);
 	}else{
 		$colour=$_REQUEST['colour'];
@@ -4149,7 +4149,7 @@ function load_lang(){
 
 function load_config(){
 	mb_internal_encoding('UTF-8');
-	define('VERSION', '1.23'); // Script version
+	define('VERSION', '1.23.1'); // Script version
 	define('DBVERSION', 41); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages

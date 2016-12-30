@@ -1,4 +1,8 @@
+Version 1.23.1 - Dec. 30, 2016
 Replace configurable static size for notes and post textarea with css
+Let offline members be ignored
+Force space after /me to prevent posting "as someone else"
+Prevent non-admins from loging in incognito via setup
 
 Version 1.23 - Dec. 25, 2016
 Optimizations
