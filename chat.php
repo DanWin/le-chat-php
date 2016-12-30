@@ -2890,8 +2890,8 @@ function validate_input(){
 		}
 	}
 	if($poststatus!==9 && preg_match('~^/me~iu', $message)){
-		$displaysend=style_this(htmlspecialchars($U['nickname']), $U['style']);
-		$message=preg_replace("~^/me~iu", '', $message);
+		$displaysend=style_this(htmlspecialchars("$U[nickname] "), $U['style']);
+		$message=preg_replace("~^/me\s?~iu", '', $message);
 	}
 	$message=apply_filter($message, $poststatus, $U['nickname']);
 	$message=create_hotlinks($message);
