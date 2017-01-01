@@ -47,9 +47,6 @@ if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 }
 load_lang();
 check_db();
-if(!check_init()){
-	send_init();
-}
 cron();
 route();
 
@@ -149,8 +146,6 @@ function route(){
 		send_admin(route_admin());
 	}elseif($_REQUEST['action']==='setup'){
 		route_setup();
-	}elseif($_REQUEST['action']==='init'){
-		init_chat();
 	}else{
 		send_login();
 	}
@@ -3640,7 +3635,7 @@ function init_chat(){
 			'incognito'	=>0,
 			'nocache'	=>0,
 			'nocache_old'	=>1,
-			'tz'		=>0,
+			'tz'		=>'UTC',
 			'eninbox'	=>0,
 			'sortupdown'	=>0,
 			'hidechatters'	=>0,
@@ -4095,6 +4090,13 @@ function check_db(){
 		$memcached=new Memcached();
 		$memcached->addServer(MEMCACHEDHOST, MEMCACHEDPORT);
 	}
+	if(!isset($_REQUEST['action']) || $_REQUEST['action']==='setup'){
+		if(!check_init()){
+			send_init();
+		}
+	}elseif($_REQUEST['action']==='init'){
+		init_chat();
+	}
 }
 
 function load_fonts(){
@@ -4149,7 +4151,7 @@ function load_lang(){
 
 function load_config(){
 	mb_internal_encoding('UTF-8');
-	define('VERSION', '1.23.1'); // Script version
+	define('VERSION', '1.23.2'); // Script version
 	define('DBVERSION', 41); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages

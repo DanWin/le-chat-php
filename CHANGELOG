@@ -1,3 +1,6 @@
+Version 1.23.2 - Jan. 1, 2017
+Restructure initalization code to fix setting up new chats
+
 Version 1.23.1 - Dec. 30, 2016
 Replace configurable static size for notes and post textarea with css
 Let offline members be ignored
