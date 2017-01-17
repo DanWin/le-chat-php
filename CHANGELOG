@@ -1,3 +1,6 @@
+Version 1.23.3 - Jan. 17, 2017
+Fix restoring members in backup and restore
+
 Version 1.23.2 - Jan. 1, 2017
 Restructure initalization code to fix setting up new chats
 
