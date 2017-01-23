@@ -54,7 +54,6 @@ route();
 function route(){
 	global $U;
 	if(!isset($_REQUEST['action'])){
-		update_db();
 		send_login();
 	}elseif($_REQUEST['action']==='view'){
 		check_session();
@@ -220,7 +219,6 @@ function route_admin(){
 
 function route_setup(){
 	global $U;
-	update_db();
 	if(!valid_admin()){
 		send_alogin();
 	}
@@ -4097,6 +4095,7 @@ function check_db(){
 	}elseif($_REQUEST['action']==='init'){
 		init_chat();
 	}
+	update_db();
 }
 
 function load_fonts(){
@@ -4151,7 +4150,7 @@ function load_lang(){
 
 function load_config(){
 	mb_internal_encoding('UTF-8');
-	define('VERSION', '1.23.3'); // Script version
+	define('VERSION', '1.23.4'); // Script version
 	define('DBVERSION', 41); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
