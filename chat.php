@@ -164,7 +164,7 @@ function route_admin(){
 		}elseif($_REQUEST['what']==='room'){
 			clean_room();
 		}elseif($_REQUEST['what']==='nick'){
-			$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status>=?;');
+			$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=? AND status>=?;');
 			$stmt->execute([$_REQUEST['nickname'], $U['status']]);
 			if(!$stmt->fetch(PDO::FETCH_ASSOC)){
 				del_all_messages($_REQUEST['nickname'], 0);
@@ -432,29 +432,21 @@ function send_captcha(){
 		$bg=imagecolorallocate($im, 0, 0, 0);
 		$fg=imagecolorallocate($im, 255, 255, 255);
 		imagefill($im, 0, 0, $bg);
-		$line=imagecolorallocate($im, 100, 100, 100);
-		for($i=0;$i<3;++$i){
+		imagestring($im, 5, 5, 5, $code, $fg);
+		$line=imagecolorallocate($im, 255, 255, 255);
+		for($i=0;$i<2;++$i){
 			imageline($im, 0, mt_rand(0, 24), 55, mt_rand(0, 24), $line);
 		}
-		$dots=imagecolorallocate($im, 200, 200, 200);
+		$dots=imagecolorallocate($im, 255, 255, 255);
 		for($i=0;$i<100;++$i){
 			imagesetpixel($im, mt_rand(0, 55), mt_rand(0, 24), $dots);
 		}
-		imagestring($im, 5, 5, 5, $code, $fg);
 		echo '<img width="55" height="24" src="data:image/gif;base64,';
 	}else{
 		$im=imagecreatetruecolor(150, 200);
 		$bg=imagecolorallocate($im, 0, 0, 0);
 		$fg=imagecolorallocate($im, 255, 255, 255);
 		imagefill($im, 0, 0, $bg);
-		$line=imagecolorallocate($im, 100, 100, 100);
-		for($i=0;$i<5;++$i){
-			imageline($im, 0, mt_rand(0, 200), 150, mt_rand(0, 200), $line);
-		}
-		$dots=imagecolorallocate($im, 200, 200, 200);
-		for($i=0;$i<1000;++$i){
-			imagesetpixel($im, mt_rand(0, 150), mt_rand(0, 200), $dots);
-		}
 		$chars=[];
 		for($i=0;$i<10;++$i){
 			$found=false;
@@ -492,6 +484,14 @@ function send_captcha(){
 		imagearc($im, $chars[5]['x']+4, $chars[5]['y']+8, 16, 16, 0, 360, $follow);
 		for($i=5;$i<9;++$i){
 			imageline($im, $chars[$i]['x']+4, $chars[$i]['y']+8, $chars[$i+1]['x']+4, $chars[$i+1]['y']+8, $follow);
+		}
+		$line=imagecolorallocate($im, 255, 255, 255);
+		for($i=0;$i<5;++$i){
+			imageline($im, 0, mt_rand(0, 200), 150, mt_rand(0, 200), $line);
+		}
+		$dots=imagecolorallocate($im, 255, 255, 255);
+		for($i=0;$i<1000;++$i){
+			imagesetpixel($im, mt_rand(0, 150), mt_rand(0, 200), $dots);
 		}
 		echo '<img width="150" height="200" src="data:image/gif;base64,';
 	}
@@ -1594,7 +1594,7 @@ function send_approve_waiting(){
 	global $I, $db;
 	print_start('approve_waiting');
 	echo "<h2>$I[waitingroom]</h2>";
-	$result=$db->query('SELECT * FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1 ORDER BY id;');
+	$result=$db->query('SELECT * FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1 ORDER BY id LIMIT 100;');
 	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
 		echo form('admin', 'approve');
 		echo '<table>';
@@ -2255,7 +2255,7 @@ function write_new_session($password){
 		}
 	}else{
 		// create new session
-		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
+		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'sessions WHERE session=?;');
 		do{
 			if(function_exists('random_bytes')){
 				$U['session']=bin2hex(random_bytes(16));
@@ -2558,7 +2558,7 @@ function register_new($nick, $pass){
 	if(empty($nick)){
 		return '';
 	}
-	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?');
+	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'sessions WHERE nickname=?');
 	$stmt->execute([$nick]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['cantreg'], htmlspecialchars($nick));
@@ -2569,7 +2569,7 @@ function register_new($nick, $pass){
 	if(!valid_pass($pass)){
 		return sprintf($I['invalpass'], get_setting('minpass'), get_setting('passregex'));
 	}
-	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?');
+	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=?');
 	$stmt->execute([$nick]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return sprintf($I['alreadyreged'], htmlspecialchars($nick));
@@ -2632,7 +2632,7 @@ function passreset($nick, $pass){
 	if(empty($nick)){
 		return '';
 	}
-	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
+	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
 	$stmt->execute([$nick, $U['status']]);
 	if($stmt->fetch(PDO::FETCH_ASSOC)){
 		$passhash=password_hash($pass, PASSWORD_DEFAULT);
@@ -2719,7 +2719,7 @@ function save_profile(){
 		$stmt->execute([$_REQUEST['unignore'], $U['nickname']]);
 	}
 	if(!empty($_REQUEST['ignore'])){
-		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'messages WHERE poster=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
+		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'messages WHERE poster=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
 		$stmt->execute([$_REQUEST['ignore'], $U['nickname']]);
 		if($U['nickname']!==$_REQUEST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
@@ -3060,7 +3060,7 @@ function apply_mention($message){
 
 function add_message($message, $recipient, $poster, $delstatus, $poststatus, $displaysend, $style){
 	global $db;
-	if(empty($message)){
+	if($message===''){
 		return false;
 	}
 	$newmessage=[
@@ -3082,7 +3082,7 @@ function add_message($message, $recipient, $poster, $delstatus, $poststatus, $di
 }
 
 function add_system_message($mes){
-	if(empty($mes)){
+	if($mes===''){
 		return;
 	}
 	$sysmessage=[
@@ -3407,7 +3407,7 @@ function style_this($text, $styleinfo){
 
 function check_init(){
 	global $db;
-	return @$db->query('SELECT * FROM ' . PREFIX . 'settings LIMIT 1;');
+	return @$db->query('SELECT null FROM ' . PREFIX . 'settings LIMIT 1;');
 }
 
 // run every minute doing various database cleanup task
@@ -3488,8 +3488,8 @@ function init_chat(){
 	$suwrite='';
 	if(check_init()){
 		$suwrite=$I['initdbexist'];
-		$result=$db->query('SELECT * FROM ' . PREFIX . 'members WHERE status=8;');
-		if($result->fetch(PDO::FETCH_ASSOC)){
+		$result=$db->query('SELECT null FROM ' . PREFIX . 'members WHERE status=8;');
+		if($result->fetch(PDO::FETCH_NUM)){
 			$suwrite=$I['initsuexist'];
 		}
 	}elseif(!preg_match('/^[a-z0-9]{1,20}$/i', $_REQUEST['sunick'])){
