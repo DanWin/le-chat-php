@@ -1,14 +1,14 @@
 <?php
-$native = 'Deutsch'; // Native lanugae name
-$english = 'German'; // Enlish language name
-$code = 'de'; // Language code
+$native = 'Español (España)'; // Native lanugae name
+$english = 'Spanish (ES)'; // Enlish language name
+$code = 'es_ES'; // Language code
 
 ob_start();
-echo "<?php
+$file = "<?php
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - $english translation
 *
-* Copyright (C) 2015-2016 Daniel Winzen <d@winzen4.de>
+* Copyright (C) 2015-2017 Daniel Winzen <d@winzen4.de>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,7 @@ foreach($T as $id=>$value){
 	}
 }
 foreach($I as $id=>$value){
-	echo "\t'$id' => '".str_replace("'", "\'", $value)."',\n";
+	$file .= "\t'$id' => '".str_replace("'", "\'", $value)."',\n";
 }
-echo "];\n?>\n";
-$file=ob_get_clean();
+$file .= "];\n";
 file_put_contents("lang_$code.php", $file);
-?>

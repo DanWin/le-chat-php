@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - French translation
 *
-* Copyright (C) 2015-2016 Daniel Winzen <d@winzen4.de>
+* Copyright (C) 2015-2017 Daniel Winzen <d@winzen4.de>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
