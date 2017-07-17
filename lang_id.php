@@ -305,4 +305,4 @@ $T=[
 	'nicknametaken' => 'Nama sudah ada',
 	'nopass' => 'Kata sandi salah (Minimal %d karakter), tak merubah nama'
 ];
-?>
+

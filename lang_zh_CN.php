@@ -361,4 +361,4 @@ $T=[
 	'maxsize' => 'Max %d KB',
 	'cssupdate' => 'Note: Default CSS is now hardcoded and can be removed from the CSS setting',
 ];
-?>
+

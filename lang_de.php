@@ -366,4 +366,4 @@ $T=[
 	'personalnotes' => 'Persönliche Notizen',
 	'filtermodkick' => 'Kickfilter auf Moderatoren anwenden',
 ];
-?>
+

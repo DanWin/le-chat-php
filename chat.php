@@ -4118,6 +4118,7 @@ function load_fonts(){
 function load_lang(){
 	global $I, $L, $language;
 	$L=[
+		'bg'	=>'Български',
 		'de'	=>'Deutsch',
 		'en'	=>'English',
 		'es'	=>'Español',
@@ -4171,4 +4172,4 @@ function load_config(){
 	define('COOKIENAME', PREFIX . 'chat_session'); // Cookie name storing the session information
 	define('LANG', 'en'); // Default language
 }
-?>
+

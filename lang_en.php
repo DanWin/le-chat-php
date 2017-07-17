@@ -366,4 +366,4 @@ $I=[
 	'personalnotes' => 'Personal notes',
 	'filtermodkick' => 'Apply kick filter on moderators',
 ];
-?>
+

@@ -305,4 +305,4 @@ $T=[
 	'nicknametaken' => 'Pseudo déjà pris',
 	'nopass' => 'Mot de passe invalide (au moins % caractères), ne pas changer le pseudo',
 ];
-?>
+
