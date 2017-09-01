@@ -1436,7 +1436,7 @@ function send_frameset(){
 		}
 		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
 	}
-	echo "<noframes><body>$I[noframes]".form_target('_parent', 'login').submit($I['backtologin'], 'class="backbutton"').'</form></body></noframes></frameset></html>';
+	echo "<noframes><body>$I[noframes]".form_target('_parent', '').submit($I['backtologin'], 'class="backbutton"').'</form></body></noframes></frameset></html>';
 	exit;
 }
 
@@ -2015,9 +2015,9 @@ function send_download(){
 		$stmt->execute([$_REQUEST['id']]);
 		if($data=$stmt->fetch(PDO::FETCH_ASSOC)){
 			header("Content-Type: $data[type]");
-			header("Content-disposition: filename=\"$data[filename]\"");
+			header("Content-Disposition: filename=\"$data[filename]\"");
 			header('Pragma: no-cache');
-			header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+			header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private');
 			header('Expires: 0');
 			echo base64_decode($data['data']);
 		}else{
@@ -2031,7 +2031,7 @@ function send_download(){
 function send_logout(){
 	global $I, $U;
 	print_start('logout');
-	echo '<h1>'.sprintf($I['bye'], style_this(htmlspecialchars($U['nickname']), $U['style'])).'</h1>'.form_target('_parent', 'login').submit($I['backtologin'], 'class="backbutton"').'</form>';
+	echo '<h1>'.sprintf($I['bye'], style_this(htmlspecialchars($U['nickname']), $U['style'])).'</h1>'.form_target('_parent', '').submit($I['backtologin'], 'class="backbutton"').'</form>';
 	print_end();
 }
 
@@ -2117,7 +2117,7 @@ function send_chat_disabled(){
 function send_error($err){
 	global $I;
 	print_start('error');
-	echo "<h2>$I[error]: $err</h2>".form_target('_parent', 'login').submit($I['backtologin'], 'class="backbutton"').'</form>';
+	echo "<h2>$I[error]: $err</h2>".form_target('_parent', '').submit($I['backtologin'], 'class="backbutton"').'</form>';
 	print_end();
 }
 
@@ -2160,6 +2160,7 @@ function print_chatters(){
 		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
 		$stmt->execute([$U['nickname'], $U['nickname']]);
 		$nc=substr(time(), -6);
+		$G=$M=[];
 		while($user=$stmt->fetch(PDO::FETCH_NUM)){
 			$link="<a href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=".htmlspecialchars($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
 			if($user[2]<=2){
@@ -2184,43 +2185,16 @@ function print_chatters(){
 //  session management
 
 function create_session($setup, $nickname, $password){
-	global $I, $U, $db, $memcached;
+	global $I, $U;
 	$U['nickname']=preg_replace('/\s/', '', $nickname);
-	if(!check_member($password)){
+	if(check_member($password)){
+		if($setup && $U['status']>=7){
+			$U['incognito']=1;
+		}
+		$U['entry']=$U['lastpost']=time();
+	}else{
 		add_user_defaults($password);
-	}
-	$U['entry']=$U['lastpost']=time();
-	if($setup && $U['status']>=7){
-		$U['incognito']=1;
-	}
-	$captcha=(int) get_setting('captcha');
-	if($captcha!==0 && ($U['status']==1 || get_setting('dismemcaptcha')==0)){
-		if(!isset($_REQUEST['challenge'])){
-			send_error($I['wrongcaptcha']);
-		}
-		if(!MEMCACHED){
-			$stmt=$db->prepare('SELECT code FROM ' . PREFIX . 'captcha WHERE id=?;');
-			$stmt->execute([$_REQUEST['challenge']]);
-			$stmt->bindColumn(1, $code);
-			if(!$stmt->fetch(PDO::FETCH_BOUND)){
-				send_error($I['captchaexpire']);
-			}
-			$time=time();
-			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'captcha WHERE id=? OR time<(?-(SELECT value FROM ' . PREFIX . "settings WHERE setting='captchatime'));");
-			$stmt->execute([$_REQUEST['challenge'], $time]);
-		}else{
-			if(!$code=$memcached->get(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]")){
-				send_error($I['captchaexpire']);
-			}
-			$memcached->delete(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]");
-		}
-		if($_REQUEST['captcha']!==$code){
-			if($captcha!==3 || strrev($_REQUEST['captcha'])!==$code){
-				send_error($I['wrongcaptcha']);
-			}
-		}
-	}
-	if($U['status']==1){
+		check_captcha($_REQUEST['challenge'], $_REQUEST['captcha']);
 		$ga=(int) get_setting('guestaccess');
 		if(!valid_nick($U['nickname'])){
 			send_error(sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex')));
@@ -2238,6 +2212,37 @@ function create_session($setup, $nickname, $password){
 		}
 	}
 	write_new_session($password);
+}
+
+function check_captcha($challenge, $captcha_code){
+	global $I, $db, $memcached;
+	$captcha=(int) get_setting('captcha');
+	if($captcha!==0){
+		if(empty($challenge)){
+			send_error($I['wrongcaptcha']);
+		}
+		if(MEMCACHED){
+			if(!$code=$memcached->get(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]")){
+				send_error($I['captchaexpire']);
+			}
+			$memcached->delete(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]");
+		}else{
+			$stmt=$db->prepare('SELECT code FROM ' . PREFIX . 'captcha WHERE id=?;');
+			$stmt->execute([$challenge]);
+			$stmt->bindColumn(1, $code);
+			if(!$stmt->fetch(PDO::FETCH_BOUND)){
+				send_error($I['captchaexpire']);
+			}
+			$time=time();
+			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'captcha WHERE id=? OR time<(?-(SELECT value FROM ' . PREFIX . "settings WHERE setting='captchatime'));");
+			$stmt->execute([$challenge, $time]);
+		}
+		if($captcha_code!==$code){
+			if($captcha!==3 || strrev($captcha_code)!==$code){
+				send_error($I['wrongcaptcha']);
+			}
+		}
+	}
 }
 
 function write_new_session($password){
@@ -2493,6 +2498,9 @@ function check_member($password){
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if(get_setting('dismemcaptcha')==0){
+			check_captcha($_REQUEST['challenge'], $_REQUEST['captcha']);
+		}
 		if($temp['passhash']===md5(sha1(md5($U['nickname'].$password)))){
 			// old hashing method, update on the fly
 			$temp['passhash']=password_hash($password, PASSWORD_DEFAULT);
@@ -2819,6 +2827,7 @@ function add_user_defaults($password){
 	$U['sortupdown']=get_setting('sortupdown');
 	$U['hidechatters']=get_setting('hidechatters');
 	$U['passhash']=password_hash($password, PASSWORD_DEFAULT);
+	$U['entry']=$U['lastpost']=time();
 }
 
 // message handling
@@ -3283,7 +3292,7 @@ function save_setup($C){
 	if($_REQUEST['memberexpire']<5){
 		$_REQUEST['memberexpire']=5;
 	}
-		if($_REQUEST['captchatime']<30){
+	if($_REQUEST['captchatime']<30){
 		$_REQUEST['memberexpire']=30;
 	}
 	if($_REQUEST['defaultrefresh']<5){
@@ -3450,6 +3459,9 @@ function cron(){
 	while($tmp=$result->fetch(PDO::FETCH_NUM)){
 		$stmt->execute([$tmp[0], $tmp[0]]);
 	}
+	// delete old captchas
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'captcha WHERE time<(?-(SELECT value FROM ' . PREFIX . "settings WHERE setting='captchatime'));");
+	$stmt->execute([$time]);
 }
 
 function destroy_chat($C){
@@ -4150,7 +4162,7 @@ function load_lang(){
 
 function load_config(){
 	mb_internal_encoding('UTF-8');
-	define('VERSION', '1.23.4'); // Script version
+	define('VERSION', '1.23.5'); // Script version
 	define('DBVERSION', 41); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
