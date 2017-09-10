@@ -4136,6 +4136,7 @@ function load_lang(){
 		'es'	=>'Español',
 		'fr'	=>'Français',
 		'id'	=>'Bahasa Indonesia',
+		'it'	=>'Italiano',
 		'ru'	=>'Русский',
 		'zh_CN'	=>'简体中文',
 	];
