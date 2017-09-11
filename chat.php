@@ -4138,6 +4138,7 @@ function load_lang(){
 		'id'	=>'Bahasa Indonesia',
 		'it'	=>'Italiano',
 		'ru'	=>'Русский',
+		'uk'	=>'Українська',
 		'zh_CN'	=>'简体中文',
 	];
 	if(isset($_REQUEST['lang']) && isset($L[$_REQUEST['lang']])){
