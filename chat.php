@@ -2873,23 +2873,32 @@ function validate_input(){
 	}elseif($_REQUEST['sendto']==='s &' && $U['status']>=6){
 		$poststatus=6;
 		$displaysend=sprintf(get_setting('msgsendadm'), style_this(htmlspecialchars($U['nickname']), $U['style']));
-	}else{// known nick in room?
+	}else{ // known nick in room?
 		if(get_setting('disablepm')){
+			//PMs disabled
 			return;
 		}
-		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, 1 AS inbox FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions) UNION SELECT nickname, style, 0 AS inbox FROM ' . PREFIX . 'sessions WHERE nickname=?) AS t WHERE nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?);');
-		$stmt->execute([$_REQUEST['sendto'], $U['status'], $_REQUEST['sendto'], $U['nickname'], $U['nickname']]);
-		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
-			$recipient=$_REQUEST['sendto'];
-			$poststatus=9;
-			$displaysend=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($recipient), $tmp['style']));
-			$inbox=$tmp['inbox'];
-		}
-		if(empty($recipient)){// nick left already or ignores us
-			$message='';
-			$rejected='';
+		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'ignored WHERE (ignby=? AND ign=?) OR (ign=? AND ignby=?);');
+		$stmt->execute([$_REQUEST['sendto'], $U['nickname'], $_REQUEST['sendto'], $U['nickname']]);
+		if($stmt->fetch(PDO::FETCH_NUM)){
+			//ignored
 			return;
 		}
+		$tmp=false;
+		$stmt=$db->prepare('SELECT s.style, 0 AS inbox FROM ' . PREFIX . 'sessions AS s LEFT JOIN ' . PREFIX . 'members AS m ON (m.nickname=s.nickname) WHERE s.nickname=? AND (s.incognito=0 OR (m.eninbox!=0 AND m.eninbox<=?));');
+		$stmt->execute([$_REQUEST['sendto'], $U['status']]);
+		if(!$tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+			$stmt=$db->prepare('SELECT style, 1 AS inbox FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=?;');
+			$stmt->execute([$_REQUEST['sendto'], $U['status']]);
+			if(!$tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+				//nickname left or disabled offline inbox for us
+				return;
+			}
+		}
+		$recipient=$_REQUEST['sendto'];
+		$poststatus=9;
+		$displaysend=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($recipient), $tmp['style']));
+		$inbox=$tmp['inbox'];
 	}
 	if($poststatus!==9 && preg_match('~^/me~iu', $message)){
 		$displaysend=style_this(htmlspecialchars("$U[nickname] "), $U['style']);
