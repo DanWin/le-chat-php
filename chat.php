@@ -4140,6 +4140,7 @@ function load_lang(){
 	global $I, $L, $language;
 	$L=[
 		'bg'	=>'Български',
+		'cz'	=>'čeština',
 		'de'	=>'Deutsch',
 		'en'	=>'English',
 		'es'	=>'Español',
