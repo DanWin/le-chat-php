@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - Main program
 *
-* Copyright (C) 2015-2017 Daniel Winzen <d@winzen4.de>
+* Copyright (C) 2015-2018 Daniel Winzen <d@winzen4.de>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -2194,7 +2194,7 @@ function create_session($setup, $nickname, $password){
 		$U['entry']=$U['lastpost']=time();
 	}else{
 		add_user_defaults($password);
-		check_captcha($_REQUEST['challenge'], $_REQUEST['captcha']);
+		check_captcha(isset($_REQUEST['challenge']) ? $_REQUEST['challenge'] : '', isset($_REQUEST['captcha']) ? $_REQUEST['captcha'] : '');
 		$ga=(int) get_setting('guestaccess');
 		if(!valid_nick($U['nickname'])){
 			send_error(sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex')));
@@ -2499,7 +2499,7 @@ function check_member($password){
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		if(get_setting('dismemcaptcha')==0){
-			check_captcha($_REQUEST['challenge'], $_REQUEST['captcha']);
+			check_captcha(isset($_REQUEST['challenge']) ? $_REQUEST['challenge'] : '', isset($_REQUEST['captcha']) ? $_REQUEST['captcha'] : '');
 		}
 		if($temp['passhash']===md5(sha1(md5($U['nickname'].$password)))){
 			// old hashing method, update on the fly
@@ -4174,7 +4174,7 @@ function load_lang(){
 
 function load_config(){
 	mb_internal_encoding('UTF-8');
-	define('VERSION', '1.23.5'); // Script version
+	define('VERSION', '1.23.6'); // Script version
 	define('DBVERSION', 41); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY', 'MY_KEY'); // Encryption key for messages
@@ -4196,4 +4196,3 @@ function load_config(){
 	define('COOKIENAME', PREFIX . 'chat_session'); // Cookie name storing the session information
 	define('LANG', 'en'); // Default language
 }
-
