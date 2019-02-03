@@ -767,6 +767,9 @@ function restore_backup($C){
 			}elseif($note['type']==='staff'){
 				$note['type']=1;
 			}
+			if(MSGENCRYPTED){
+				$note['text']=openssl_encrypt($note['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
+			}
 			$stmt->execute([$note['type'], $note['lastedited'], $note['editedby'], $note['text']]);
 		}
 	}
