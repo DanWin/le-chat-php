@@ -3637,6 +3637,7 @@ function init_chat(){
 			['maxuploadsize', '1024'],
 			['nextcron', '0'],
 			['personalnotes', '1'],
+			['filtermodkick', '0'],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -3658,7 +3659,6 @@ function init_chat(){
 			'eninbox'	=>0,
 			'sortupdown'	=>0,
 			'hidechatters'	=>0,
-			'filtermodkick'	=>1,
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, timestamps, style, embed, incognito, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 		$stmt->execute([$reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']]);
