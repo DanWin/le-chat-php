@@ -1,3 +1,6 @@
+Allow making file upload member-only
+Added required tag to captcha input
+
 Version 1.23.7 - Feb. 24, 2019
 Support V3 hidden services
 Fixed filtermodkick setting
