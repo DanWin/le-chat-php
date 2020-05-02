@@ -4180,8 +4180,8 @@ function load_config(){
 	define('VERSION', '1.24'); // Script version
 	define('DBVERSION', 42); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
-	define('ENCRYPTKEY', 'MY_SECRET_KEY'); // Encryption key for messages
-    define('AES_IV', '1234567890123456'); //AES Encryption IV
+	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Encryption key for messages
+    define('AES_IV_PASS', '1234567890123456'); //AES Encryption IV
 	define('DBHOST', 'localhost'); // Database host
 	define('DBUSER', 'www-data'); // Database user
 	define('DBPASS', 'YOUR_DB_PASS'); // Database password
@@ -4201,7 +4201,7 @@ function load_config(){
 	define('LANG', 'en'); // Default language
     if (MSGENCRYPTED){
         //Do not touch: Compute real keys needed by encryption functions
-        define('ENCRYPTKEY', substr(hash("sha512/256",ENCRYPTKEY),0, SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES));
-        define('AES_IV', substr(hash("sha512/256",AES_IV), 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES));
+        define('ENCRYPTKEY', substr(hash("sha512/256",ENCRYPTKEY_PASS),0, SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES));
+        define('AES_IV', substr(hash("sha512/256",AES_IV_PASS), 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES));
     }
 }
