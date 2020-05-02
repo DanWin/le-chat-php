@@ -3261,6 +3261,9 @@ function send_headers(){
 	header('Expires: 0');
 	header('Referrer-Policy: no-referrer');
 	header('Content-Security-Policy: referrer never');
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: sameorigin');
+    header('X-XSS-Protection: 1; mode=block');
 	if($_SERVER['REQUEST_METHOD']==='HEAD'){
 		exit; // headers sent, no further processing needed
 	}
