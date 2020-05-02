@@ -42,7 +42,7 @@ Optionally, you can install:
 - the json extension for save/restore
 - a memcached server and the memcached extension and change the configuaration to use memcached. This will lessen the database load a bit.
 - a MySQL or PostgreSQL server to use as an external database instead of SQLite
-- the openssl extension for encryption of messages and notes in the database
+- the libsodium extension for encryption of messages and notes in the database (bundled with PHP >= 7.2)
 When you have everything installed and use MySQL or PostgreSQL, you'll have to create a database and a user for the chat.
 Then edit the configuration at the bottom of the script to reflect the appropriate database settings and to modify the chat settings the way you like them.
 Then copy the script to your web-server directory and call the script in your browser with a parameter like this:

@@ -768,7 +768,6 @@ function restore_backup($C){
 				$note['type']=1;
 			}
 			if(MSGENCRYPTED){
-				//$note['text']=openssl_encrypt($note['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
                 $note['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($note['text'], '', AES_IV, ENCRYPTKEY));
 			}
 			$stmt->execute([$note['type'], $note['lastedited'], $note['editedby'], $note['text']]);
@@ -805,7 +804,6 @@ function send_backup($C){
 			$result=$db->query('SELECT * FROM ' . PREFIX . "notes;");
 			while($note=$result->fetch(PDO::FETCH_ASSOC)){
 				if(MSGENCRYPTED){
-					//$note['text']=openssl_decrypt($note['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
                     $note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
 				}
 				$code['notes'][]=$note;
@@ -1541,7 +1539,6 @@ function send_notes($type){
 	}
 	if(isset($_REQUEST['text'])){
 		if(MSGENCRYPTED){
-			//$_REQUEST['text']=openssl_encrypt($_REQUEST['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
             $_REQUEST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_REQUEST['text'], '', AES_IV, ENCRYPTKEY));
 		}
 		$time=time();
@@ -1576,7 +1573,6 @@ function send_notes($type){
 		$note['text']='';
 	}
 	if(MSGENCRYPTED){
-		//$note['text']=openssl_decrypt($note['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
         $note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
 	}
 	echo "</p>".form('notes');
@@ -2936,7 +2932,6 @@ function validate_input(){
 				'text'		=>"<span class=\"usermsg\">$displaysend".style_this($message, $U['style']).'</span>'
 			];
 			if(MSGENCRYPTED){
-				//$newmessage['text']=openssl_encrypt($newmessage['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
                 $newmessage['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($newmessage['text'], '', AES_IV, ENCRYPTKEY));
 			}
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?)');
@@ -3125,7 +3120,6 @@ function add_system_message($mes){
 function write_message($message){
 	global $db;
 	if(MSGENCRYPTED){
-		//$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
         $message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES (?, ?, ?, ?, ?, ?);');
@@ -3247,7 +3241,6 @@ function print_messages($delstatus=0){
 
 function prepare_message_print(&$message, $removeEmbed){
 	if(MSGENCRYPTED){
-		//$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
         $message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
 	}
 	if($removeEmbed){
@@ -4006,17 +3999,15 @@ function update_db(){
 	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
-		if(!extension_loaded('openssl')){
-			send_fatal_error($I['opensslextrequired']);
+		if(!extension_loaded('sodium')){
+			send_fatal_error($I['sodiumextrequired']);
 		}
 		$result=$db->query('SELECT id, text FROM ' . PREFIX . 'messages;');
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET text=? WHERE id=?;');
 		while($message=$result->fetch(PDO::FETCH_ASSOC)){
 			if(MSGENCRYPTED){
-				//$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
                 $message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
 			}else{
-				//$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
                 $message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
 			}
 			$stmt->execute([$message['text'], $message['id']]);
@@ -4025,10 +4016,8 @@ function update_db(){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET text=? WHERE id=?;');
 		while($message=$result->fetch(PDO::FETCH_ASSOC)){
 			if(MSGENCRYPTED){
-				//$message['text']=openssl_encrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
                 $message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
 			}else{
-				//$message['text']=openssl_decrypt($message['text'], 'aes-256-cbc', ENCRYPTKEY, 0, '1234567890123456');
                 $message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
 			}
 			$stmt->execute([$message['text'], $message['id']]);
