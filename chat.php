@@ -3030,9 +3030,9 @@ function create_hotlinks($message){
 	$message=preg_replace_callback('/<<([^<>]+)>>/u',
 		function ($matches){
 			if(strpos($matches[1], '://')===false){
-				return "<a href=\"http://$matches[1]\" target=\"_blank\">$matches[1]</a>";
+				return "<a href=\"http://$matches[1]\" target=\"_blank\" rel=\"noreferrer noopener\">$matches[1]</a>";
 			}else{
-				return "<a href=\"$matches[1]\" target=\"_blank\">$matches[1]</a>";
+				return "<a href=\"$matches[1]\" target=\"_blank\" rel=\"noreferrer noopener\">$matches[1]</a>";
 			}
 		}
 	, $message);
