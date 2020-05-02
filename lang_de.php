@@ -241,6 +241,7 @@ $T=[
 	'YellowGreen' => 'Gelbgrün',
 	'redirectto' => 'Leite weiter zu:',
 	'nonhttp' => 'Nicht-http Adresse angefordert:',
+	'dangerousnonhttp' => 'Nicht-http Adresse angefordert. Kopieren Sie diesen Link und fügen ihn ein, falls Sie wirklich sicher sind.:',
 	'httpredir' => 'Wenn sie nicht funktioniert, probiere diese:',
 	'actions' => 'Aktionen',
 	'sesip' => 'IP-Adresse',

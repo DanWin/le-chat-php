@@ -368,7 +368,7 @@ function print_start($class='', $ref=0, $url=''){
 
 function send_redirect($url){
 	global $I;
-	$url=htmlspecialchars_decode(rawurldecode($url));
+	$url=trim(htmlspecialchars_decode(rawurldecode($url)));
 	preg_match('~^(.*)://~u', $url, $match);
 	$url=preg_replace('~^(.*)://~u', '', $url);
 	$escaped=htmlspecialchars($url);
@@ -380,7 +380,11 @@ function send_redirect($url){
 		if(!isset($match[0])){
 			$match[0]='';
 		}
-		echo "<p>$I[nonhttp] <a href=\"$match[0]$escaped\">$match[0]$escaped</a>.</p>";
+		if(preg_match('~^(javascript|blob|data):~', $url)){
+			echo "<p>$I[dangerousnonhttp] $match[0]$escaped</p>";
+		} else {
+			echo "<p>$I[nonhttp] <a href=\"$match[0]$escaped\">$match[0]$escaped</a>.</p>";
+		}
 		echo "<p>$I[httpredir] <a href=\"http://$escaped\">http://$escaped</a>.</p>";
 	}
 	print_end();

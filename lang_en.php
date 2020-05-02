@@ -241,6 +241,7 @@ $I=[
 	'YellowGreen' => 'Yellow green',
 	'redirectto' => 'Redirecting to:',
 	'nonhttp' => 'Non-http link requested:',
+	'dangerousnonhttp' => 'Dangerous non-http link requested, copy paste this link if you are really sure:',
 	'httpredir' => 'If it\'s not working, try this one:',
 	'actions' => 'Actions',
 	'sesip' => 'IP-Address',
