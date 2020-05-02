@@ -1415,7 +1415,7 @@ function send_frameset(){
 	}else{
 		$bottom='';
 	}
-	if(($U['status']>=5 || ($U['status']>2 && get_count_mods()==0)) && get_setting('enfileupload')){
+	if(($U['status']>=5 || ($U['status']>2 && get_count_mods()==0)) && get_setting('enfileupload')>0 && get_setting('enfileupload')<=$U['status']){
 		$postheight=120;
 	}else{
 		$postheight=100;
