@@ -2252,6 +2252,19 @@ function check_captcha($challenge, $captcha_code){
 	}
 }
 
+function is_definitely_ssl() {
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
+        return true;
+    }
+    if (isset($_SERVER['SERVER_PORT']) && ('443' == $_SERVER['SERVER_PORT'])) {
+        return true;
+    }
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && ('https' == $_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        return true;
+    }
+    return false;
+}
+
 function write_new_session($password){
 	global $I, $U, $db;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
@@ -2261,7 +2274,11 @@ function write_new_session($password){
 		if(password_verify($password, $temp['passhash'])){
 			$U=$temp;
 			check_kicked();
-			setcookie(COOKIENAME, $U['session']);
+            if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
+                setcookie(COOKIENAME, $U['session'], ['expires' => 0, 'path' => '/', 'domain' => '', 'secure' => is_definitely_ssl(), 'httponly'=>true, 'samesite' => 'Strict']);
+            }else{
+                setcookie(COOKIENAME, $U['session'], 0, '/', '', is_definitely_ssl(), true);
+            }
 		}else{
 			send_error("$I[userloggedin]<br>$I[wrongpass]");
 		}
@@ -2288,7 +2305,11 @@ function write_new_session($password){
 		}
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, useragent, bgcolour, entry, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old']]);
-		setcookie(COOKIENAME, $U['session']);
+        if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
+            setcookie(COOKIENAME, $U['session'], ['expires' => 0, 'path' => '/', 'domain' => '', 'secure' => is_definitely_ssl(), 'httponly'=>true, 'samesite' => 'Strict']);
+        }else{
+            setcookie(COOKIENAME, $U['session'], 0, '/', '', is_definitely_ssl(), true);
+        }
 		if($U['status']>=3 && !$U['incognito']){
 			add_system_message(sprintf(get_setting('msgenter'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
 		}
