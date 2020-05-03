@@ -45,6 +45,7 @@ load_config();
 if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 	$_REQUEST['session']=$_COOKIE[COOKIENAME];
 }
+$_REQUEST['session'] = preg_replace('/[^0-9a-zA-Z]/', '', $_REQUEST['session']);
 load_lang();
 check_db();
 cron();
@@ -3285,7 +3286,7 @@ function send_headers(){
 	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
 	header('Expires: 0');
 	header('Referrer-Policy: no-referrer');
-	header('Content-Security-Policy: referrer never');
+	header("Content-Security-Policy: default-src 'self'; img-src *; media-src *; script-src 'self'; style-src *");
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: sameorigin');
     header('X-XSS-Protection: 1; mode=block');
