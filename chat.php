@@ -2266,6 +2266,14 @@ function is_definitely_ssl() {
     return false;
 }
 
+function set_secure_cookie($name, $value){
+	if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
+		setcookie($name, $value, ['expires' => 0, 'path' => '/', 'domain' => '', 'secure' => is_definitely_ssl(), 'httponly'=>true, 'samesite' => 'Strict']);
+	}else{
+		setcookie($name, $value, 0, '/', '', is_definitely_ssl(), true);
+	}
+}
+
 function write_new_session($password){
 	global $I, $U, $db;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
@@ -2275,11 +2283,7 @@ function write_new_session($password){
 		if(password_verify($password, $temp['passhash'])){
 			$U=$temp;
 			check_kicked();
-            if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
-                setcookie(COOKIENAME, $U['session'], ['expires' => 0, 'path' => '/', 'domain' => '', 'secure' => is_definitely_ssl(), 'httponly'=>true, 'samesite' => 'Strict']);
-            }else{
-                setcookie(COOKIENAME, $U['session'], 0, '/', '', is_definitely_ssl(), true);
-            }
+			set_secure_cookie(COOKIENAME, $U['session']);
 		}else{
 			send_error("$I[userloggedin]<br>$I[wrongpass]");
 		}
@@ -2306,11 +2310,7 @@ function write_new_session($password){
 		}
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, useragent, bgcolour, entry, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old']]);
-        if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
-            setcookie(COOKIENAME, $U['session'], ['expires' => 0, 'path' => '/', 'domain' => '', 'secure' => is_definitely_ssl(), 'httponly'=>true, 'samesite' => 'Strict']);
-        }else{
-            setcookie(COOKIENAME, $U['session'], 0, '/', '', is_definitely_ssl(), true);
-        }
+		set_secure_cookie(COOKIENAME, $U['session']);
 		if($U['status']>=3 && !$U['incognito']){
 			add_system_message(sprintf(get_setting('msgenter'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
 		}
@@ -4186,13 +4186,13 @@ function load_lang(){
 	if(isset($_REQUEST['lang']) && isset($L[$_REQUEST['lang']])){
 		$language=$_REQUEST['lang'];
 		if(!isset($_COOKIE['language']) || $_COOKIE['language']!==$language){
-			setcookie('language', $language);
+			set_secure_cookie('language', $language);
 		}
 	}elseif(isset($_COOKIE['language']) && isset($L[$_COOKIE['language']])){
 		$language=$_COOKIE['language'];
 	}else{
 		$language=LANG;
-		setcookie('language', $language);
+		set_secure_cookie('language', $language);
 	}
 	include('lang_en.php'); //always include English
 	if($language!=='en'){
