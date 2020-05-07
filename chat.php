@@ -45,6 +45,7 @@ load_config();
 if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 	$_REQUEST['session']=$_COOKIE[COOKIENAME];
 }
+$_REQUEST['session'] = preg_replace('/[^0-9a-zA-Z]/', '', $_REQUEST['session']);
 load_lang();
 check_db();
 cron();
