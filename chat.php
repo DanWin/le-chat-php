@@ -3286,7 +3286,7 @@ function send_headers(){
 	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
 	header('Expires: 0');
 	header('Referrer-Policy: no-referrer');
-	header('Content-Security-Policy: referrer never');
+	header("Content-Security-Policy: default-src 'self'; img-src *; media-src *; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: sameorigin');
     header('X-XSS-Protection: 1; mode=block');
