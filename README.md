@@ -2,7 +2,7 @@ General Information:
 --------------------
 
 This is a PHP Chat based on LE CHAT v.1.14. An up-to-date copy of this script can be downloaded at https://github.com/DanWin/le-chat-php
-The original perl LE CHAT script by Lucky Eddie can be downloaded at [his site](http://4fvfamdpoulu2nms.onion/lechat/) or via a tor2web proxy like [this one](https://4fvfamdpoulu2nms.onion.to/lechat/) if you don't have TOR installed.
+The original perl LE CHAT script by Lucky Eddie can be downloaded at [his site](http://4fvfamdpoulu2nms.onion/lechat/) or via a tor2web proxy like [this one](https://4fvfamdpoulu2nms.onion.to/lechat/) if you don't have Tor installed.
 If you add your own cool features or have a feature request, please tell me and I will add them, if I like them.
 Please also let me know about any bugs you find in the code, so I can fix them.
 Now a piece of information about the origin of the name "LE CHAT" copied from the original script:
@@ -12,7 +12,7 @@ It may even be the French word for "the" if you prefer. Translated from French t
 Features:
 ---------
 
-* Optimized for TOR
+* Optimized for Tor
 * No JavaScript needed
 * Cookies supported, but not needed
 * Captcha
@@ -59,7 +59,7 @@ Translating:
 
 Copy lang_en.php and rename it to lang_YOUR_LANGCODE.php
 Then edit the file and translate the messages into your language and change $I to $T at the top.
-If you ever use a ' character, you have to escape it by using \' instead or the script will fail.
+If you ever use a `'` character, you have to escape it by using `\'` instead or the script will fail.
 When you are done, you have to edit the chat script, to include your translation. Simply add a line with
 		'lang_code'	=>'Language name',
 to the $L array in the load_lang() function at the bottom, similar to what I did for the German translation.
@@ -72,17 +72,16 @@ Regex:
 Yes, the chat supports regular expression filtering of messages. As regex tends to be difficult for most people, I decided to give it an extra section here.
 Regex is very powerful and can be used to filter messages that contain certain expressions and replace them with something else.
 It can be used e.g. to turn BB Code into html, so it is possible to use BB Code in the chat to format messages.
-To do this, use this Regex-Match '\[(u|b)\](.*?)\[\/\1\]' and this Regex-Replace '<$1>$2</$1>' and your text will be '[b]bold[/b]' or '[u]underlined[/u]'.
-You can also use smilies by using this Regex-Match '(?-i::(cry|eek|lol|sad|smile|surprised|wink):)' and this Regex-Replace '<img src="/pictures/$1.gif" alt=":$1:">'
-And now if you enter ':smile:' an image with the smiley will be loaded from your server at '/pictures/smile.gif'.
-The following should be escaped by putting '\' in front of it, if you are trying to match one of these characters '/ \ ^ . $ | ( ) [ ] * + ? { } ,'.
-I used '/' as delimiter, so you will have to escape that, too. The only options I used is 'i' to make the regex case insensitive.
+To do this, use this Regex-Match `\[(u|b)\](.*?)\[\/\1\]` and this Regex-Replace `<$1>$2</$1>` and your text will be `[b]bold[/b]` or `[u]underlined[/u]`.
+You can also use smilies by using this Regex-Match `(?-i::(cry|eek|lol|sad|smile|surprised|wink):)` and this Regex-Replace `<img src="/pictures/$1.gif" alt=":$1:">`
+And now if you enter `:smile:` an image with the smiley will be loaded from your server at `/pictures/smile.gif`.
+The following should be escaped by putting `\` in front of it, if you are trying to match one of these characters `/ \ ^ . $ | ( ) [ ] * + ? { } ,`.
+I used `/` as delimiter, so you will have to escape that, too. The only options I used is `i` to make the regex case insensitive.
 If you want to test your regex, before applying you can use [this site](http://www.phpliveregex.com/) and enter your Regex and Replacement there and click on preg_replace.
 If you never used regex before, check out [this starting guide](http://docs.activestate.com/komodo/4.4/regex-intro.html) to begin with regular expressions.
 
 Live demo:
 ----------
 
-If you want to see the script in action, you can visit my [TOR hidden service](http://tt3j2x4k5ycaa5zt.onion/chat.php) or via a tor2web proxy like [this one](https://danwin1210.me/chat.php) if you don't have TOR installed.
-Considering this is a hidden service, you should be prepared for the worst case, as people tend to do illegal activities in the TOR network. I'm not online 24/7 so it might not be possible to remove such content right away.
-If you should see illegal content, don't panic. Use the contact form on my site to notify me and clean your browser cache afterwards. I will remove the content as soon as possible.
+If you want to see the script in action, you can visit my [Tor hidden service](http://danschat356lctri3zavzh6fbxg2a7lo6z3etgkctzzpspewu7zdsaqd.onion/chat.php) or via a tor2web proxy like [this one](https://chat.danwin1210.me/chat.php) if you don't have Tor installed.
+Considering this is a hidden service, you should be prepared for the worst case, as people tend to do illegal activities in the Tor network.
