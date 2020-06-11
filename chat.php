@@ -4229,6 +4229,9 @@ function load_config(){
 	define('COOKIENAME', PREFIX . 'chat_session'); // Cookie name storing the session information
 	define('LANG', 'en'); // Default language
     if (MSGENCRYPTED){
+        if (version_compare(PHP_VERSION, '7.2.0') < 0) {
+            die("You need at least PHP >= 7.2.x");
+        }
         //Do not touch: Compute real keys needed by encryption functions
         if (strlen(ENCRYPTKEY_PASS) !== SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES){
             define('ENCRYPTKEY', substr(hash("sha512/256",ENCRYPTKEY_PASS),0, SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES));
