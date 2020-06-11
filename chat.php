@@ -4210,7 +4210,7 @@ function load_config(){
 	define('DBVERSION', 42); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
-    define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
+	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
 	define('DBHOST', 'localhost'); // Database host
 	define('DBUSER', 'www-data'); // Database user
 	define('DBPASS', 'YOUR_DB_PASS'); // Database password
