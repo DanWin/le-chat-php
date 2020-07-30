@@ -190,13 +190,13 @@ function route_admin(){
 			logout_chatter([$_REQUEST['nick']], '', false);
 		}
 		send_sessions();
-	}elseif($_REQUEST['do']==='register'){
+	}elseif($_REQUEST['do']==='register' && &U['status']>6){
 		return register_guest(3, $_REQUEST['name']);
 	}elseif($_REQUEST['do']==='superguest'){
 		return register_guest(2, $_REQUEST['name']);
-	}elseif($_REQUEST['do']==='status'){
+	}elseif($_REQUEST['do']==='status' && &U['status']>6){
 		return change_status($_REQUEST['name'], $_REQUEST['set']);
-	}elseif($_REQUEST['do']==='regnew'){
+	}elseif($_REQUEST['do']==='regnew' && &U['status']>6){
 		return register_new($_REQUEST['name'], $_REQUEST['pass']);
 	}elseif($_REQUEST['do']==='approve'){
 		approve_session();
@@ -213,7 +213,7 @@ function route_admin(){
 		if(isset($_REQUEST['topic'])){
 			update_setting('topic', htmlspecialchars($_REQUEST['topic']));
 		}
-	}elseif($_REQUEST['do']==='passreset'){
+	}elseif($_REQUEST['do']==='passreset' && &U['status']>6){
 		return passreset($_REQUEST['name'], $_REQUEST['pass']);
 	}
 }
