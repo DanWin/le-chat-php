@@ -3012,7 +3012,7 @@ function apply_linkfilter($message){
 	}
 	$redirect=get_setting('redirect');
 	if(get_setting('imgembed')){
-		$message=preg_replace_callback('/\[img\]\s?<a href="([^"]+)" target="_blank">(.*?(?=<\/a>))<\/a>/iu',
+		$message=preg_replace_callback('/\[img\]\s?<a href="([^"]+)" target="_blank" rel="noreferrer noopener">(.*?(?=<\/a>))<\/a>/iu',
 			function ($matched){
 				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\" rel=\"noreferrer noopener\"><img src=\"$matched[1]\"></a><br>");
 			}
