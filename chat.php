@@ -4180,6 +4180,7 @@ function load_lang(){
 		'id'	=>'Bahasa Indonesia',
 		'it'	=>'Italiano',
 		'ru'	=>'Русский',
+		'tr'	=>'Türkçe',
 		'uk'	=>'Українська',
 		'zh_CN'	=>'简体中文',
 	];
