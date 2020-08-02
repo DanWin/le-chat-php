@@ -391,7 +391,7 @@ function send_redirect($url){
 	print_end();
 }
 
-function send_access_denied(){
+function send_access_denied($autologout = false){
 	global $I, $U;
 	header('HTTP/1.1 403 Forbidden');
 	print_start('access_denied');
@@ -401,6 +401,9 @@ function send_access_denied(){
 		echo hidden('session', $U['session']);
 	}
 	echo submit($I['logout'], 'id="exitbutton"')."</form>";
+	if ($autologout){
+	    kill_session();
+    }
 	print_end();
 }
 
@@ -3389,7 +3392,7 @@ function valid_admin(){
 		if($U['status']>=7){
 			return true;
 		}
-		send_access_denied();
+		send_access_denied(true);
 	}
 	return false;
 }
