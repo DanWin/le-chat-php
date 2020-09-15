@@ -187,7 +187,7 @@ function route_admin(){
 		if(isset($_REQUEST['kick']) && isset($_REQUEST['nick'])){
 			kick_chatter([$_REQUEST['nick']], '', false);
 		}elseif(isset($_REQUEST['logout']) && isset($_REQUEST['nick'])){
-			logout_chatter([$_REQUEST['nick']], '', false);
+			logout_chatter([$_REQUEST['nick']]);
 		}
 		send_sessions();
 	}elseif($_REQUEST['do']==='register'){
@@ -3521,7 +3521,7 @@ function destroy_chat($C){
 	$db->exec('DROP TABLE ' . PREFIX . 'settings;');
 	if(MEMCACHED){
 		$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
-		$memcached->delete(DBANEM . '-' . PREFIX . 'linkfilter');
+		$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
 		foreach($C['settings'] as $setting){
 			$memcached->delete(DBNAME . '-' . PREFIX . "settings-$setting");
 		}
