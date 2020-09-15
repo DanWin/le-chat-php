@@ -2212,8 +2212,8 @@ function create_session($setup, $nickname, $password){
 		}
 		if($ga===0){
 			send_error($I['noguests']);
-		}elseif($ga===3){
-			$U['entry']=0;
+		}elseif(in_array($ga, [2, 3], true)){
+			$U['entry'] = 0;
 		}
 		if(get_setting('englobalpass')!=0 && isset($_REQUEST['globalpass']) && $_REQUEST['globalpass']!=get_setting('globalpass')){
 			send_error($I['wrongglobalpass']);
@@ -2378,9 +2378,7 @@ function check_login(){
 		}
 	}
 	if($U['status']==1){
-		if($ga===2 || $ga===3){
-			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=0 WHERE session=?;');
-			$stmt->execute([$U['session']]);
+		if(in_array($ga, [2, 3], true){
 			send_waiting_room();
 		}
 	}
