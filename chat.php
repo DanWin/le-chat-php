@@ -2378,7 +2378,7 @@ function check_login(){
 		}
 	}
 	if($U['status']==1){
-		if(in_array($ga, [2, 3], true){
+		if(in_array($ga, [2, 3], true)){
 			send_waiting_room();
 		}
 	}
