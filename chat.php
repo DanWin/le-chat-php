@@ -32,7 +32,6 @@
 * 9 - Private messages
 */
 
-send_headers();
 // initialize and load variables/configuration
 $I=[];// Translations
 $L=[];// Languages
@@ -40,6 +39,7 @@ $U=[];// This user data
 $db;// Database connection
 $memcached;// Memcached connection
 $language;// user selected language
+$styles = []; //css styles
 load_config();
 // set session variable to cookie if cookies are enabled
 if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
@@ -249,35 +249,33 @@ function route_setup(){
 }
 
 //  html output subs
-function print_stylesheet($init=false){
-	global $U;
-	//default css
-	echo '<style type="text/css">';
-	echo 'body{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center;} ';
-	echo 'a:visited{color:#B33CB4;} a:active{color:#FF0033;} a:link{color:#0000FF;} #messages{word-wrap:break-word;} ';
-	echo 'input,select,textarea{color:#FFFFFF;background-color:#000000;} .messages a img{width:15%} .messages a:hover img{width:35%} ';
-	echo '.error{color:#FF0033;text-align:left;} .delbutton{background-color:#660000;} .backbutton{background-color:#004400;} #exitbutton{background-color:#AA0000;} ';
-	echo '.setup table table,.admin table table,.profile table table{width:100%;text-align:left} ';
-	echo '.alogin table,.init table,.destroy_chat table,.delete_account table,.sessions table,.filter table,.linkfilter table,.notes table,.approve_waiting table,.del_confirm table,.profile table,.admin table,.backup table,.setup table{margin-left:auto;margin-right:auto;} ';
-	echo '.setup table table table,.admin table table table,.profile table table table{border-spacing:0px;margin-left:auto;margin-right:unset;width:unset;} ';
-	echo '.setup table table td,.backup #restoresubmit,.backup #backupsubmit,.admin table table td,.profile table table td,.login td+td,.alogin td+td{text-align:right;} ';
-	echo '.init td,.backup #restorecheck td,.admin #clean td,.admin #regnew td,.session td,.messages,.inbox,.approve_waiting td,.choose_messages,.greeting,.help,.login td,.alogin td{text-align:left;} ';
-	echo '.messages #chatters{max-height:100px;overflow-y:auto;} .messages #chatters a{text-decoration-line:none;} .messages #chatters table{border-spacing:0px;} ';
-	echo '.messages #chatters th,.messages #chatters td,.post #firstline{vertical-align:top;} ';
-	echo '.approve_waiting #action td:only-child,.help #backcredit,.login td:only-child,.alogin td:only-child,.init td:only-child{text-align:center;} .sessions td,.sessions th,.approve_waiting td,.approve_waiting th{padding: 5px;} ';
-	echo '.sessions td td{padding: 1px;} .messages #bottom_link{position:fixed;top:0.5em;right:0.5em;} .messages #top_link{position:fixed;bottom:0.5em;right:0.5em;} ';
-	echo '.post table,.controls table,.login table{border-spacing:0px;margin-left:auto;margin-right:auto;} .login table{border:2px solid;} .controls{overflow-y:none;} ';
-	echo '#manualrefresh{display:block;position:fixed;text-align:center;left:25%;width:50%;top:-200%;animation:timeout_messages ';
+function prepare_stylesheets($init = false){
+	global $U, $db, $styles;
+	$styles['fatal_error'] = 'body{background-color:#000000;color:#FF0033}';
+	$styles['default'] = 'body{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center} ';
+	$styles['default'] .= 'a:visited{color:#B33CB4} a:active{color:#FF0033} a:link{color:#0000FF} #messages{word-wrap:break-word} ';
+	$styles['default'] .= 'input,select,textarea{color:#FFFFFF;background-color:#000000} .messages a img{width:15%} .messages a:hover img{width:35%} ';
+	$styles['default'] .= '.error{color:#FF0033;text-align:left} .delbutton{background-color:#660000} .backbutton{background-color:#004400} #exitbutton{background-color:#AA0000} ';
+	$styles['default'] .= '.setup table table,.admin table table,.profile table table{width:100%;text-align:left} ';
+	$styles['default'] .= '.alogin table,.init table,.destroy_chat table,.delete_account table,.sessions table,.filter table,.linkfilter table,.notes table,.approve_waiting table,.del_confirm table,.profile table,.admin table,.backup table,.setup table{margin-left:auto;margin-right:auto} ';
+	$styles['default'] .= '.setup table table table,.admin table table table,.profile table table table{border-spacing:0px;margin-left:auto;margin-right:unset;width:unset} ';
+	$styles['default'] .= '.setup table table td,.backup #restoresubmit,.backup #backupsubmit,.admin table table td,.profile table table td,.login td+td,.alogin td+td{text-align:right} ';
+	$styles['default'] .= '.init td,.backup #restorecheck td,.admin #clean td,.admin #regnew td,.session td,.messages,.inbox,.approve_waiting td,.choose_messages,.greeting,.help,.login td,.alogin td{text-align:left} ';
+	$styles['default'] .= '.messages #chatters{max-height:100px;overflow-y:auto} .messages #chatters a{text-decoration-line:none} .messages #chatters table{border-spacing:0px} ';
+	$styles['default'] .= '.messages #chatters th,.messages #chatters td,.post #firstline{vertical-align:top} ';
+	$styles['default'] .= '.approve_waiting #action td:only-child,.help #backcredit,.login td:only-child,.alogin td:only-child,.init td:only-child{text-align:center} .sessions td,.sessions th,.approve_waiting td,.approve_waiting th{padding: 5px} ';
+	$styles['default'] .= '.sessions td td{padding: 1px} .messages #bottom_link{position:fixed;top:0.5em;right:0.5em} .messages #top_link{position:fixed;bottom:0.5em;right:0.5em} ';
+	$styles['default'] .= '.post table,.controls table,.login table{border-spacing:0px;margin-left:auto;margin-right:auto} .login table{border:2px solid} .controls{overflow-y:none} ';
+	$styles['default'] .= '#manualrefresh{display:block;position:fixed;text-align:center;left:25%;width:50%;top:-200%;animation:timeout_messages ';
 	if(isset($U['refresh'])){
-		echo $U['refresh']+20;
+		$styles['default'] .= $U['refresh']+20;
 	}else{
-		echo '160';
+		$styles['default'] .='160';
 	}
-	echo 's forwards;z-index:2;background-color:#500000;border:2px solid #ff0000;} ';
-	echo '@keyframes timeout_messages{0%{top:-200%;} 99%{top:-200%;} 100%{top:0%;}} ';
-	echo '.notes textarea{height:80vh;width:80%;}';
-	echo '</style>';
-	if($init){
+	$styles['default'] .= 's forwards;z-index:2;background-color:#500000;border:2px solid #ff0000} ';
+	$styles['default'] .= '@keyframes timeout_messages{0%{top:-200%} 99%{top:-200%} 100%{top:0%}} ';
+	$styles['default'] .= '.notes textarea{height:80vh;width:80%}';
+	if($init || ! $db instanceof PDO){
 		return;
 	}
 	$css=get_setting('css');
@@ -287,8 +285,18 @@ function print_stylesheet($init=false){
 	}else{
 		$colbg=get_setting('colbg');
 	}
+	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body{background-color:#$colbg;color:#$coltxt} $css");
+}
+
+function print_stylesheet($init = false){
+	global $styles;
+	//default css
+	echo "<style type=\"text/css\">$styles[default]</style>";
+	if($init){
+		return;
+	}
 	//overwrite with custom css
-	echo "<style type=\"text/css\">body{background-color:#$colbg;color:#$coltxt;} $css</style>";
+	echo "<style type=\"text/css\">$styles[custom]</style>";
 }
 
 function print_end(){
@@ -301,7 +309,7 @@ function credit(){
 }
 
 function meta_html(){
-	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">';
+	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0, private"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">';
 }
 
 function form($action, $do=''){
@@ -342,6 +350,8 @@ function thr(){
 
 function print_start($class='', $ref=0, $url=''){
 	global $I;
+	prepare_stylesheets($class === 'init');
+	send_headers();
 	if(!empty($url)){
 		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers and js refresh!
 		header("Refresh: $ref; URL=$url");
@@ -349,9 +359,6 @@ function print_start($class='', $ref=0, $url=''){
 	echo '<!DOCTYPE html><html><head>'.meta_html();
 	if(!empty($url)){
 		echo "<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
-		$ref+=5;//only use js if browser refresh stopped working
-		$ref*=1000;//js uses milliseconds
-		echo "<script type=\"text/javascript\">setTimeout(function(){window.location.replace(\"$url\");}, $ref);</script>";
 	}
 	if($class==='init'){
 		echo "<title>$I[init]</title>";
@@ -393,7 +400,7 @@ function send_redirect($url){
 
 function send_access_denied(){
 	global $I, $U;
-	header('HTTP/1.1 403 Forbidden');
+	http_response_code(403);
 	print_start('access_denied');
 	echo "<h1>$I[accessdenied]</h1>".sprintf($I['loggedinas'], style_this(htmlspecialchars($U['nickname']), $U['style'])).'<br>';
 	echo form('logout');
@@ -773,7 +780,7 @@ function restore_backup($C){
 				$note['type']=1;
 			}
 			if(MSGENCRYPTED){
-                $note['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($note['text'], '', AES_IV, ENCRYPTKEY));
+				$note['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($note['text'], '', AES_IV, ENCRYPTKEY));
 			}
 			$stmt->execute([$note['type'], $note['lastedited'], $note['editedby'], $note['text']]);
 		}
@@ -809,7 +816,7 @@ function send_backup($C){
 			$result=$db->query('SELECT * FROM ' . PREFIX . "notes;");
 			while($note=$result->fetch(PDO::FETCH_ASSOC)){
 				if(MSGENCRYPTED){
-                    $note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
+					$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
 				}
 				$code['notes'][]=$note;
 			}
@@ -1392,6 +1399,8 @@ function send_linkfilter($arg=''){
 
 function send_frameset(){
 	global $I, $U, $db, $language;
+	prepare_stylesheets();
+	send_headers();
 	echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"><html><head>'.meta_html();
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
@@ -1544,7 +1553,7 @@ function send_notes($type){
 	}
 	if(isset($_REQUEST['text'])){
 		if(MSGENCRYPTED){
-            $_REQUEST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_REQUEST['text'], '', AES_IV, ENCRYPTKEY));
+			$_REQUEST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_REQUEST['text'], '', AES_IV, ENCRYPTKEY));
 		}
 		$time=time();
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
@@ -1578,7 +1587,7 @@ function send_notes($type){
 		$note['text']='';
 	}
 	if(MSGENCRYPTED){
-        $note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
+		$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
 	}
 	echo "</p>".form('notes');
 	echo "$hiddendo<textarea name=\"text\">".htmlspecialchars($note['text']).'</textarea><br>';
@@ -1860,7 +1869,7 @@ function send_profile($arg=''){
 	}
 	echo "<tr><td><table id=\"ignore\"><tr><th>$I[ignore]</th><td>";
 	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' .  PREFIX . 'messages.poster=t.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster ORDER BY LOWER(poster);');
+	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' . PREFIX . 'messages.poster=t.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster ORDER BY LOWER(poster);');
 	$stmt->execute([$U['nickname'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
@@ -2022,16 +2031,17 @@ function send_download(){
 		$stmt=$db->prepare('SELECT filename, type, data FROM ' . PREFIX . 'files WHERE hash=?;');
 		$stmt->execute([$_REQUEST['id']]);
 		if($data=$stmt->fetch(PDO::FETCH_ASSOC)){
+			send_headers();
 			header("Content-Type: $data[type]");
 			header("Content-Disposition: filename=\"$data[filename]\"");
-			header('Pragma: no-cache');
-			header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private');
-			header('Expires: 0');
+			header("Content-Security-Policy: default-src 'none'");
 			echo base64_decode($data['data']);
 		}else{
+			http_response_code(404);
 			send_error($I['filenotfound']);
 		}
 	}else{
+		http_response_code(404);
 		send_error($I['filenotfound']);
 	}
 }
@@ -2130,10 +2140,12 @@ function send_error($err){
 }
 
 function send_fatal_error($err){
-	global $I;
+	global $I, $styles;
+	prepare_stylesheets();
+	send_headers();
 	echo '<!DOCTYPE html><html><head>'.meta_html();
 	echo "<title>$I[fatalerror]</title>";
-	echo "<style type=\"text/css\">body{background-color:#000000;color:#FF0033;}</style>";
+	echo "<style type=\"text/css\">$styles[fatal_error]</style>";
 	echo '</head><body>';
 	echo "<h2>$I[fatalerror]: $err</h2>";
 	print_end();
@@ -2254,16 +2266,16 @@ function check_captcha($challenge, $captcha_code){
 }
 
 function is_definitely_ssl() {
-    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
-        return true;
-    }
-    if (isset($_SERVER['SERVER_PORT']) && ('443' == $_SERVER['SERVER_PORT'])) {
-        return true;
-    }
-    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && ('https' == $_SERVER['HTTP_X_FORWARDED_PROTO'])) {
-        return true;
-    }
-    return false;
+	if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
+		return true;
+	}
+	if (isset($_SERVER['SERVER_PORT']) && ('443' == $_SERVER['SERVER_PORT'])) {
+		return true;
+	}
+	if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && ('https' == $_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+		return true;
+	}
+	return false;
 }
 
 function set_secure_cookie($name, $value){
@@ -2956,7 +2968,7 @@ function validate_input(){
 				'text'		=>"<span class=\"usermsg\">$displaysend".style_this($message, $U['style']).'</span>'
 			];
 			if(MSGENCRYPTED){
-                $newmessage['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($newmessage['text'], '', AES_IV, ENCRYPTKEY));
+				$newmessage['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($newmessage['text'], '', AES_IV, ENCRYPTKEY));
 			}
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?)');
 			$stmt->execute([$newmessage['postdate'], $id[0], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
@@ -3144,7 +3156,7 @@ function add_system_message($mes){
 function write_message($message){
 	global $db;
 	if(MSGENCRYPTED){
-        $message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
+		$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES (?, ?, ?, ?, ?, ?);');
 	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']]);
@@ -3265,7 +3277,7 @@ function print_messages($delstatus=0){
 
 function prepare_message_print(&$message, $removeEmbed){
 	if(MSGENCRYPTED){
-        $message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+		$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
 	}
 	if($removeEmbed){
 		$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/u',
@@ -3279,16 +3291,21 @@ function prepare_message_print(&$message, $removeEmbed){
 // this and that
 
 function send_headers(){
+	global $styles;
 	header('Content-Type: text/html; charset=UTF-8');
 	header('Pragma: no-cache');
-	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private');
 	header('Expires: 0');
 	header('Referrer-Policy: no-referrer');
-	header("Content-Security-Policy: default-src 'self'; img-src * data:; media-src * data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'");
-    header('X-Content-Type-Options: nosniff');
-    header('X-Frame-Options: sameorigin');
-    header('X-XSS-Protection: 1; mode=block');
-	if($_SERVER['REQUEST_METHOD']==='HEAD'){
+	$style_hashes = '';
+	foreach($styles as $style) {
+		$style_hashes .= " 'sha256-".base64_encode(hash('sha256', $style, true))."'";
+	}
+	header("Content-Security-Policy: default-src 'none'; font-src 'self'; form-action 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline'"); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
+	header('X-Content-Type-Options: nosniff');
+	header('X-Frame-Options: sameorigin');
+	header('X-XSS-Protection: 1; mode=block');
+	if($_SERVER['REQUEST_METHOD'] === 'HEAD'){
 		exit; // headers sent, no further processing needed
 	}
 }
@@ -4033,9 +4050,9 @@ function update_db(){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET text=? WHERE id=?;');
 		while($message=$result->fetch(PDO::FETCH_ASSOC)){
 			if(MSGENCRYPTED){
-                $message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
+				$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
 			}else{
-                $message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+				$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
 			}
 			$stmt->execute([$message['text'], $message['id']]);
 		}
@@ -4043,9 +4060,9 @@ function update_db(){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET text=? WHERE id=?;');
 		while($message=$result->fetch(PDO::FETCH_ASSOC)){
 			if(MSGENCRYPTED){
-                $message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
+				$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
 			}else{
-                $message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+				$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
 			}
 			$stmt->execute([$message['text'], $message['id']]);
 		}
@@ -4227,20 +4244,20 @@ function load_config(){
 	}
 	define('COOKIENAME', PREFIX . 'chat_session'); // Cookie name storing the session information
 	define('LANG', 'en'); // Default language
-    if (MSGENCRYPTED){
-        if (version_compare(PHP_VERSION, '7.2.0') < 0) {
-            die("You need at least PHP >= 7.2.x");
-        }
-        //Do not touch: Compute real keys needed by encryption functions
-        if (strlen(ENCRYPTKEY_PASS) !== SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES){
-            define('ENCRYPTKEY', substr(hash("sha512/256",ENCRYPTKEY_PASS),0, SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES));
-        }else{
-            define('ENCRYPTKEY', ENCRYPTKEY_PASS);
-        }
-        if (strlen(AES_IV_PASS) !== SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES){
-            define('AES_IV', substr(hash("sha512/256",AES_IV_PASS), 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES));
-        }else{
-            define('AES_IV', AES_IV_PASS);
-        }
-    }
+	if (MSGENCRYPTED){
+		if (version_compare(PHP_VERSION, '7.2.0') < 0) {
+			die("You need at least PHP >= 7.2.x");
+		}
+		//Do not touch: Compute real keys needed by encryption functions
+		if (strlen(ENCRYPTKEY_PASS) !== SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES){
+			define('ENCRYPTKEY', substr(hash("sha512/256",ENCRYPTKEY_PASS),0, SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES));
+		}else{
+			define('ENCRYPTKEY', ENCRYPTKEY_PASS);
+		}
+		if (strlen(AES_IV_PASS) !== SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES){
+			define('AES_IV', substr(hash("sha512/256",AES_IV_PASS), 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES));
+		}else{
+			define('AES_IV', AES_IV_PASS);
+		}
+	}
 }
