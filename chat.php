@@ -305,7 +305,7 @@ function print_end(){
 }
 
 function credit(){
-	return '<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php">LE CHAT-PHP - ' . VERSION . '</a></small>';
+	return '<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php" rel="noopener">LE CHAT-PHP - ' . VERSION . '</a></small>';
 }
 
 function meta_html(){
@@ -2359,7 +2359,7 @@ function approve_session(){
 }
 
 function check_login(){
-	global $I, $U, $db;
+	global $I, $U;
 	$ga=(int) get_setting('guestaccess');
 	if(isset($_REQUEST['session'])){
 		parse_sessions();
@@ -2923,7 +2923,6 @@ function validate_input(){
 			//ignored
 			return;
 		}
-		$tmp=false;
 		$stmt=$db->prepare('SELECT s.style, 0 AS inbox FROM ' . PREFIX . 'sessions AS s LEFT JOIN ' . PREFIX . 'members AS m ON (m.nickname=s.nickname) WHERE s.nickname=? AND (s.incognito=0 OR (m.eninbox!=0 AND m.eninbox<=?));');
 		$stmt->execute([$_REQUEST['sendto'], $U['status']]);
 		if(!$tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
@@ -2974,7 +2973,7 @@ function validate_input(){
 			$stmt->execute([$newmessage['postdate'], $id[0], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
 		}
 		if(isset($hash) && $id){
-			if(!empty($_FILES['file']['type']) && preg_match('~^[a-z0-9/\-\.\+]*$~i', $_FILES['file']['type'])){
+			if(!empty($_FILES['file']['type']) && preg_match('~^[a-z0-9/\-.+]*$~i', $_FILES['file']['type'])){
 				$type=$_FILES['file']['type'];
 			}else{
 				$type='application/octet-stream';
@@ -3022,7 +3021,7 @@ function apply_linkfilter($message){
 	}
 	$redirect=get_setting('redirect');
 	if(get_setting('imgembed')){
-		$message=preg_replace_callback('/\[img\]\s?<a href="([^"]+)" target="_blank" rel="noreferrer noopener">(.*?(?=<\/a>))<\/a>/iu',
+		$message=preg_replace_callback('/\[img]\s?<a href="([^"]+)" target="_blank" rel="noreferrer noopener">(.*?(?=<\/a>))<\/a>/iu',
 			function ($matched){
 				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\" rel=\"noreferrer noopener\"><img src=\"$matched[1]\"></a><br>");
 			}
@@ -3061,7 +3060,7 @@ function create_hotlinks($message){
 	$message=preg_replace('~([^\s<>]*:[^\s<>]*@[a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?::\d+)?)(?![^<>]*>)~iu', "<<$1>>", $message); // au:th@server given
 	// 3. likely servers without any hints but not filenames like *.rar zip exe etc.
 	$message=preg_replace('~((?:[a-z0-9\-]+\.)*(?:[a-z2-7]{55}d|[a-z2-7]{16})\.onion)(?![^<>]*>)~iu', "<<$1>>", $message);// *.onion
-	$message=preg_replace('~([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\.(?!rar|zip|exe|gz|7z|bat|doc)[a-z]{2,}))(?=[^a-z0-9\-\.]|$)(?![^<>]*>)~iu', "<<$1>>", $message);// xxx.yyy.zzz
+	$message=preg_replace('~([a-z0-9\-]+(?:\.[a-z0-9\-]+)+(?:\.(?!rar|zip|exe|gz|7z|bat|doc)[a-z]{2,}))(?=[^a-z0-9\-.]|$)(?![^<>]*>)~iu', "<<$1>>", $message);// xxx.yyy.zzz
 	// Convert every <<....>> into proper links:
 	$message=preg_replace_callback('/<<([^<>]+)>>/u',
 		function ($matches){
@@ -3076,7 +3075,7 @@ function create_hotlinks($message){
 }
 
 function apply_mention($message){
-	return preg_replace_callback('/\@([^\s]+)/iu', function ($matched){
+	return preg_replace_callback('/@([^\s]+)/iu', function ($matched){
 		global $db;
 		$nick=htmlspecialchars_decode($matched[1]);
 		$rest='';
@@ -3302,7 +3301,7 @@ function send_headers(){
 	foreach($styles as $style) {
 		$style_hashes .= " 'sha256-".base64_encode(hash('sha256', $style, true))."'";
 	}
-	header("Content-Security-Policy: default-src 'none'; font-src 'self'; form-action 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline'"); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
+	header("Content-Security-Policy: base-uri 'self'; default-src 'none'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline'"); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
 	header('X-Content-Type-Options: nosniff');
 	header('X-Frame-Options: sameorigin');
 	header('X-XSS-Protection: 1; mode=block');

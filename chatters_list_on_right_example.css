@@ -3,6 +3,6 @@ input, select, textarea, button {padding: 0.2em; border: 1px solid #ffffff; bord
 #messages small {color: #989898}
 #messages {display: block; width: 79%}
 .messages #topic {display: block; width: 79%}
-.messages #chatters {display: block; float:right; width: 20%; overflow-y: auto; position:fixed; right:0px; max-height:100%; bottom:2em; top:2em;}
+.messages #chatters {display: block; float:right; width: 20%; overflow-y: auto; position:fixed; right:0; max-height:100%; bottom:2em; top:2em;}
 .messages #chatters td, #chatters tr, #chatters th {display: table-row; width: 100%!important;}
 .messages #chatters table a {display: table-row; line-height: 0;}
