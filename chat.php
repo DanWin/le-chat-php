@@ -78,7 +78,7 @@ function route(){
 			send_post(validate_input());
 		}
 		send_post();
-	}elseif($_REQUEST['action']==='login'){
+	}elseif($_REQUEST['action']==='login' && isPOST()){
 		check_login();
 		send_frameset();
 	}elseif($_REQUEST['action']==='controls'){
@@ -87,7 +87,7 @@ function route(){
 	}elseif($_REQUEST['action']==='greeting'){
 		check_session();
 		send_greeting();
-	}elseif($_REQUEST['action']==='delete'){
+	}elseif($_REQUEST['action']==='delete' && isPOST()){
 		check_session();
 		if($_REQUEST['what']==='all'){
 			if(isset($_REQUEST['confirm'])){
@@ -99,7 +99,7 @@ function route(){
 			del_last_message();
 		}
 		send_post();
-	}elseif($_REQUEST['action']==='profile'){
+	}elseif($_REQUEST['action']==='profile' && isPOST()){
 		check_session();
 		$arg='';
 		if(!isset($_REQUEST['do'])){
@@ -113,13 +113,13 @@ function route(){
 			}
 		}
 		send_profile($arg);
-	}elseif($_REQUEST['action']==='logout'){
+	}elseif($_REQUEST['action']==='logout' && isPOST()){
 		kill_session();
 		send_logout();
 	}elseif($_REQUEST['action']==='colours'){
 		check_session();
 		send_colours();
-	}elseif($_REQUEST['action']==='notes'){
+	}elseif($_REQUEST['action']==='notes' && isPOST()){
 		check_session();
 		if(isset($_REQUEST['do']) && $_REQUEST['do']==='admin' && $U['status']>6){
 			send_notes(0);
@@ -133,7 +133,7 @@ function route(){
 	}elseif($_REQUEST['action']==='help'){
 		check_session();
 		send_help();
-	}elseif($_REQUEST['action']==='inbox'){
+	}elseif($_REQUEST['action']==='inbox' && isPOST()){
 		check_session();
 		if(isset($_REQUEST['do'])){
 			clean_inbox_selected();
@@ -141,10 +141,10 @@ function route(){
 		send_inbox();
 	}elseif($_REQUEST['action']==='download'){
 		send_download();
-	}elseif($_REQUEST['action']==='admin'){
+	}elseif($_REQUEST['action']==='admin' && isPOST()){
 		check_session();
 		send_admin(route_admin());
-	}elseif($_REQUEST['action']==='setup'){
+	}elseif($_REQUEST['action']==='setup' && isPOST()){
 		route_setup();
 	}else{
 		send_login();
@@ -4219,6 +4219,10 @@ function load_lang(){
 			$I[$name]=$translation;
 		}
 	}
+}
+
+function isPOST(){
+    return $_SERVER['REQUEST_METHOD'] === 'POST';
 }
 
 function load_config(){
