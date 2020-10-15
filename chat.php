@@ -252,7 +252,7 @@ function route_setup(){
 function prepare_stylesheets($init = false){
 	global $U, $db, $styles;
 	$styles['fatal_error'] = 'body{background-color:#000000;color:#FF0033}';
-	$styles['default'] = 'body{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center} ';
+	$styles['default'] = 'body,frame{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center} ';
 	$styles['default'] .= 'a:visited{color:#B33CB4} a:active{color:#FF0033} a:link{color:#0000FF} #messages{word-wrap:break-word} ';
 	$styles['default'] .= 'input,select,textarea{color:#FFFFFF;background-color:#000000} .messages a img{width:15%} .messages a:hover img{width:35%} ';
 	$styles['default'] .= '.error{color:#FF0033;text-align:left} .delbutton{background-color:#660000} .backbutton{background-color:#004400} #exitbutton{background-color:#AA0000} ';
@@ -285,7 +285,7 @@ function prepare_stylesheets($init = false){
 	}else{
 		$colbg=get_setting('colbg');
 	}
-	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body{background-color:#$colbg;color:#$coltxt} $css");
+	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body,frame{background-color:#$colbg;color:#$coltxt} $css");
 }
 
 function print_stylesheet($init = false){
