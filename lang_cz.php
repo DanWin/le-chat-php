@@ -19,7 +19,7 @@
 */
 
 //Native language name: čeština
-$I=[
+$T=[
 	'nodb' => 'Chyba databáze!',
 	'nodbsetup' => 'Žádné připojení k databázi, prosím vytvořte databázi a upravte script pro použití správné databáze se zadaným uživatelským jménem a heslem!',
 	'changelang' => 'Změnit jazyk:',

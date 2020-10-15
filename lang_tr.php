@@ -19,7 +19,7 @@
 */
 
 //Native language name: Türkçe
-$I=[
+$T=[
 	'nodb' => 'Veritabanına bağlantı yok!',
 	'nodbsetup' => 'Veritabanına bağlantı yok, lütfen bir veritabanı oluşturun ve doğru veritabanını kullanmak için script\'i verilen kullanıcı adı ve şifre ile düzenleyin!',
 	'changelang' => 'Dili değiştir:',
