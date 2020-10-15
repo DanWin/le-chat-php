@@ -8,7 +8,7 @@ $file = "<?php
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - $english translation
 *
-* Copyright (C) 2015-2018 Daniel Winzen <d@winzen4.de>
+* Copyright (C) 2015-2020 Daniel Winzen <daniel@danwin1210.me>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
