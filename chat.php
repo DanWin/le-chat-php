@@ -33,14 +33,14 @@
 */
 
 // initialize and load variables/configuration
+load_config();
 $I=[];// Translations
 $L=[];// Languages
 $U=[];// This user data
-$db;// Database connection
-$memcached;// Memcached connection
-$language;// user selected language
+$db = null;// Database connection
+$memcached = null;// Memcached connection
+$language = LANG;// user selected language
 $styles = []; //css styles
-load_config();
 // set session variable to cookie if cookies are enabled
 if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 	$_REQUEST['session']=$_COOKIE[COOKIENAME];
@@ -309,7 +309,7 @@ function credit(){
 }
 
 function meta_html(){
-	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0, private"><meta http-equiv="expires" content="0"><meta name="referrer" content="no-referrer">';
+	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer">';
 }
 
 function form($action, $do=''){
@@ -349,14 +349,14 @@ function thr(){
 }
 
 function print_start($class='', $ref=0, $url=''){
-	global $I;
+	global $I, $language;
 	prepare_stylesheets($class === 'init');
 	send_headers();
 	if(!empty($url)){
 		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers and js refresh!
 		header("Refresh: $ref; URL=$url");
 	}
-	echo '<!DOCTYPE html><html><head>'.meta_html();
+	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
 	if(!empty($url)){
 		echo "<meta http-equiv=\"Refresh\" content=\"$ref; URL=$url\">";
 	}
@@ -1401,7 +1401,7 @@ function send_frameset(){
 	global $I, $U, $db, $language;
 	prepare_stylesheets();
 	send_headers();
-	echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"><html><head>'.meta_html();
+	echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"><html lang="'.$language.'"><head>'.meta_html();
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
 	echo '</head>';
@@ -2140,10 +2140,10 @@ function send_error($err){
 }
 
 function send_fatal_error($err){
-	global $I, $styles;
+	global $I, $language, $styles;
 	prepare_stylesheets();
 	send_headers();
-	echo '<!DOCTYPE html><html><head>'.meta_html();
+	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
 	echo "<title>$I[fatalerror]</title>";
 	echo "<style type=\"text/css\">$styles[fatal_error]</style>";
 	echo '</head><body>';
@@ -2241,6 +2241,7 @@ function check_captcha($challenge, $captcha_code){
 		if(empty($challenge)){
 			send_error($I['wrongcaptcha']);
 		}
+		$code = '';
 		if(MEMCACHED){
 			if(!$code=$memcached->get(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]")){
 				send_error($I['captchaexpire']);
@@ -2266,13 +2267,13 @@ function check_captcha($challenge, $captcha_code){
 }
 
 function is_definitely_ssl() {
-	if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off') {
+	if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
 		return true;
 	}
 	if (isset($_SERVER['SERVER_PORT']) && ('443' == $_SERVER['SERVER_PORT'])) {
 		return true;
 	}
-	if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && ('https' == $_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+	if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && ('https' === $_SERVER['HTTP_X_FORWARDED_PROTO'])) {
 		return true;
 	}
 	return false;
@@ -2280,7 +2281,7 @@ function is_definitely_ssl() {
 
 function set_secure_cookie($name, $value){
 	if (version_compare(PHP_VERSION, '7.3.0') >= 0) {
-		setcookie($name, $value, ['expires' => 0, 'path' => '/', 'domain' => '', 'secure' => is_definitely_ssl(), 'httponly'=>true, 'samesite' => 'Strict']);
+		setcookie($name, $value, ['expires' => 0, 'path' => '/', 'domain' => '', 'secure' => is_definitely_ssl(), 'httponly' => true, 'samesite' => 'Strict']);
 	}else{
 		setcookie($name, $value, 0, '/', '', is_definitely_ssl(), true);
 	}
