@@ -366,5 +366,9 @@ $I=[
 	'manualrefresh' => 'Manual refresh required',
 	'personalnotes' => 'Personal notes',
 	'filtermodkick' => 'Apply kick filter on moderators',
+	'forgotlogin' => 'Forgot login?',
+	'resetinstruction' => 'Please modify the script and put the following at the bottom of it (change the password). Then refresh this page: define(\'RESET_SUPERADMIN_PASSWORD\', \'changeme\');',
+	'resetpassword' => 'Reset password',
+	'resetsucc' => 'Successfully reset password for username %s. Please remove the password reset define from the script again.',
+	'backtosetup' => 'Back to setup',
 ];
-

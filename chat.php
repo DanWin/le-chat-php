@@ -146,6 +146,8 @@ function route(){
 		send_admin(route_admin());
 	}elseif($_REQUEST['action']==='setup'){
 		route_setup();
+	}elseif($_REQUEST['action']==='sa_password_reset'){
+		send_sa_password_reset();
 	}else{
 		send_login();
 	}
@@ -922,9 +924,35 @@ function send_alogin(){
 	echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 	send_captcha();
 	echo '<tr><td colspan="2">'.submit($I['login']).'</td></tr></table></form>';
+	echo '<br><a href="?action=sa_password_reset">'.$I['forgotlogin'].'</a><br>';
 	echo "<p id=\"changelang\">$I[changelang]";
 	foreach($L as $lang=>$name){
-		echo " <a href=\"$_SERVER[SCRIPT_NAME]?action=setup&amp;lang=$lang\">$name</a>";
+		echo " <a href=\"?action=setup&amp;lang=$lang\" hreflang=\"$lang\">$name</a>";
+	}
+	echo '</p>'.credit();
+	print_end();
+}
+
+function send_sa_password_reset(){
+	global $I, $L, $db;
+	print_start('sa_password_reset');
+	echo "<h1>$I[resetpassword]</h1>";
+	if(defined('RESET_SUPERADMIN_PASSWORD') && !empty(RESET_SUPERADMIN_PASSWORD)){
+		$stmt = $db->query('SELECT nickname FROM ' . PREFIX . 'members WHERE status = 8 LIMIT 1;');
+		if($user = $stmt->fetch(PDO::FETCH_ASSOC)){
+			$mem_update = $db->prepare('UPDATE ' . PREFIX . 'members SET passhash = ? WHERE nickname = ? LIMIT 1;');
+			$mem_update->execute([password_hash(RESET_SUPERADMIN_PASSWORD, PASSWORD_DEFAULT), $user['nickname']]);
+			$sess_delete = $db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname = ?;');
+			$sess_delete->execute([$user['nickname']]);
+			printf("<p>$I[resetsucc]</p>", $user['nickname']);
+		}
+	} else {
+		echo "<p>$I[resetinstruction]</p>";
+	}
+	echo "<a href=\"?action=setup\">$I[backtosetup]</a>";
+	echo "<p id=\"changelang\">$I[changelang]";
+	foreach($L as $lang=>$name){
+		echo " <a href=\"?action=sa_password_reset&amp;lang=$lang\" hreflang=\"$lang\">$name</a>";
 	}
 	echo '</p>'.credit();
 	print_end();
@@ -4265,4 +4293,5 @@ function load_config(){
 			define('AES_IV', AES_IV_PASS);
 		}
 	}
+	//define('RESET_SUPERADMIN_PASSWORD', 'changeme'); //Use this to reset your superadmin password in case you forgot it
 }
