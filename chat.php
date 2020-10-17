@@ -144,7 +144,7 @@ function route(){
 	}elseif($_REQUEST['action']==='admin' && isPOST()){
 		check_session();
 		send_admin(route_admin());
-	}elseif($_REQUEST['action']==='setup' && isPOST()){
+	}elseif($_REQUEST['action']==='setup'){
 		route_setup();
 	}else{
 		send_login();
