@@ -366,5 +366,9 @@ $T=[
 	'manualrefresh' => 'Manuelles Neuladen erforderlich',
 	'personalnotes' => 'Persönliche Notizen',
 	'filtermodkick' => 'Kickfilter auf Moderatoren anwenden',
+	'forgotlogin' => 'Zugangsdaten vergessen?',
+	'resetinstruction' => 'Bitte bearbeiten Sie das Skript und fügen Sie folgendes am Ende der Datei hinzu (und ändern Sie das Passwort "changeme"). Danach aktualisieren Sie die Seite bitte: define(\'RESET_SUPERADMIN_PASSWORD\', \'changeme\');',
+	'resetpassword' => 'Passwort zurücksetzen',
+	'resetsucc' => 'Passwort erfolgreich für Nutzer %s zurückgesetzt. Bitte entfernen Sie das Passwort zurücksetzen define wieder aus dem Skript.',
+	'Zurück zur Einrichtungsseite',
 ];
-
