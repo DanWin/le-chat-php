@@ -1,5 +1,14 @@
+Version 1.24.1 - Oct. 17, 2020
+Add Turkish translation
+Security hardening
+Fixed chrome flashing frames white on reload
+
+Version 1.24 - May. 2, 2020
 Allow making file upload member-only
 Added required tag to captcha input
+Add Chinese translation
+Security hardening
+Fixed chrome flashing frames white on reload
 
 Version 1.23.7 - Feb. 24, 2019
 Support V3 hidden services

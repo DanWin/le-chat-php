@@ -4227,7 +4227,7 @@ function isPOST(){
 
 function load_config(){
 	mb_internal_encoding('UTF-8');
-	define('VERSION', '1.24'); // Script version
+	define('VERSION', '1.24.1'); // Script version
 	define('DBVERSION', 42); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
