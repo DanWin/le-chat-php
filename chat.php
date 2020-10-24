@@ -41,11 +41,12 @@ $db = null;// Database connection
 $memcached = null;// Memcached connection
 $language = LANG;// user selected language
 $styles = []; //css styles
+$session = $_REQUEST['session'] ?? ''; //requested session
 // set session variable to cookie if cookies are enabled
 if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
-	$_REQUEST['session']=$_COOKIE[COOKIENAME];
+	$session = $_COOKIE[COOKIENAME];
 }
-$_REQUEST['session'] = preg_replace('/[^0-9a-zA-Z]/', '', $_REQUEST['session'] ?? '');
+$session = preg_replace('/[^0-9a-zA-Z]/', '', $session);
 load_lang();
 check_db();
 cron();
@@ -59,26 +60,26 @@ function route(){
 	}elseif($_REQUEST['action']==='view'){
 		check_session();
 		send_messages();
-	}elseif($_REQUEST['action']==='redirect' && !empty($_REQUEST['url'])){
-		send_redirect($_REQUEST['url']);
+	}elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
+		send_redirect($_GET['url']);
 	}elseif($_REQUEST['action']==='wait'){
 		parse_sessions();
 		send_waiting_room();
 	}elseif($_REQUEST['action']==='post'){
 		check_session();
-		if(isset($_REQUEST['kick']) && isset($_REQUEST['sendto']) && $_REQUEST['sendto']!=='s &'){
+		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s &'){
 			if($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick'))){
-				if(isset($_REQUEST['what']) && $_REQUEST['what']==='purge'){
-					kick_chatter([$_REQUEST['sendto']], $_REQUEST['message'], true);
+				if(isset($_POST['what']) && $_POST['what']==='purge'){
+					kick_chatter([$_POST['sendto']], $_POST['message'], true);
 				}else{
-					kick_chatter([$_REQUEST['sendto']], $_REQUEST['message'], false);
+					kick_chatter([$_POST['sendto']], $_POST['message'], false);
 				}
 			}
-		}elseif(isset($_REQUEST['message']) && isset($_REQUEST['sendto'])){
+		}elseif(isset($_POST['message']) && isset($_POST['sendto'])){
 			send_post(validate_input());
 		}
 		send_post();
-	}elseif($_REQUEST['action']==='login' && isPOST()){
+	}elseif($_REQUEST['action']==='login'){
 		check_login();
 		send_frameset();
 	}elseif($_REQUEST['action']==='controls'){
@@ -87,26 +88,27 @@ function route(){
 	}elseif($_REQUEST['action']==='greeting'){
 		check_session();
 		send_greeting();
-	}elseif($_REQUEST['action']==='delete' && isPOST()){
+	}elseif($_REQUEST['action']==='delete'){
 		check_session();
-		if($_REQUEST['what']==='all'){
-			if(isset($_REQUEST['confirm'])){
+		if(!isset($_POST['what'])){
+		}elseif($_POST['what']==='all'){
+			if(isset($_POST['confirm'])){
 				del_all_messages($U['nickname'], (int) ($U['status']==1 ? $U['entry'] : 0));
 			}else{
 				send_del_confirm();
 			}
-		}elseif($_REQUEST['what']==='last'){
+		}elseif($_POST['what']==='last'){
 			del_last_message();
 		}
 		send_post();
-	}elseif($_REQUEST['action']==='profile' && isPOST()){
+	}elseif($_REQUEST['action']==='profile'){
 		check_session();
 		$arg='';
-		if(!isset($_REQUEST['do'])){
-		}elseif($_REQUEST['do']==='save'){
+		if(!isset($_POST['do'])){
+		}elseif($_POST['do']==='save'){
 			$arg=save_profile();
-		}elseif($_REQUEST['do']==='delete'){
-			if(isset($_REQUEST['confirm'])){
+		}elseif($_POST['do']==='delete'){
+			if(isset($_POST['confirm'])){
 				delete_account();
 			}else{
 				send_delete_account();
@@ -119,11 +121,12 @@ function route(){
 	}elseif($_REQUEST['action']==='colours'){
 		check_session();
 		send_colours();
-	}elseif($_REQUEST['action']==='notes' && isPOST()){
+	}elseif($_REQUEST['action']==='notes'){
 		check_session();
-		if(isset($_REQUEST['do']) && $_REQUEST['do']==='admin' && $U['status']>6){
+		if(!isset($_POST['do'])){
+		}elseif($_POST['do']==='admin' && $U['status']>6){
 			send_notes(0);
-		}elseif(isset($_REQUEST['do']) && $_REQUEST['do']==='staff' && $U['status']>=5){
+		}elseif($_POST['do']==='staff' && $U['status']>=5){
 			send_notes(1);
 		}
 		if($U['status']<3 || !get_setting('personalnotes')){
@@ -133,15 +136,15 @@ function route(){
 	}elseif($_REQUEST['action']==='help'){
 		check_session();
 		send_help();
-	}elseif($_REQUEST['action']==='inbox' && isPOST()){
+	}elseif($_REQUEST['action']==='inbox'){
 		check_session();
-		if(isset($_REQUEST['do'])){
+		if(isset($_POST['do'])){
 			clean_inbox_selected();
 		}
 		send_inbox();
 	}elseif($_REQUEST['action']==='download'){
 		send_download();
-	}elseif($_REQUEST['action']==='admin' && isPOST()){
+	}elseif($_REQUEST['action']==='admin'){
 		check_session();
 		send_admin(route_admin());
 	}elseif($_REQUEST['action']==='setup'){
@@ -158,66 +161,66 @@ function route_admin() : string {
 	if($U['status']<5){
 		send_access_denied();
 	}
-	if(!isset($_REQUEST['do'])){
+	if(!isset($_POST['do'])){
 		return '';
-	}elseif($_REQUEST['do']==='clean'){
-		if($_REQUEST['what']==='choose'){
+	}elseif($_POST['do']==='clean'){
+		if($_POST['what']==='choose'){
 			send_choose_messages();
-		}elseif($_REQUEST['what']==='selected'){
+		}elseif($_POST['what']==='selected'){
 			clean_selected((int) $U['status'], $U['nickname']);
-		}elseif($_REQUEST['what']==='room'){
+		}elseif($_POST['what']==='room'){
 			clean_room();
-		}elseif($_REQUEST['what']==='nick'){
+		}elseif($_POST['what']==='nick'){
 			$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=? AND status>=?;');
-			$stmt->execute([$_REQUEST['nickname'], $U['status']]);
+			$stmt->execute([$_POST['nickname'], $U['status']]);
 			if(!$stmt->fetch(PDO::FETCH_ASSOC)){
-				del_all_messages($_REQUEST['nickname'], 0);
+				del_all_messages($_POST['nickname'], 0);
 			}
 		}
-	}elseif($_REQUEST['do']==='kick'){
-		if(isset($_REQUEST['name'])){
-			if(isset($_REQUEST['what']) && $_REQUEST['what']==='purge'){
-				kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], true);
+	}elseif($_POST['do']==='kick'){
+		if(isset($_POST['name'])){
+			if(isset($_POST['what']) && $_POST['what']==='purge'){
+				kick_chatter($_POST['name'], $_POST['kickmessage'], true);
 			}else{
-				kick_chatter($_REQUEST['name'], $_REQUEST['kickmessage'], false);
+				kick_chatter($_POST['name'], $_POST['kickmessage'], false);
 			}
 		}
-	}elseif($_REQUEST['do']==='logout'){
-		if(isset($_REQUEST['name'])){
-			logout_chatter($_REQUEST['name']);
+	}elseif($_POST['do']==='logout'){
+		if(isset($_POST['name'])){
+			logout_chatter($_POST['name']);
 		}
-	}elseif($_REQUEST['do']==='sessions'){
-		if(isset($_REQUEST['kick']) && isset($_REQUEST['nick'])){
-			kick_chatter([$_REQUEST['nick']], '', false);
-		}elseif(isset($_REQUEST['logout']) && isset($_REQUEST['nick'])){
-			logout_chatter([$_REQUEST['nick']]);
+	}elseif($_POST['do']==='sessions'){
+		if(isset($_POST['kick']) && isset($_POST['nick'])){
+			kick_chatter([$_POST['nick']], '', false);
+		}elseif(isset($_POST['logout']) && isset($_POST['nick'])){
+			logout_chatter([$_POST['nick']]);
 		}
 		send_sessions();
-	}elseif($_REQUEST['do']==='register'){
-		return register_guest(3, $_REQUEST['name']);
-	}elseif($_REQUEST['do']==='superguest'){
-		return register_guest(2, $_REQUEST['name']);
-	}elseif($_REQUEST['do']==='status'){
-		return change_status($_REQUEST['name'], $_REQUEST['set']);
-	}elseif($_REQUEST['do']==='regnew'){
-		return register_new($_REQUEST['name'], $_REQUEST['pass']);
-	}elseif($_REQUEST['do']==='approve'){
+	}elseif($_POST['do']==='register'){
+		return register_guest(3, $_POST['name']);
+	}elseif($_POST['do']==='superguest'){
+		return register_guest(2, $_POST['name']);
+	}elseif($_POST['do']==='status'){
+		return change_status($_POST['name'], $_POST['set']);
+	}elseif($_POST['do']==='regnew'){
+		return register_new($_POST['name'], $_POST['pass']);
+	}elseif($_POST['do']==='approve'){
 		approve_session();
 		send_approve_waiting();
-	}elseif($_REQUEST['do']==='guestaccess'){
-		if(isset($_REQUEST['guestaccess']) && preg_match('/^[0123]$/', $_REQUEST['guestaccess'])){
-			update_setting('guestaccess', $_REQUEST['guestaccess']);
+	}elseif($_POST['do']==='guestaccess'){
+		if(isset($_POST['guestaccess']) && preg_match('/^[0123]$/', $_POST['guestaccess'])){
+			update_setting('guestaccess', $_POST['guestaccess']);
 		}
-	}elseif($_REQUEST['do']==='filter'){
+	}elseif($_POST['do']==='filter'){
 		send_filter(manage_filter());
-	}elseif($_REQUEST['do']==='linkfilter'){
+	}elseif($_POST['do']==='linkfilter'){
 		send_linkfilter(manage_linkfilter());
-	}elseif($_REQUEST['do']==='topic'){
-		if(isset($_REQUEST['topic'])){
-			update_setting('topic', htmlspecialchars($_REQUEST['topic']));
+	}elseif($_POST['do']==='topic'){
+		if(isset($_POST['topic'])){
+			update_setting('topic', htmlspecialchars($_POST['topic']));
 		}
-	}elseif($_REQUEST['do']==='passreset'){
-		return passreset($_REQUEST['name'], $_REQUEST['pass']);
+	}elseif($_POST['do']==='passreset'){
+		return passreset($_POST['name'], $_POST['pass']);
 	}
 	return '';
 }
@@ -234,16 +237,16 @@ function route_setup(){
 	$C['textarea_settings']=['rulestxt', 'css', 'disabletext'];
 	$C['text_settings']=['dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss'];
 	$C['settings']=array_merge(['guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'], $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
-	if(!isset($_REQUEST['do'])){
-	}elseif($_REQUEST['do']==='save'){
+	if(!isset($_POST['do'])){
+	}elseif($_POST['do']==='save'){
 		save_setup($C);
-	}elseif($_REQUEST['do']==='backup' && $U['status']==8){
+	}elseif($_POST['do']==='backup' && $U['status']==8){
 		send_backup($C);
-	}elseif($_REQUEST['do']==='restore' && $U['status']==8){
+	}elseif($_POST['do']==='restore' && $U['status']==8){
 		restore_backup($C);
 		send_backup($C);
-	}elseif($_REQUEST['do']==='destroy' && $U['status']==8){
-		if(isset($_REQUEST['confirm'])){
+	}elseif($_POST['do']==='destroy' && $U['status']==8){
+		if(isset($_POST['confirm'])){
 			destroy_chat($C);
 		}else{
 			send_destroy_chat();
@@ -317,10 +320,10 @@ function meta_html() : string {
 }
 
 function form(string $action, string $do='') : string {
-	global $language;
+	global $language, $session;
 	$form="<form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\">".hidden('lang', $language).hidden('nc', substr(time(), -6)).hidden('action', $action);
-	if(!empty($_REQUEST['session'])){
-		$form.=hidden('session', $_REQUEST['session']);
+	if(!empty($session)){
+		$form.=hidden('session', $session);
 	}
 	if($do!==''){
 		$form.=hidden('do', $do);
@@ -329,10 +332,10 @@ function form(string $action, string $do='') : string {
 }
 
 function form_target(string $target, string $action, string $do='') : string {
-	global $language;
+	global $language, $session;
 	$form="<form action=\"$_SERVER[SCRIPT_NAME]\" enctype=\"multipart/form-data\" method=\"post\" target=\"$target\">".hidden('lang', $language).hidden('nc', substr(time(), -6)).hidden('action', $action);
-	if(!empty($_REQUEST['session'])){
-		$form.=hidden('session', $_REQUEST['session']);
+	if(!empty($session)){
+		$form.=hidden('session', $session);
 	}
 	if($do!==''){
 		$form.=hidden('do', $do);
@@ -408,9 +411,6 @@ function send_access_denied(){
 	print_start('access_denied');
 	echo "<h1>$I[accessdenied]</h1>".sprintf($I['loggedinas'], style_this(htmlspecialchars($U['nickname']), $U['style'])).'<br>';
 	echo form('logout');
-	if(!isset($_REQUEST['session'])){
-		echo hidden('session', $U['session']);
-	}
 	echo submit($I['logout'], 'id="exitbutton"')."</form>";
 	print_end();
 }
@@ -522,9 +522,6 @@ function send_setup(array $C){
 	global $I, $U;
 	print_start('setup');
 	echo "<h2>$I[setup]</h2>".form('setup', 'save');
-	if(!isset($_REQUEST['session'])){
-		echo hidden('session', $U['session']);
-	}
 	echo '<table id="guestaccess">';
 	thr();
 	$ga=(int) get_setting('guestaccess');
@@ -710,20 +707,11 @@ function send_setup(array $C){
 	if($U['status']==8){
 		echo '<table id="actions"><tr><td>';
 		echo form('setup', 'backup');
-		if(!isset($_REQUEST['session'])){
-			echo hidden('session', $U['session']);
-		}
 		echo submit($I['backuprestore']).'</form></td><td>';
 		echo form('setup', 'destroy');
-		if(!isset($_REQUEST['session'])){
-			echo hidden('session', $U['session']);
-		}
 		echo submit($I['destroy'], 'class="delbutton"').'</form></td></tr></table><br>';
 	}
 	echo form_target('_parent', 'logout');
-	if(!isset($_REQUEST['session'])){
-		echo hidden('session', $U['session']);
-	}
 	echo submit($I['logout'], 'id="exitbutton"').'</form>'.credit();
 	print_end();
 }
@@ -733,34 +721,38 @@ function restore_backup(array $C){
 	if(!extension_loaded('json')){
 		return;
 	}
-	$code=json_decode($_REQUEST['restore'], true);
-	if(isset($_REQUEST['settings'])){
+	$code=json_decode($_POST['restore'], true);
+	if(isset($_POST['settings'])){
 		foreach($C['settings'] as $setting){
 			if(isset($code['settings'][$setting])){
 				update_setting($setting, $code['settings'][$setting]);
 			}
 		}
 	}
-	if(isset($_REQUEST['filter']) && (isset($code['filters']) || isset($code['linkfilters']))){
+	if(isset($_POST['filter']) && (isset($code['filters']) || isset($code['linkfilters']))){
 		$db->exec('DELETE FROM ' . PREFIX . 'filter;');
 		$db->exec('DELETE FROM ' . PREFIX . 'linkfilter;');
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
-		foreach($code['filters'] as $filter){
-			if(!isset($filter['cs'])){
-				$filter['cs']=0;
+		if(!empty($code['filters'])){
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
+			foreach($code['filters'] as $filter){
+				if(!isset($filter['cs'])){
+					$filter['cs']=0;
+				}
+				$stmt->execute([$filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick'], $filter['cs']]);
 			}
-			$stmt->execute([$filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick'], $filter['cs']]);
 		}
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
-		foreach($code['linkfilters'] as $filter){
-			$stmt->execute([$filter['match'], $filter['replace'], $filter['regex']]);
+		if(!empty($code['linkfilters'])){
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
+			foreach($code['linkfilters'] as $filter){
+				$stmt->execute([$filter['match'], $filter['replace'], $filter['regex']]);
+			}
 		}
 		if(MEMCACHED){
 			$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
 			$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
 		}
 	}
-	if(isset($_REQUEST['members']) && isset($code['members'])){
+	if(isset($_POST['members']) && isset($code['members'])){
 		$db->exec('DELETE FROM ' . PREFIX . 'inbox;');
 		$db->exec('DELETE FROM ' . PREFIX . 'members;');
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, lastlogin, timestamps, embed, incognito, style, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
@@ -774,7 +766,7 @@ function restore_backup(array $C){
 			$stmt->execute([$member['nickname'], $member['passhash'], $member['status'], $member['refresh'], $member['bgcolour'], $member['regedby'], $member['lastlogin'], $member['timestamps'], $member['embed'], $member['incognito'], $member['style'], $member['nocache'], $member['tz'], $member['eninbox'], $member['sortupdown'], $member['hidechatters'], $member['nocache_old']]);
 		}
 	}
-	if(isset($_REQUEST['notes']) && isset($code['notes'])){
+	if(isset($_POST['notes']) && isset($code['notes'])){
 		$db->exec('DELETE FROM ' . PREFIX . 'notes;');
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
 		foreach($code['notes'] as $note){
@@ -794,13 +786,13 @@ function restore_backup(array $C){
 function send_backup(array $C){
 	global $I, $db;
 	$code=[];
-	if($_REQUEST['do']==='backup'){
-		if(isset($_REQUEST['settings'])){
+	if($_POST['do']==='backup'){
+		if(isset($_POST['settings'])){
 			foreach($C['settings'] as $setting){
 				$code['settings'][$setting]=get_setting($setting);
 			}
 		}
-		if(isset($_REQUEST['filter'])){
+		if(isset($_POST['filter'])){
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'filter;');
 			while($filter=$result->fetch(PDO::FETCH_ASSOC)){
 				$code['filters'][]=['match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'allowinpm'=>$filter['allowinpm'], 'regex'=>$filter['regex'], 'kick'=>$filter['kick'], 'cs'=>$filter['cs']];
@@ -810,13 +802,13 @@ function send_backup(array $C){
 				$code['linkfilters'][]=['match'=>$filter['filtermatch'], 'replace'=>$filter['filterreplace'], 'regex'=>$filter['regex']];
 			}
 		}
-		if(isset($_REQUEST['members'])){
+		if(isset($_POST['members'])){
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'members;');
 			while($member=$result->fetch(PDO::FETCH_ASSOC)){
 				$code['members'][]=$member;
 			}
 		}
-		if(isset($_REQUEST['notes'])){
+		if(isset($_POST['notes'])){
 			$result=$db->query('SELECT * FROM ' . PREFIX . "notes;");
 			while($note=$result->fetch(PDO::FETCH_ASSOC)){
 				if(MSGENCRYPTED){
@@ -826,22 +818,22 @@ function send_backup(array $C){
 			}
 		}
 	}
-	if(isset($_REQUEST['settings'])){
+	if(isset($_POST['settings'])){
 		$chksettings=' checked';
 	}else{
 		$chksettings='';
 	}
-	if(isset($_REQUEST['filter'])){
+	if(isset($_POST['filter'])){
 		$chkfilters=' checked';
 	}else{
 		$chkfilters='';
 	}
-	if(isset($_REQUEST['members'])){
+	if(isset($_POST['members'])){
 		$chkmembers=' checked';
 	}else{
 		$chkmembers='';
 	}
-	if(isset($_REQUEST['notes'])){
+	if(isset($_POST['notes'])){
 		$chknotes=' checked';
 	}else{
 		$chknotes='';
@@ -1206,55 +1198,55 @@ function send_sessions(){
 
 function check_filter_match(int &$reg) : string|bool {
 	global $I;
-	$_REQUEST['match']=htmlspecialchars($_REQUEST['match']);
-	if(isset($_REQUEST['regex']) && $_REQUEST['regex']==1){
-		if(!valid_regex($_REQUEST['match'])){
-			return "$I[incorregex]<br>$I[prevmatch]: $_REQUEST[match]";
+	$_POST['match']=htmlspecialchars($_POST['match']);
+	if(isset($_POST['regex']) && $_POST['regex']==1){
+		if(!valid_regex($_POST['match'])){
+			return "$I[incorregex]<br>$I[prevmatch]: " . htmlspecialchars($_POST['match']);
 		}
 		$reg=1;
 	}else{
-		$_REQUEST['match']=preg_replace('/([^\w\d])/u', "\\\\$1", $_REQUEST['match']);
+		$_POST['match']=preg_replace('/([^\w\d])/u', "\\\\$1", $_POST['match']);
 		$reg=0;
 	}
-	if(mb_strlen($_REQUEST['match'])>255){
-		return "$I[matchtoolong]<br>$I[prevmatch]: $_REQUEST[match]";
+	if(mb_strlen($_POST['match'])>255){
+		return "$I[matchtoolong]<br>$I[prevmatch]: " . htmlspecialchars($_POST['match']);
 	}
 	return false;
 }
 
 function manage_filter() : string {
 	global $db, $memcached;
-	if(isset($_REQUEST['id'])){
+	if(isset($_POST['id'])){
 		$reg=0;
 		if($tmp=check_filter_match($reg)){
 			return $tmp;
 		}
-		if(isset($_REQUEST['allowinpm']) && $_REQUEST['allowinpm']==1){
+		if(isset($_POST['allowinpm']) && $_POST['allowinpm']==1){
 			$pm=1;
 		}else{
 			$pm=0;
 		}
-		if(isset($_REQUEST['kick']) && $_REQUEST['kick']==1){
+		if(isset($_POST['kick']) && $_POST['kick']==1){
 			$kick=1;
 		}else{
 			$kick=0;
 		}
-		if(isset($_REQUEST['cs']) && $_REQUEST['cs']==1){
+		if(isset($_POST['cs']) && $_POST['cs']==1){
 			$cs=1;
 		}else{
 			$cs=0;
 		}
-		if(preg_match('/^[0-9]+$/', $_REQUEST['id'])){
-			if(empty($_REQUEST['match'])){
+		if(preg_match('/^[0-9]+$/', $_POST['id'])){
+			if(empty($_POST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'filter WHERE id=?;');
-				$stmt->execute([$_REQUEST['id']]);
+				$stmt->execute([$_POST['id']]);
 			}else{
 				$stmt=$db->prepare('UPDATE ' . PREFIX . 'filter SET filtermatch=?, filterreplace=?, allowinpm=?, regex=?, kick=?, cs=? WHERE id=?;');
-				$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs, $_REQUEST['id']]);
+				$stmt->execute([$_POST['match'], $_POST['replace'], $pm, $reg, $kick, $cs, $_POST['id']]);
 			}
-		}elseif($_REQUEST['id']==='+'){
+		}elseif($_POST['id']==='+'){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
-			$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $pm, $reg, $kick, $cs]);
+			$stmt->execute([$_POST['match'], $_POST['replace'], $pm, $reg, $kick, $cs]);
 		}
 		if(MEMCACHED){
 			$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
@@ -1265,22 +1257,22 @@ function manage_filter() : string {
 
 function manage_linkfilter() : string {
 	global $db, $memcached;
-	if(isset($_REQUEST['id'])){
+	if(isset($_POST['id'])){
 		$reg=0;
 		if($tmp=check_filter_match($reg)){
 			return $tmp;
 		}
-		if(preg_match('/^[0-9]+$/', $_REQUEST['id'])){
-			if(empty($_REQUEST['match'])){
+		if(preg_match('/^[0-9]+$/', $_POST['id'])){
+			if(empty($_POST['match'])){
 				$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'linkfilter WHERE id=?;');
-				$stmt->execute([$_REQUEST['id']]);
+				$stmt->execute([$_POST['id']]);
 			}else{
 				$stmt=$db->prepare('UPDATE ' . PREFIX . 'linkfilter SET filtermatch=?, filterreplace=?, regex=? WHERE id=?;');
-				$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $reg, $_REQUEST['id']]);
+				$stmt->execute([$_POST['match'], $_POST['replace'], $reg, $_POST['id']]);
 			}
-		}elseif($_REQUEST['id']==='+'){
+		}elseif($_POST['id']==='+'){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
-			$stmt->execute([$_REQUEST['match'], $_REQUEST['replace'], $reg]);
+			$stmt->execute([$_POST['match'], $_POST['replace'], $reg]);
 		}
 		if(MEMCACHED){
 			$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
@@ -1437,8 +1429,8 @@ function send_frameset(){
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
 	echo '</head>';
-	if(isset($_REQUEST['sort'])){
-		if($_REQUEST['sort']==1){
+	if(isset($_POST['sort'])){
+		if($_POST['sort']==1){
 			$U['sortupdown']=1;
 			$tmp=$U['nocache'];
 			$U['nocache']=$U['nocache_old'];
@@ -1466,7 +1458,7 @@ function send_frameset(){
 	}else{
 		$postheight=100;
 	}
-	if((!isset($_REQUEST['sort']) && !$U['sortupdown']) || (isset($_REQUEST['sort']) && $_REQUEST['sort']==0)){
+	if((!isset($_POST['sort']) && !$U['sortupdown']) || (isset($_POST['sort']) && $_POST['sort']==0)){
 		echo "<frameset rows=\"$postheight,*,45\" border=\"3\" frameborder=\"3\" framespacing=\"3\">";
 		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
 		if(get_setting('enablegreeting')){
@@ -1477,7 +1469,7 @@ function send_frameset(){
 		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language&sort=1\">";
 	}else{
 		echo "<frameset rows=\"45,*,$postheight\" border=\"3\" frameborder=\"3\" framespacing=\"3\">";
-		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language&sort=0\">";
+		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language\">";
 		if(get_setting('enablegreeting')){
 			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
 		}else{
@@ -1583,13 +1575,13 @@ function send_notes(int $type){
 		echo "<h2>$I[personalnotes]</h2><p>";
 		$hiddendo='';
 	}
-	if(isset($_REQUEST['text'])){
+	if(isset($_POST['text'])){
 		if(MSGENCRYPTED){
-			$_REQUEST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_REQUEST['text'], '', AES_IV, ENCRYPTKEY));
+			$_POST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_POST['text'], '', AES_IV, ENCRYPTKEY));
 		}
 		$time=time();
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
-		$stmt->execute([$type, $time, $U['nickname'], $_REQUEST['text']]);
+		$stmt->execute([$type, $time, $U['nickname'], $_POST['text']]);
 		echo "<b>$I[notessaved]</b> ";
 	}
 	$dateformat=get_setting('dateformat');
@@ -1601,8 +1593,8 @@ function send_notes(int $type){
 		$stmt->execute([$type, $U['nickname']]);
 	}
 	$num=$stmt->fetch(PDO::FETCH_NUM);
-	if(!empty($_REQUEST['revision'])){
-		$revision=intval($_REQUEST['revision']);
+	if(!empty($_POST['revision'])){
+		$revision=intval($_POST['revision']);
 	}else{
 		$revision=0;
 	}
@@ -1697,14 +1689,8 @@ function send_waiting_room(){
 		printf($I['waitreload'], $refresh);
 		echo '</p><br><br>';
 		echo '<hr>'.form('wait');
-		if(!isset($_REQUEST['session'])){
-			echo hidden('session', $U['session']);
-		}
 		echo submit($I['reload']).'</form><br>';
 		echo form('logout');
-		if(!isset($_REQUEST['session'])){
-			echo hidden('session', $U['session']);
-		}
 		echo submit($I['exit'], 'id="exitbutton"').'</form>';
 		$rulestxt=get_setting('rulestxt');
 		if(!empty($rulestxt)){
@@ -1728,18 +1714,18 @@ function send_del_confirm(){
 	global $I;
 	print_start('del_confirm');
 	echo "<table><tr><td colspan=\"2\">$I[confirm]</td></tr><tr><td>".form('delete');
-	if(isset($_REQUEST['multi'])){
+	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	if(isset($_REQUEST['sendto'])){
-		echo hidden('sendto', $_REQUEST['sendto']);
+	if(isset($_POST['sendto'])){
+		echo hidden('sendto', $_POST['sendto']);
 	}
-	echo hidden('confirm', 'yes').hidden('what', $_REQUEST['what']).submit($I['yes'], 'class="delbutton"').'</form></td><td>'.form('post');
-	if(isset($_REQUEST['multi'])){
+	echo hidden('confirm', 'yes').hidden('what', $_POST['what']).submit($I['yes'], 'class="delbutton"').'</form></td><td>'.form('post');
+	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	if(isset($_REQUEST['sendto'])){
-		echo hidden('sendto', $_REQUEST['sendto']);
+	if(isset($_POST['sendto'])){
+		echo hidden('sendto', $_POST['sendto']);
 	}
 	echo submit($I['no'], 'class="backbutton"').'</form></td><tr></table>';
 	print_end();
@@ -1753,11 +1739,11 @@ function send_post(string $rejected=''){
 	}
 	echo '<table><tr><td>'.form('post');
 	echo hidden('postid', substr(time(), -6));
-	if(isset($_REQUEST['multi'])){
+	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
 	echo '<table><tr><td><table><tr id="firstline"><td>'.style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
-	if(isset($_REQUEST['multi'])){
+	if(isset($_POST['multi'])){
 		echo "<td><textarea name=\"message\" rows=\"3\" cols=\"40\" style=\"$U[style]\" autofocus>$rejected</textarea></td>";
 	}else{
 		echo "<td><input type=\"text\" name=\"message\" value=\"$rejected\" size=\"40\" style=\"$U[style]\" autofocus></td>";
@@ -1823,22 +1809,22 @@ function send_post(string $rejected=''){
 		echo "<td><label><input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked>$I[alsopurge]</label></td>";
 	}
 	echo '</tr></table></td></tr></table></form></td></tr><tr><td><table><tr id="thirdline"><td>'.form('delete');
-	if(isset($_REQUEST['multi'])){
+	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	echo hidden('sendto', $_REQUEST['sendto']).hidden('what', 'last');
+	echo hidden('sendto', htmlspecialchars($_REQUEST['sendto'])).hidden('what', 'last');
 	echo submit($I['dellast'], 'class="delbutton"').'</form></td><td>'.form('delete');
-	if(isset($_REQUEST['multi'])){
+	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	echo hidden('sendto', $_REQUEST['sendto']).hidden('what', 'all');
+	echo hidden('sendto', htmlspecialchars($_REQUEST['sendto'])).hidden('what', 'all');
 	echo submit($I['delall'], 'class="delbutton"').'</form></td><td style="width:10px;"></td><td>'.form('post');
-	if(isset($_REQUEST['multi'])){
+	if(isset($_POST['multi'])){
 		echo submit($I['switchsingle']);
 	}else{
 		echo hidden('multi', 'on').submit($I['switchmulti']);
 	}
-	echo hidden('sendto', $_REQUEST['sendto']).'</form></td>';
+	echo hidden('sendto', htmlspecialchars($_REQUEST['sendto'])).'</form></td>';
 	echo '</tr></table></td></tr></table>';
 	print_end();
 }
@@ -2045,10 +2031,10 @@ function send_controls(){
 		}
 		echo '<td>'.form_target('_blank', 'login').submit($I['clone']).'</form></td>';
 	}
-	if(!isset($_REQUEST['sort'])){
+	if(!isset($_GET['sort'])){
 		$sort=0;
 	}else{
-		$sort=$_REQUEST['sort'];
+		$sort=1;
 	}
 	echo '<td>'.form_target('_parent', 'login').hidden('sort', $sort).submit($I['sortframe']).'</form></td>';
 	echo '<td>'.form_target('view', 'help').submit($I['randh']).'</form></td>';
@@ -2059,9 +2045,9 @@ function send_controls(){
 
 function send_download(){
 	global $I, $db;
-	if(isset($_REQUEST['id'])){
+	if(isset($_GET['id'])){
 		$stmt=$db->prepare('SELECT filename, type, data FROM ' . PREFIX . 'files WHERE hash=?;');
-		$stmt->execute([$_REQUEST['id']]);
+		$stmt->execute([$_GET['id']]);
 		if($data=$stmt->fetch(PDO::FETCH_ASSOC)){
 			send_headers();
 			header("Content-Type: $data[type]");
@@ -2113,11 +2099,11 @@ function send_login(){
 	$englobal=(int) get_setting('englobalpass');
 	echo '<h1 id="chatname">'.get_setting('chatname').'</h1>';
 	echo form_target('_parent', 'login');
-	if($englobal===1 && isset($_REQUEST['globalpass'])){
-		echo hidden('globalpass', $_REQUEST['globalpass']);
+	if($englobal===1 && isset($_POST['globalpass'])){
+		echo hidden('globalpass', htmlspecialchars($_POST['globalpass']));
 	}
 	echo '<table>';
-	if($englobal!==1 || (isset($_REQUEST['globalpass']) && $_REQUEST['globalpass']==get_setting('globalpass'))){
+	if($englobal!==1 || (isset($_POST['globalpass']) && $_POST['globalpass']==get_setting('globalpass'))){
 		echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autofocus></td></tr>";
 		echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
 		send_captcha();
@@ -2246,7 +2232,7 @@ function create_session(bool $setup, string $nickname, string $password){
 		$U['entry']=$U['lastpost']=time();
 	}else{
 		add_user_defaults($password);
-		check_captcha($_REQUEST['challenge'] ?? '', $_REQUEST['captcha'] ?? '');
+		check_captcha($_POST['challenge'] ?? '', $_POST['captcha'] ?? '');
 		$ga=(int) get_setting('guestaccess');
 		if(!valid_nick($U['nickname'])){
 			send_error(sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex')));
@@ -2259,7 +2245,7 @@ function create_session(bool $setup, string $nickname, string $password){
 		}elseif(in_array($ga, [2, 3], true)){
 			$U['entry'] = 0;
 		}
-		if(get_setting('englobalpass')!=0 && isset($_REQUEST['globalpass']) && $_REQUEST['globalpass']!=get_setting('globalpass')){
+		if(get_setting('englobalpass')!=0 && isset($_POST['globalpass']) && $_POST['globalpass']!=get_setting('globalpass')){
 			send_error($I['wrongglobalpass']);
 		}
 	}
@@ -2275,10 +2261,10 @@ function check_captcha(string $challenge, string $captcha_code){
 		}
 		$code = '';
 		if(MEMCACHED){
-			if(!$code=$memcached->get(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]")){
+			if(!$code=$memcached->get(DBNAME . '-' . PREFIX . "captcha-$_POST[challenge]")){
 				send_error($I['captchaexpire']);
 			}
-			$memcached->delete(DBNAME . '-' . PREFIX . "captcha-$_REQUEST[challenge]");
+			$memcached->delete(DBNAME . '-' . PREFIX . "captcha-$_POST[challenge]");
 		}else{
 			$stmt=$db->prepare('SELECT code FROM ' . PREFIX . 'captcha WHERE id=?;');
 			$stmt->execute([$challenge]);
@@ -2320,7 +2306,7 @@ function set_secure_cookie(string $name, string $value){
 }
 
 function write_new_session(string $password){
-	global $I, $U, $db;
+	global $I, $U, $db, $session;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
@@ -2336,11 +2322,7 @@ function write_new_session(string $password){
 		// create new session
 		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'sessions WHERE session=?;');
 		do{
-			if(function_exists('random_bytes')){
-				$U['session']=bin2hex(random_bytes(16));
-			}else{
-				$U['session']=md5(uniqid($U['nickname'], true).mt_rand());
-			}
+			$U['session']=bin2hex(random_bytes(16));
 			$stmt->execute([$U['session']]);
 		}while($stmt->fetch(PDO::FETCH_NUM)); // check for hash collision
 		if(isset($_SERVER['HTTP_USER_AGENT'])){
@@ -2355,6 +2337,7 @@ function write_new_session(string $password){
 		}
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, useragent, bgcolour, entry, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old']]);
+		$session = $U['session'];
 		set_secure_cookie(COOKIENAME, $U['session']);
 		if($U['status']>=3 && !$U['incognito']){
 			add_system_message(sprintf(get_setting('msgenter'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
@@ -2364,28 +2347,28 @@ function write_new_session(string $password){
 
 function approve_session(){
 	global $db;
-	if(isset($_REQUEST['what'])){
-		if($_REQUEST['what']==='allowchecked' && isset($_REQUEST['csid'])){
+	if(isset($_POST['what'])){
+		if($_POST['what']==='allowchecked' && isset($_POST['csid'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
-			foreach($_REQUEST['csid'] as $nick){
+			foreach($_POST['csid'] as $nick){
 				$stmt->execute([$nick]);
 			}
-		}elseif($_REQUEST['what']==='allowall' && isset($_REQUEST['alls'])){
+		}elseif($_POST['what']==='allowall' && isset($_POST['alls'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
-			foreach($_REQUEST['alls'] as $nick){
+			foreach($_POST['alls'] as $nick){
 				$stmt->execute([$nick]);
 			}
-		}elseif($_REQUEST['what']==='denychecked' && isset($_REQUEST['csid'])){
+		}elseif($_POST['what']==='denychecked' && isset($_POST['csid'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
-			foreach($_REQUEST['csid'] as $nick){
-				$stmt->execute([$time, $_REQUEST['kickmessage'], $nick]);
+			foreach($_POST['csid'] as $nick){
+				$stmt->execute([$time, $_POST['kickmessage'], $nick]);
 			}
-		}elseif($_REQUEST['what']==='denyall' && isset($_REQUEST['alls'])){
+		}elseif($_POST['what']==='denyall' && isset($_POST['alls'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
-			foreach($_REQUEST['alls'] as $nick){
-				$stmt->execute([$time, $_REQUEST['kickmessage'], $nick]);
+			foreach($_POST['alls'] as $nick){
+				$stmt->execute([$time, $_POST['kickmessage'], $nick]);
 			}
 		}
 	}
@@ -2394,30 +2377,28 @@ function approve_session(){
 function check_login(){
 	global $I, $U;
 	$ga=(int) get_setting('guestaccess');
-	if(isset($_REQUEST['session'])){
-		parse_sessions();
-	}
+	parse_sessions();
 	if(isset($U['session'])){
 		check_kicked();
-	}elseif(get_setting('englobalpass')==1 && (!isset($_REQUEST['globalpass']) || $_REQUEST['globalpass']!=get_setting('globalpass'))){
+	}elseif(get_setting('englobalpass')==1 && (!isset($_POST['globalpass']) || $_POST['globalpass']!=get_setting('globalpass'))){
 		send_error($I['wrongglobalpass']);
-	}elseif(!isset($_REQUEST['nick']) || !isset($_REQUEST['pass'])){
+	}elseif(!isset($_POST['nick']) || !isset($_POST['pass'])){
 		send_login();
 	}else{
 		if($ga===4){
 			send_chat_disabled();
 		}
-		if(!empty($_REQUEST['regpass']) && $_REQUEST['regpass']!==$_REQUEST['pass']){
+		if(!empty($_POST['regpass']) && $_POST['regpass']!==$_POST['pass']){
 			send_error($I['noconfirm']);
 		}
-		create_session(false, $_REQUEST['nick'], $_REQUEST['pass']);
-		if(!empty($_REQUEST['regpass'])){
+		create_session(false, $_POST['nick'], $_POST['pass']);
+		if(!empty($_POST['regpass'])){
 			$guestreg=(int) get_setting('guestreg');
 			if($guestreg===1){
-				register_guest(2, $_REQUEST['nick']);
+				register_guest(2, $_POST['nick']);
 				$U['status']=2;
 			}elseif($guestreg===2){
-				register_guest(3, $_REQUEST['nick']);
+				register_guest(3, $_POST['nick']);
 				$U['status']=3;
 			}
 		}
@@ -2430,12 +2411,12 @@ function check_login(){
 }
 
 function kill_session(){
-	global $U, $db;
+	global $U, $db, $session;
 	parse_sessions();
 	check_expired();
 	check_kicked();
 	setcookie(COOKIENAME, false);
-	$_REQUEST['session']='';
+	$session = '';
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
 	$stmt->execute([$U['session']]);
 	if($U['status']>=3 && !$U['incognito']){
@@ -2512,10 +2493,10 @@ function check_session(){
 }
 
 function check_expired(){
-	global $I, $U;
+	global $I, $U, $session;
 	if(!isset($U['session'])){
 		setcookie(COOKIENAME, false);
-		$_REQUEST['session']='';
+		$session = '';
 		send_error($I['expire']);
 	}
 }
@@ -2527,10 +2508,10 @@ function get_count_mods() : int {
 }
 
 function check_kicked(){
-	global $I, $U;
+	global $I, $U, $session;
 	if($U['status']==0){
 		setcookie(COOKIENAME, false);
-		$_REQUEST['session']='';
+		$session = '';
 		send_error("$I[kicked]<br>$U[kickmessage]");
 	}
 }
@@ -2551,11 +2532,11 @@ function get_nowchatting(){
 }
 
 function parse_sessions(){
-	global $U, $db;
+	global $U, $db, $session;
 	// look for our session
-	if(isset($_REQUEST['session'])){
+	if(!empty($session)){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE session=?;');
-		$stmt->execute([$_REQUEST['session']]);
+		$stmt->execute([$session]);
 		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$U=$tmp;
 		}
@@ -2571,7 +2552,7 @@ function check_member(string $password) : bool {
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		if(get_setting('dismemcaptcha')==0){
-			check_captcha($_REQUEST['challenge'] ?? '', $_REQUEST['captcha'] ?? '');
+			check_captcha($_POST['challenge'] ?? '', $_POST['captcha'] ?? '');
 		}
 		if($temp['passhash']===md5(sha1(md5($U['nickname'].$password)))){
 			// old hashing method, update on the fly
@@ -2728,56 +2709,56 @@ function passreset(string $nick, string $pass) : string {
 
 function amend_profile(){
 	global $U;
-	if(isset($_REQUEST['refresh'])){
-		$U['refresh']=$_REQUEST['refresh'];
+	if(isset($_POST['refresh'])){
+		$U['refresh']=$_POST['refresh'];
 	}
 	if($U['refresh']<5){
 		$U['refresh']=5;
 	}elseif($U['refresh']>150){
 		$U['refresh']=150;
 	}
-	if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST['colour'], $match)){
+	if(preg_match('/^#([a-f0-9]{6})$/i', $_POST['colour'], $match)){
 		$colour=$match[1];
 	}else{
 		preg_match('/#([0-9a-f]{6})/i', $U['style'], $matches);
 		$colour=$matches[1];
 	}
-	if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST['bgcolour'], $match)){
+	if(preg_match('/^#([a-f0-9]{6})$/i', $_POST['bgcolour'], $match)){
 		$U['bgcolour']=$match[1];
 	}
 	$U['style']="color:#$colour;";
 	if($U['status']>=3){
 		$F=load_fonts();
-		if(isset($F[$_REQUEST['font']])){
-			$U['style'].=$F[$_REQUEST['font']];
+		if(isset($F[$_POST['font']])){
+			$U['style'].=$F[$_POST['font']];
 		}
-		if(isset($_REQUEST['small'])){
+		if(isset($_POST['small'])){
 			$U['style'].='font-size:smaller;';
 		}
-		if(isset($_REQUEST['italic'])){
+		if(isset($_POST['italic'])){
 			$U['style'].='font-style:italic;';
 		}
-		if(isset($_REQUEST['bold'])){
+		if(isset($_POST['bold'])){
 			$U['style'].='font-weight:bold;';
 		}
 	}
-	if($U['status']>=5 && isset($_REQUEST['incognito']) && get_setting('incognito')){
+	if($U['status']>=5 && isset($_POST['incognito']) && get_setting('incognito')){
 		$U['incognito']=1;
 	}else{
 		$U['incognito']=0;
 	}
-	if(isset($_REQUEST['tz'])){
+	if(isset($_POST['tz'])){
 		$tzs=timezone_identifiers_list();
-		if(in_array($_REQUEST['tz'], $tzs)){
-			$U['tz']=$_REQUEST['tz'];
+		if(in_array($_POST['tz'], $tzs)){
+			$U['tz']=$_POST['tz'];
 		}
 	}
-	if(isset($_REQUEST['eninbox']) && $_REQUEST['eninbox']>=0 && $_REQUEST['eninbox']<=5){
-		$U['eninbox']=$_REQUEST['eninbox'];
+	if(isset($_POST['eninbox']) && $_POST['eninbox']>=0 && $_POST['eninbox']<=5){
+		$U['eninbox']=$_POST['eninbox'];
 	}
 	$bool_settings=['timestamps', 'embed', 'nocache', 'sortupdown', 'hidechatters'];
 	foreach($bool_settings as $setting){
-		if(isset($_REQUEST[$setting])){
+		if(isset($_POST[$setting])){
 			$U[$setting]=1;
 		}else{
 			$U[$setting]=0;
@@ -2794,34 +2775,34 @@ function save_profile() : string {
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET refresh=?, bgcolour=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=? WHERE nickname=?;');
 		$stmt->execute([$U['refresh'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nickname']]);
 	}
-	if(!empty($_REQUEST['unignore'])){
+	if(!empty($_POST['unignore'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? AND ignby=?;');
-		$stmt->execute([$_REQUEST['unignore'], $U['nickname']]);
+		$stmt->execute([$_POST['unignore'], $U['nickname']]);
 	}
-	if(!empty($_REQUEST['ignore'])){
+	if(!empty($_POST['ignore'])){
 		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'messages WHERE poster=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
-		$stmt->execute([$_REQUEST['ignore'], $U['nickname']]);
-		if($U['nickname']!==$_REQUEST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
+		$stmt->execute([$_POST['ignore'], $U['nickname']]);
+		if($U['nickname']!==$_POST['ignore'] && $stmt->fetch(PDO::FETCH_NUM)){
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES (?, ?);');
-			$stmt->execute([$_REQUEST['ignore'], $U['nickname']]);
+			$stmt->execute([$_POST['ignore'], $U['nickname']]);
 		}
 	}
-	if($U['status']>1 && !empty($_REQUEST['newpass'])){
-		if(!valid_pass($_REQUEST['newpass'])){
+	if($U['status']>1 && !empty($_POST['newpass'])){
+		if(!valid_pass($_POST['newpass'])){
 			return sprintf($I['invalpass'], get_setting('minpass'), get_setting('passregex'));
 		}
-		if(!isset($_REQUEST['oldpass'])){
-			$_REQUEST['oldpass']='';
+		if(!isset($_POST['oldpass'])){
+			$_POST['oldpass']='';
 		}
-		if(!isset($_REQUEST['confirmpass'])){
-			$_REQUEST['confirmpass']='';
+		if(!isset($_POST['confirmpass'])){
+			$_POST['confirmpass']='';
 		}
-		if($_REQUEST['newpass']!==$_REQUEST['confirmpass']){
+		if($_POST['newpass']!==$_POST['confirmpass']){
 			return $I['noconfirm'];
 		}else{
-			$U['newhash']=password_hash($_REQUEST['newpass'], PASSWORD_DEFAULT);
+			$U['newhash']=password_hash($_POST['newpass'], PASSWORD_DEFAULT);
 		}
-		if(!password_verify($_REQUEST['oldpass'], $U['passhash'])){
+		if(!password_verify($_POST['oldpass'], $U['passhash'])){
 			return $I['wrongpass'];
 		}
 		$U['passhash']=$U['newhash'];
@@ -2830,7 +2811,7 @@ function save_profile() : string {
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
 		$stmt->execute([$U['passhash'], $U['nickname']]);
 	}
-	if($U['status']>1 && !empty($_REQUEST['newnickname'])){
+	if($U['status']>1 && !empty($_POST['newnickname'])){
 		$msg=set_new_nickname();
 		if($msg!==''){
 			return $msg;
@@ -2841,32 +2822,32 @@ function save_profile() : string {
 
 function set_new_nickname() : string {
 	global $I, $U, $db;
-	$_REQUEST['newnickname']=preg_replace('/\s/', '', $_REQUEST['newnickname']);
-	if(!valid_nick($_REQUEST['newnickname'])){
+	$_POST['newnickname']=preg_replace('/\s/', '', $_POST['newnickname']);
+	if(!valid_nick($_POST['newnickname'])){
 		return sprintf($I['invalnick'], get_setting('maxname'), get_setting('nickregex'));
 	}
 	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'sessions WHERE nickname=? UNION SELECT id FROM ' . PREFIX . 'members WHERE nickname=?;');
-	$stmt->execute([$_REQUEST['newnickname'], $_REQUEST['newnickname']]);
+	$stmt->execute([$_POST['newnickname'], $_POST['newnickname']]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return $I['nicknametaken'];
 	}else{
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET nickname=? WHERE nickname=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET nickname=? WHERE nickname=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET poster=? WHERE poster=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET recipient=? WHERE recipient=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'ignored SET ignby=? WHERE ignby=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'ignored SET ign=? WHERE ign=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'inbox SET poster=? WHERE poster=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET editedby=? WHERE editedby=?;');
-		$stmt->execute([$_REQUEST['newnickname'], $U['nickname']]);
-		$U['nickname']=$_REQUEST['newnickname'];
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
+		$U['nickname']=$_POST['newnickname'];
 	}
 	return '';
 }
@@ -2876,12 +2857,12 @@ function add_user_defaults(string $password){
 	global $U;
 	$U['refresh']=get_setting('defaultrefresh');
 	$U['bgcolour']=get_setting('colbg');
-	if(!isset($_REQUEST['colour']) || !preg_match('/^[a-f0-9]{6}$/i', $_REQUEST['colour']) || abs(greyval($_REQUEST['colour'])-greyval(get_setting('colbg')))<75){
+	if(!isset($_POST['colour']) || !preg_match('/^[a-f0-9]{6}$/i', $_POST['colour']) || abs(greyval($_POST['colour'])-greyval(get_setting('colbg')))<75){
 		do{
 			$colour=sprintf('%06X', mt_rand(0, 16581375));
 		}while(abs(greyval($colour)-greyval(get_setting('colbg')))<75);
 	}else{
-		$colour=$_REQUEST['colour'];
+		$colour=$_POST['colour'];
 	}
 	$U['style']="color:#$colour;";
 	$U['timestamps']=get_setting('timestamps');
@@ -2908,12 +2889,12 @@ function validate_input() : string {
 	global $U, $db;
 	$inbox=false;
 	$maxmessage=get_setting('maxmessage');
-	$message=mb_substr($_REQUEST['message'], 0, $maxmessage);
-	$rejected=mb_substr($_REQUEST['message'], $maxmessage);
-	if($U['postid']===$_REQUEST['postid']){// ignore double post=reload from browser or proxy
+	$message=mb_substr($_POST['message'], 0, $maxmessage);
+	$rejected=mb_substr($_POST['message'], $maxmessage);
+	if($U['postid']===$_POST['postid']){// ignore double post=reload from browser or proxy
 		$message='';
 	}elseif((time()-$U['lastpost'])<=1){// time between posts too short, reject!
-		$rejected=$_REQUEST['message'];
+		$rejected=$_POST['message'];
 		$message='';
 	}
 	if(!empty($rejected)){
@@ -2922,7 +2903,7 @@ function validate_input() : string {
 	}
 	$message=htmlspecialchars($message);
 	$message=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $message);
-	if(isset($_REQUEST['multi'])){
+	if(isset($_POST['multi'])){
 		$message=preg_replace('/\s*<br>/u', '<br>', $message);
 		$message=preg_replace('/<br>(<br>)+/u', '<br><br>', $message);
 		$message=preg_replace('/<br><br>\s*$/u', '<br>', $message);
@@ -2933,16 +2914,16 @@ function validate_input() : string {
 	$message=trim($message);
 	$message=preg_replace('/\s+/u', ' ', $message);
 	$recipient='';
-	if($_REQUEST['sendto']==='s *'){
+	if($_POST['sendto']==='s *'){
 		$poststatus=1;
 		$displaysend=sprintf(get_setting('msgsendall'), style_this(htmlspecialchars($U['nickname']), $U['style']));
-	}elseif($_REQUEST['sendto']==='s ?' && $U['status']>=3){
+	}elseif($_POST['sendto']==='s ?' && $U['status']>=3){
 		$poststatus=3;
 		$displaysend=sprintf(get_setting('msgsendmem'), style_this(htmlspecialchars($U['nickname']), $U['style']));
-	}elseif($_REQUEST['sendto']==='s #' && $U['status']>=5){
+	}elseif($_POST['sendto']==='s #' && $U['status']>=5){
 		$poststatus=5;
 		$displaysend=sprintf(get_setting('msgsendmod'), style_this(htmlspecialchars($U['nickname']), $U['style']));
-	}elseif($_REQUEST['sendto']==='s &' && $U['status']>=6){
+	}elseif($_POST['sendto']==='s &' && $U['status']>=6){
 		$poststatus=6;
 		$displaysend=sprintf(get_setting('msgsendadm'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}else{ // known nick in room?
@@ -2951,22 +2932,22 @@ function validate_input() : string {
 			return '';
 		}
 		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'ignored WHERE (ignby=? AND ign=?) OR (ign=? AND ignby=?);');
-		$stmt->execute([$_REQUEST['sendto'], $U['nickname'], $_REQUEST['sendto'], $U['nickname']]);
+		$stmt->execute([$_POST['sendto'], $U['nickname'], $_POST['sendto'], $U['nickname']]);
 		if($stmt->fetch(PDO::FETCH_NUM)){
 			//ignored
 			return '';
 		}
 		$stmt=$db->prepare('SELECT s.style, 0 AS inbox FROM ' . PREFIX . 'sessions AS s LEFT JOIN ' . PREFIX . 'members AS m ON (m.nickname=s.nickname) WHERE s.nickname=? AND (s.incognito=0 OR (m.eninbox!=0 AND m.eninbox<=?));');
-		$stmt->execute([$_REQUEST['sendto'], $U['status']]);
+		$stmt->execute([$_POST['sendto'], $U['status']]);
 		if(!$tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			$stmt=$db->prepare('SELECT style, 1 AS inbox FROM ' . PREFIX . 'members WHERE nickname=? AND eninbox!=0 AND eninbox<=?;');
-			$stmt->execute([$_REQUEST['sendto'], $U['status']]);
+			$stmt->execute([$_POST['sendto'], $U['status']]);
 			if(!$tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 				//nickname left or disabled offline inbox for us
 				return '';
 			}
 		}
-		$recipient=$_REQUEST['sendto'];
+		$recipient=$_POST['sendto'];
 		$poststatus=9;
 		$displaysend=sprintf(get_setting('msgsendprv'), style_this(htmlspecialchars($U['nickname']), $U['style']), style_this(htmlspecialchars($recipient), $tmp['style']));
 		$inbox=$tmp['inbox'];
@@ -2988,7 +2969,7 @@ function validate_input() : string {
 	if(add_message($message, $recipient, $U['nickname'], (int) $U['status'], $poststatus, $displaysend, $U['style'])){
 		$U['lastpost']=time();
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
-		$stmt->execute([$U['lastpost'], $_REQUEST['postid'], $U['session']]);
+		$stmt->execute([$U['lastpost'], $_POST['postid'], $U['session']]);
 		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poster=? ORDER BY id DESC LIMIT 1;');
 		$stmt->execute([$U['nickname']]);
 		$id=$stmt->fetch(PDO::FETCH_NUM);
@@ -3020,7 +3001,7 @@ function validate_input() : string {
 }
 
 function apply_filter(string $message, int $poststatus, string $nickname) : string {
-	global $I, $U;
+	global $I, $U, $session;
 	$message=str_replace('<br>', "\n", $message);
 	$message=apply_mention($message);
 	$filters=get_filters();
@@ -3035,7 +3016,7 @@ function apply_filter(string $message, int $poststatus, string $nickname) : stri
 		if(isset($count) && $count>0 && $filter['kick'] && ($U['status']<5 || get_setting('filtermodkick'))){
 			kick_chatter([$nickname], $filter['replace'], false);
 			setcookie(COOKIENAME, false);
-			$_REQUEST['session']='';
+			$session = '';
 			send_error("$I[kicked]<br>$filter[replace]");
 		}
 	}
@@ -3208,9 +3189,9 @@ function clean_room(){
 
 function clean_selected(int $status, string $nick){
 	global $db;
-	if(isset($_REQUEST['mid'])){
+	if(isset($_POST['mid'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR (poststatus<? AND delstatus<?));');
-		foreach($_REQUEST['mid'] as $mid){
+		foreach($_POST['mid'] as $mid){
 			$stmt->execute([$mid, $nick, $nick, $status, $status]);
 		}
 	}
@@ -3218,9 +3199,9 @@ function clean_selected(int $status, string $nick){
 
 function clean_inbox_selected(){
 	global $U, $db;
-	if(isset($_REQUEST['mid'])){
+	if(isset($_POST['mid'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE id=? AND recipient=?;');
-		foreach($_REQUEST['mid'] as $mid){
+		foreach($_POST['mid'] as $mid){
 			$stmt->execute([$mid, $U['nickname']]);
 		}
 	}
@@ -3347,71 +3328,71 @@ function save_setup(array $C){
 	global $db;
 	//sanity checks and escaping
 	foreach($C['msg_settings'] as $setting){
-		$_REQUEST[$setting]=htmlspecialchars($_REQUEST[$setting]);
+		$_POST[$setting]=htmlspecialchars($_POST[$setting]);
 	}
 	foreach($C['number_settings'] as $setting){
-		settype($_REQUEST[$setting], 'int');
+		settype($_POST[$setting], 'int');
 	}
 	foreach($C['colour_settings'] as $setting){
-		if(preg_match('/^#([a-f0-9]{6})$/i', $_REQUEST[$setting], $match)){
-			$_REQUEST[$setting]=$match[1];
+		if(preg_match('/^#([a-f0-9]{6})$/i', $_POST[$setting], $match)){
+			$_POST[$setting]=$match[1];
 		}else{
-			unset($_REQUEST[$setting]);
+			unset($_POST[$setting]);
 		}
 	}
-	settype($_REQUEST['guestaccess'], 'int');
-	if(!preg_match('/^[01234]$/', $_REQUEST['guestaccess'])){
-		unset($_REQUEST['guestaccess']);
-	}elseif($_REQUEST['guestaccess']==4){
+	settype($_POST['guestaccess'], 'int');
+	if(!preg_match('/^[01234]$/', $_POST['guestaccess'])){
+		unset($_POST['guestaccess']);
+	}elseif($_POST['guestaccess']==4){
 		$db->exec('DELETE FROM ' . PREFIX . 'sessions WHERE status<7;');
 	}
-	settype($_REQUEST['englobalpass'], 'int');
-	settype($_REQUEST['captcha'], 'int');
-	settype($_REQUEST['dismemcaptcha'], 'int');
-	settype($_REQUEST['guestreg'], 'int');
-	if(isset($_REQUEST['defaulttz'])){
+	settype($_POST['englobalpass'], 'int');
+	settype($_POST['captcha'], 'int');
+	settype($_POST['dismemcaptcha'], 'int');
+	settype($_POST['guestreg'], 'int');
+	if(isset($_POST['defaulttz'])){
 		$tzs=timezone_identifiers_list();
-		if(!in_array($_REQUEST['defaulttz'], $tzs)){
-			unset($_REQUEST['defualttz']);
+		if(!in_array($_POST['defaulttz'], $tzs)){
+			unset($_POST['defualttz']);
 		}
 	}
-	$_REQUEST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $_REQUEST['rulestxt']);
-	$_REQUEST['chatname']=htmlspecialchars($_REQUEST['chatname']);
-	$_REQUEST['redirect']=htmlspecialchars($_REQUEST['redirect']);
-	if($_REQUEST['memberexpire']<5){
-		$_REQUEST['memberexpire']=5;
+	$_POST['rulestxt']=preg_replace("/(\r?\n|\r\n?)/u", '<br>', $_POST['rulestxt']);
+	$_POST['chatname']=htmlspecialchars($_POST['chatname']);
+	$_POST['redirect']=htmlspecialchars($_POST['redirect']);
+	if($_POST['memberexpire']<5){
+		$_POST['memberexpire']=5;
 	}
-	if($_REQUEST['captchatime']<30){
-		$_REQUEST['memberexpire']=30;
+	if($_POST['captchatime']<30){
+		$_POST['memberexpire']=30;
 	}
-	if($_REQUEST['defaultrefresh']<5){
-		$_REQUEST['defaultrefresh']=5;
-	}elseif($_REQUEST['defaultrefresh']>150){
-		$_REQUEST['defaultrefresh']=150;
+	if($_POST['defaultrefresh']<5){
+		$_POST['defaultrefresh']=5;
+	}elseif($_POST['defaultrefresh']>150){
+		$_POST['defaultrefresh']=150;
 	}
-	if($_REQUEST['maxname']<1){
-		$_REQUEST['maxname']=1;
-	}elseif($_REQUEST['maxname']>50){
-		$_REQUEST['maxname']=50;
+	if($_POST['maxname']<1){
+		$_POST['maxname']=1;
+	}elseif($_POST['maxname']>50){
+		$_POST['maxname']=50;
 	}
-	if($_REQUEST['maxmessage']<1){
-		$_REQUEST['maxmessage']=1;
-	}elseif($_REQUEST['maxmessage']>16000){
-		$_REQUEST['maxmessage']=16000;
+	if($_POST['maxmessage']<1){
+		$_POST['maxmessage']=1;
+	}elseif($_POST['maxmessage']>16000){
+		$_POST['maxmessage']=16000;
 	}
-		if($_REQUEST['numnotes']<1){
-		$_REQUEST['numnotes']=1;
+		if($_POST['numnotes']<1){
+		$_POST['numnotes']=1;
 	}
-	if(!valid_regex($_REQUEST['nickregex'])){
-		unset($_REQUEST['nickregex']);
+	if(!valid_regex($_POST['nickregex'])){
+		unset($_POST['nickregex']);
 	}
-	if(!valid_regex($_REQUEST['passregex'])){
-		unset($_REQUEST['passregex']);
+	if(!valid_regex($_POST['passregex'])){
+		unset($_POST['passregex']);
 	}
 	//save values
 	foreach($C['settings'] as $setting){
-		if(isset($_REQUEST[$setting])){
-			update_setting($setting, $_REQUEST[$setting]);
+		if(isset($_POST[$setting])){
+			update_setting($setting, $_POST[$setting]);
 		}
 	}
 }
@@ -3427,11 +3408,9 @@ function set_default_tz(){
 
 function valid_admin() : bool {
 	global $U;
-	if(isset($_REQUEST['session'])){
-		parse_sessions();
-	}
-	if(!isset($U['session']) && isset($_REQUEST['nick']) && isset($_REQUEST['pass'])){
-		create_session(true, $_REQUEST['nick'], $_REQUEST['pass']);
+	parse_sessions();
+	if(!isset($U['session']) && isset($_POST['nick']) && isset($_POST['pass'])){
+		create_session(true, $_POST['nick'], $_POST['pass']);
 	}
 	if(isset($U['status'])){
 		if($U['status']>=7){
@@ -3459,7 +3438,7 @@ function valid_pass(string $pass) : bool {
 
 function valid_regex(string &$regex) : bool {
 	$regex=preg_replace('~(^|[^\\\\])/~', "$1\/u", $regex); // Escape "/" if not yet escaped
-	return (@preg_match("/$_REQUEST[match]/u", '') !== false);
+	return (@preg_match("/$_POST[match]/u", '') !== false);
 }
 
 function get_timeout(int $lastpost, int $expire){
@@ -3556,7 +3535,7 @@ function cron(){
 function destroy_chat(array $C){
 	global $I, $db, $memcached;
 	setcookie(COOKIENAME, false);
-	$_REQUEST['session']='';
+	$session = '';
 	print_start('destory');
 	$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
 	$db->exec('DROP TABLE ' . PREFIX . 'files;');
@@ -3593,11 +3572,11 @@ function init_chat(){
 		if($result->fetch(PDO::FETCH_NUM)){
 			$suwrite=$I['initsuexist'];
 		}
-	}elseif(!preg_match('/^[a-z0-9]{1,20}$/i', $_REQUEST['sunick'])){
+	}elseif(!preg_match('/^[a-z0-9]{1,20}$/i', $_POST['sunick'])){
 		$suwrite=sprintf($I['invalnick'], 20, '^[A-Za-z1-9]*$');
-	}elseif(mb_strlen($_REQUEST['supass'])<5){
+	}elseif(mb_strlen($_POST['supass'])<5){
 		$suwrite=sprintf($I['invalpass'], 5, '.*');
-	}elseif($_REQUEST['supass']!==$_REQUEST['supassc']){
+	}elseif($_POST['supass']!==$_POST['supassc']){
 		$suwrite=$I['noconfirm'];
 	}else{
 		ignore_user_abort(true);
@@ -3724,8 +3703,8 @@ function init_chat(){
 			$stmt->execute($pair);
 		}
 		$reg=[
-			'nickname'	=>$_REQUEST['sunick'],
-			'passhash'	=>password_hash($_REQUEST['supass'], PASSWORD_DEFAULT),
+			'nickname'	=>$_POST['sunick'],
+			'passhash'	=>password_hash($_POST['supass'], PASSWORD_DEFAULT),
 			'status'	=>8,
 			'refresh'	=>20,
 			'bgcolour'	=>'000000',
