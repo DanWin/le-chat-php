@@ -259,7 +259,7 @@ function route_setup(){
 function prepare_stylesheets(bool $init = false){
 	global $U, $db, $styles;
 	$styles['fatal_error'] = 'body{background-color:#000000;color:#FF0033}';
-	$styles['default'] = 'body,frame{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center} ';
+	$styles['default'] = 'body,iframe{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center}';
 	$styles['default'] .= 'a:visited{color:#B33CB4} a:active{color:#FF0033} a:link{color:#0000FF} #messages{word-wrap:break-word} ';
 	$styles['default'] .= 'input,select,textarea{color:#FFFFFF;background-color:#000000} .messages a img{width:15%} .messages a:hover img{width:35%} ';
 	$styles['default'] .= '.error{color:#FF0033;text-align:left} .delbutton{background-color:#660000} .backbutton{background-color:#004400} #exitbutton{background-color:#AA0000} ';
@@ -281,7 +281,7 @@ function prepare_stylesheets(bool $init = false){
 	}
 	$styles['default'] .= 's forwards;z-index:2;background-color:#500000;border:2px solid #ff0000} ';
 	$styles['default'] .= '@keyframes timeout_messages{0%{top:-200%} 99%{top:-200%} 100%{top:0%}} ';
-	$styles['default'] .= '.notes textarea{height:80vh;width:80%}';
+	$styles['default'] .= '.notes textarea{height:80vh;width:80%} iframe{width:100%;height:100%;margin:0;padding:0;border:none}';
 	if($init || ! $db instanceof PDO){
 		return;
 	}
@@ -292,7 +292,7 @@ function prepare_stylesheets(bool $init = false){
 	}else{
 		$colbg=get_setting('colbg');
 	}
-	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body,frame{background-color:#$colbg;color:#$coltxt} $css");
+	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body,iframe{background-color:#$colbg;color:#$coltxt} $css");
 }
 
 function print_stylesheet(bool $init = false){
@@ -732,20 +732,16 @@ function restore_backup(array $C){
 	if(isset($_POST['filter']) && (isset($code['filters']) || isset($code['linkfilters']))){
 		$db->exec('DELETE FROM ' . PREFIX . 'filter;');
 		$db->exec('DELETE FROM ' . PREFIX . 'linkfilter;');
-		if(!empty($code['filters'])){
-			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
-			foreach($code['filters'] as $filter){
-				if(!isset($filter['cs'])){
-					$filter['cs']=0;
-				}
-				$stmt->execute([$filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick'], $filter['cs']]);
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES (?, ?, ?, ?, ?, ?);');
+		foreach($code['filters'] as $filter){
+			if(!isset($filter['cs'])){
+				$filter['cs']=0;
 			}
+			$stmt->execute([$filter['match'], $filter['replace'], $filter['allowinpm'], $filter['regex'], $filter['kick'], $filter['cs']]);
 		}
-		if(!empty($code['linkfilters'])){
-			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
-			foreach($code['linkfilters'] as $filter){
-				$stmt->execute([$filter['match'], $filter['replace'], $filter['regex']]);
-			}
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES (?, ?, ?);');
+		foreach($code['linkfilters'] as $filter){
+			$stmt->execute([$filter['match'], $filter['replace'], $filter['regex']]);
 		}
 		if(MEMCACHED){
 			$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
@@ -1425,10 +1421,10 @@ function send_frameset(){
 	global $I, $U, $db, $language;
 	prepare_stylesheets();
 	send_headers();
-	echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd"><html lang="'.$language.'"><head>'.meta_html();
+	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
 	echo '<title>'.get_setting('chatname').'</title>';
 	print_stylesheet();
-	echo '</head>';
+	echo '</head><body>';
 	if(isset($_POST['sort'])){
 		if($_POST['sort']==1){
 			$U['sortupdown']=1;
@@ -1448,37 +1444,45 @@ function send_frameset(){
 			$stmt->execute([$U['sortupdown'], $U['nocache'], $U['nocache_old'], $U['nickname']]);
 		}
 	}
-	if($U['sortupdown']){
-		$bottom='#bottom';
-	}else{
-		$bottom='';
-	}
 	if(($U['status']>=5 || ($U['status']>2 && get_count_mods()==0)) && get_setting('enfileupload')>0 && get_setting('enfileupload')<=$U['status']){
-		$postheight=120;
+		$postheight='120px';
 	}else{
-		$postheight=100;
+		$postheight='100px';
 	}
-	if((!isset($_POST['sort']) && !$U['sortupdown']) || (isset($_POST['sort']) && $_POST['sort']==0)){
-		echo "<frameset rows=\"$postheight,*,45\" border=\"3\" frameborder=\"3\" framespacing=\"3\">";
-		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
-		if(get_setting('enablegreeting')){
-			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
-		}else{
-			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$bottom\">";
+	$bottom='';
+	if(get_setting('enablegreeting')){
+		$action_mid='greeting';
+	} else {
+		if($U['sortupdown']){
+			$bottom='#bottom';
 		}
-		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language&sort=1\">";
+		$action_mid='view';
+	}
+	if((!isset($_REQUEST['sort']) && !$U['sortupdown']) || (isset($_REQUEST['sort']) && $_REQUEST['sort']==0)){
+		$action_top='post';
+		$action_bot='controls';
+		$sort_bot='&sort=1';
+		$frameset_mid_style="position:fixed;top:$postheight;bottom:45px;left:0;right:0;margin:0;padding:0;overflow:hidden;";
+		$frameset_top_style="position:fixed;top:0;left:0;right:0;height:$postheight;margin:0;padding:0;overflow:hidden;border-bottom: 1px solid;";
+		$frameset_bot_style="position:fixed;bottom:0;left:0;right:0;height:45px;margin:0;padding:0;overflow:hidden;border-top:1px solid;";
 	}else{
-		echo "<frameset rows=\"45,*,$postheight\" border=\"3\" frameborder=\"3\" framespacing=\"3\">";
-		echo "<frame name=\"controls\" src=\"$_SERVER[SCRIPT_NAME]?action=controls&session=$U[session]&lang=$language\">";
-		if(get_setting('enablegreeting')){
-			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=greeting&session=$U[session]&lang=$language\">";
-		}else{
-			echo "<frame name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$bottom\">";
-		}
-		echo "<frame name=\"post\" src=\"$_SERVER[SCRIPT_NAME]?action=post&session=$U[session]&lang=$language\">";
+		$action_top='controls';
+		$action_bot='post';
+		$sort_bot='';
+		$frameset_mid_style="position:fixed;top:45px;bottom:$postheight;left:0;right:0;margin:0;padding:0;overflow:hidden;";
+		$frameset_top_style="position:fixed;top:0;left:0;right:0;height:45px;margin:0;padding:0;overflow:hidden;border-bottom:1px solid;";
+		$frameset_bot_style="position:fixed;bottom:0;left:0;right:0;height:$postheight;margin:0;padding:0;overflow:hidden;border-top:1px solid;";
 	}
-	echo "<noframes><body>$I[noframes]".form_target('_parent', '').submit($I['backtologin'], 'class="backbutton"').'</form></body></noframes></frameset></html>';
+	echo "<div id=\"frameset-mid\" style=\"$frameset_mid_style\"><iframe name=\"view\" src=\"$_SERVER[SCRIPT_NAME]?action=$action_mid&session=$U[session]&lang=$language$bottom\">".noframe_html()."</iframe></div>";
+	echo "<div id=\"frameset-top\" style=\"$frameset_top_style\"><iframe name=\"$action_top\" src=\"$_SERVER[SCRIPT_NAME]?action=$action_top&session=$U[session]&lang=$language\">".noframe_html()."</iframe></div>";
+	echo "<div id=\"frameset-bot\" style=\"$frameset_bot_style\"><iframe name=\"$action_bot\" src=\"$_SERVER[SCRIPT_NAME]?action=$action_bot&session=$U[session]&lang=$language$sort_bot\">".noframe_html()."</iframe></div>";
+	echo '</body></html>';
 	exit;
+}
+
+function noframe_html(){
+	global $I;
+	return "$I[noframes]".form_target('_parent', '').submit($I['backtologin'], 'class="backbutton"').'</form>';
 }
 
 function send_messages(){
