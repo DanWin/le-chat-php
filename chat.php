@@ -3032,7 +3032,7 @@ function apply_filter(string $message, int $poststatus, string $nickname) : stri
 function apply_linkfilter(string $message) : string {
 	$filters=get_linkfilters();
 	foreach($filters as $filter){
-		$message=preg_replace_callback("/<a href=\"([^\"]+)\" target=\"_blank\" rel=\"noreferrer noopener\">(.*?(?=<\/a>))<\/a>/iu",
+		$message=preg_replace_callback("/<a href=\"([^\"]+)\" target=\"_blank\" rel=\"noreferrer noopener\">([^<]*)<\/a>/iu",
 			function ($matched) use(&$filter){
 				return "<a href=\"$matched[1]\" target=\"_blank\" rel=\"noreferrer noopener\">".preg_replace("/$filter[match]/iu", $filter['replace'], $matched[2]).'</a>';
 			}
@@ -3040,7 +3040,7 @@ function apply_linkfilter(string $message) : string {
 	}
 	$redirect=get_setting('redirect');
 	if(get_setting('imgembed')){
-		$message=preg_replace_callback('/\[img]\s?<a href="([^"]+)" target="_blank" rel="noreferrer noopener">(.*?(?=<\/a>))<\/a>/iu',
+		$message=preg_replace_callback('/\[img]\s?<a href="([^"]+)" target="_blank" rel="noreferrer noopener">([^<]*)<\/a>/iu',
 			function ($matched){
 				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\" rel=\"noreferrer noopener\"><img src=\"$matched[1]\"></a><br>");
 			}
@@ -3050,15 +3050,15 @@ function apply_linkfilter(string $message) : string {
 		$redirect="$_SERVER[SCRIPT_NAME]?action=redirect&amp;url=";
 	}
 	if(get_setting('forceredirect')){
-		$message=preg_replace_callback('/<a href="([^"]+)" target="_blank" rel="noreferrer noopener">(.*?(?=<\/a>))<\/a>/u',
+		$message=preg_replace_callback('/<a href="([^"]+)" target="_blank" rel="noreferrer noopener">([^<]*)<\/a>/u',
 			function ($matched) use($redirect){
 				return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\" rel=\"noreferrer noopener\">$matched[2]</a>";
 			}
 		, $message);
-	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank" rel="noreferrer noopener">(.*?(?=<\/a>))<\/a>/u', $message, $matches)){
+	}elseif(preg_match_all('/<a href="([^"]+)" target="_blank" rel="noreferrer noopener">([^<]*)<\/a>/u', $message, $matches)){
 		foreach($matches[1] as $match){
 			if(!preg_match('~^http(s)?://~u', $match)){
-				$message=preg_replace_callback('/<a href="('.preg_quote($match, '/').')\" target=\"_blank\" rel=\"noreferrer noopener\">(.*?(?=<\/a>))<\/a>/u',
+				$message=preg_replace_callback('/<a href="('.preg_quote($match, '/').')\" target=\"_blank\" rel=\"noreferrer noopener\">([^<]*)<\/a>/u',
 					function ($matched) use($redirect){
 						return "<a href=\"$redirect".rawurlencode($matched[1])."\" target=\"_blank\" rel=\"noreferrer noopener\">$matched[2]</a>";
 					}
