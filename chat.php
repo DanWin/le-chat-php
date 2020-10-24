@@ -282,6 +282,7 @@ function prepare_stylesheets(bool $init = false){
 	$styles['default'] .= 's forwards;z-index:2;background-color:#500000;border:2px solid #ff0000} ';
 	$styles['default'] .= '@keyframes timeout_messages{0%{top:-200%} 99%{top:-200%} 100%{top:0%}} ';
 	$styles['default'] .= '.notes textarea{height:80vh;width:80%} iframe{width:100%;height:100%;margin:0;padding:0;border:none}';
+	$styles['default'] .= '.msg{max-height:180px;overflow-y:auto}';
 	if($init || ! $db instanceof PDO){
 		return;
 	}
