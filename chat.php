@@ -316,7 +316,7 @@ function credit() : string {
 }
 
 function meta_html() : string {
-	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer">';
+	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">';
 }
 
 function form(string $action, string $do='') : string {
