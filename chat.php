@@ -317,7 +317,16 @@ function credit() : string {
 }
 
 function meta_html() : string {
-	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes">';
+	global $db;
+	$colbg='000000';
+	if(!empty($U['bgcolour'])){
+		$colbg=$U['bgcolour'];
+	}else{
+		if($db instanceof PDO){
+			$colbg=get_setting('colbg');
+		}
+	}
+	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes"><meta name="theme-color" content="#'.$colbg.'"><meta name="msapplication-TileColor" content="#'.$colbg.'">';
 }
 
 function form(string $action, string $do='') : string {
