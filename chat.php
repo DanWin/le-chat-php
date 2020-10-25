@@ -235,7 +235,7 @@ function route_setup(){
 	$C['msg_settings']=['msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv', 'msgattache'];
 	$C['number_settings']=['memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize', 'enfileupload'];
 	$C['textarea_settings']=['rulestxt', 'css', 'disabletext'];
-	$C['text_settings']=['dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss'];
+	$C['text_settings']=['dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss', 'metadescription'];
 	$C['settings']=array_merge(['guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'], $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
 	if(!isset($_POST['do'])){
 	}elseif($_POST['do']==='save'){
@@ -3744,6 +3744,7 @@ function init_chat(){
 			['nextcron', '0'],
 			['personalnotes', '1'],
 			['filtermodkick', '0'],
+			['metadescription', $I['defaultmetadescription']],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -4101,6 +4102,9 @@ function update_db(){
 	if($dbversion<42){
 		$db->exec('INSERT IGNORE INTO ' . PREFIX . "settings (setting, value) VALUES ('filtermodkick', '1');");
 	}
+	if($dbversion<43){
+		$db->exec('INSERT IGNORE INTO ' . PREFIX . "settings (setting, value) VALUES ('metadescription', '$I[defaultmetadescription]');");
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -4292,7 +4296,7 @@ function load_lang(){
 function load_config(){
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 42); // Database layout version
+	define('DBVERSION', 43); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
