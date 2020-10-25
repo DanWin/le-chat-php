@@ -452,7 +452,7 @@ function send_captcha(){
 		$fg=imagecolorallocate($im, 255, 255, 255);
 		imagefill($im, 0, 0, $bg);
 		imagestring($im, 5, 5, 5, $code, $fg);
-		echo '<img width="55" height="24" src="data:image/gif;base64,';
+		echo '<img alt="" width="55" height="24" src="data:image/gif;base64,';
 	}elseif($difficulty===2){
 		$im=imagecreatetruecolor(55, 24);
 		$bg=imagecolorallocate($im, 0, 0, 0);
@@ -467,13 +467,14 @@ function send_captcha(){
 		for($i=0;$i<100;++$i){
 			imagesetpixel($im, mt_rand(0, 55), mt_rand(0, 24), $dots);
 		}
-		echo '<img width="55" height="24" src="data:image/gif;base64,';
+		echo '<img alt="" width="55" height="24" src="data:image/gif;base64,';
 	}else{
 		$im=imagecreatetruecolor(150, 200);
 		$bg=imagecolorallocate($im, 0, 0, 0);
 		$fg=imagecolorallocate($im, 255, 255, 255);
 		imagefill($im, 0, 0, $bg);
 		$chars=[];
+		$x = $y = 0;
 		for($i=0;$i<10;++$i){
 			$found=false;
 			while(!$found){
@@ -519,7 +520,7 @@ function send_captcha(){
 		for($i=0;$i<1000;++$i){
 			imagesetpixel($im, mt_rand(0, 150), mt_rand(0, 200), $dots);
 		}
-		echo '<img width="150" height="200" src="data:image/gif;base64,';
+		echo '<img alt="" width="150" height="200" src="data:image/gif;base64,';
 	}
 	ob_start();
 	imagegif($im);
@@ -782,7 +783,11 @@ function restore_backup(array $C){
 				$note['type']=1;
 			}
 			if(MSGENCRYPTED){
-				$note['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($note['text'], '', AES_IV, ENCRYPTKEY));
+				try {
+					$note['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($note['text'], '', AES_IV, ENCRYPTKEY));
+				} catch (SodiumException $e){
+					send_error($e->getMessage());
+				}
 			}
 			$stmt->execute([$note['type'], $note['lastedited'], $note['editedby'], $note['text']]);
 		}
@@ -818,7 +823,11 @@ function send_backup(array $C){
 			$result=$db->query('SELECT * FROM ' . PREFIX . "notes;");
 			while($note=$result->fetch(PDO::FETCH_ASSOC)){
 				if(MSGENCRYPTED){
-					$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
+					try {
+						$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
+					} catch (SodiumException $e){
+						send_error($e->getMessage());
+					}
 				}
 				$code['notes'][]=$note;
 			}
@@ -1428,7 +1437,7 @@ function send_linkfilter($arg=''){
 }
 
 function send_frameset(){
-	global $I, $U, $db, $language;
+	global $U, $db, $language;
 	prepare_stylesheets();
 	send_headers();
 	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
@@ -1490,7 +1499,7 @@ function send_frameset(){
 	exit;
 }
 
-function noframe_html(){
+function noframe_html() : string {
 	global $I;
 	return "$I[noframes]".form_target('_parent', '').submit($I['backtologin'], 'class="backbutton"').'</form>';
 }
@@ -1591,7 +1600,11 @@ function send_notes(int $type){
 	}
 	if(isset($_POST['text'])){
 		if(MSGENCRYPTED){
-			$_POST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_POST['text'], '', AES_IV, ENCRYPTKEY));
+			try {
+				$_POST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_POST['text'], '', AES_IV, ENCRYPTKEY));
+			} catch (SodiumException $e){
+				send_error($e->getMessage());
+			}
 		}
 		$time=time();
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
@@ -1625,7 +1638,11 @@ function send_notes(int $type){
 		$note['text']='';
 	}
 	if(MSGENCRYPTED){
-		$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
+		try {
+			$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
+		} catch (SodiumException $e){
+			send_error($e->getMessage());
+		}
 	}
 	echo "</p>".form('notes');
 	echo "$hiddendo<textarea name=\"text\">".htmlspecialchars($note['text']).'</textarea><br>';
@@ -2336,7 +2353,11 @@ function write_new_session(string $password){
 		// create new session
 		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'sessions WHERE session=?;');
 		do{
-			$U['session']=bin2hex(random_bytes(16));
+			try {
+				$U[ 'session' ] = bin2hex( random_bytes( 16 ) );
+			} catch(Exception $e) {
+				send_error($e->getMessage());
+			}
 			$stmt->execute([$U['session']]);
 		}while($stmt->fetch(PDO::FETCH_NUM)); // check for hash collision
 		if(isset($_SERVER['HTTP_USER_AGENT'])){
@@ -2995,7 +3016,11 @@ function validate_input() : string {
 				'text'		=>"<span class=\"usermsg\">$displaysend".style_this($message, $U['style']).'</span>'
 			];
 			if(MSGENCRYPTED){
-				$newmessage['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($newmessage['text'], '', AES_IV, ENCRYPTKEY));
+				try {
+					$newmessage[ 'text' ] = base64_encode( sodium_crypto_aead_aes256gcm_encrypt( $newmessage[ 'text' ], '', AES_IV, ENCRYPTKEY ) );
+				} catch (SodiumException $e){
+					send_error($e->getMessage());
+				}
 			}
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?)');
 			$stmt->execute([$newmessage['postdate'], $id[0], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
@@ -3051,7 +3076,7 @@ function apply_linkfilter(string $message) : string {
 	if(get_setting('imgembed')){
 		$message=preg_replace_callback('/\[img]\s?<a href="([^"]+)" target="_blank" rel="noreferrer noopener">([^<]*)<\/a>/iu',
 			function ($matched){
-				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\" rel=\"noreferrer noopener\"><img src=\"$matched[1]\"></a><br>");
+				return str_ireplace('[/img]', '', "<br><a href=\"$matched[1]\" target=\"_blank\" rel=\"noreferrer noopener\"><img src=\"$matched[1]\" rel=\"noreferrer\" loading=\"lazy\"></a><br>");
 			}
 		, $message);
 	}
@@ -3183,7 +3208,11 @@ function add_system_message(string $mes){
 function write_message($message){
 	global $db;
 	if(MSGENCRYPTED){
-		$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
+		try {
+			$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
+		} catch (SodiumException $e){
+			send_error($e->getMessage());
+		}
 	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES (?, ?, ?, ?, ?, ?);');
 	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']]);
@@ -3304,10 +3333,14 @@ function print_messages(int $delstatus=0){
 
 function prepare_message_print(array &$message, bool $removeEmbed){
 	if(MSGENCRYPTED){
-		$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+		try {
+			$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+		} catch (SodiumException $e){
+			send_error($e->getMessage());
+		}
 	}
 	if($removeEmbed){
-		$message['text']=preg_replace_callback('/<img src="([^"]+)"><\/a>/u',
+		$message['text']=preg_replace_callback('/<img src="([^"]+)" rel="noreferrer" loading="lazy"><\/a>/u',
 			function ($matched){
 				return "$matched[1]</a>";
 			}
@@ -3547,7 +3580,7 @@ function cron(){
 }
 
 function destroy_chat(array $C){
-	global $I, $db, $memcached;
+	global $I, $db, $memcached, $session;
 	setcookie(COOKIENAME, false);
 	$session = '';
 	print_start('destory');
@@ -3923,82 +3956,82 @@ function update_db(){
 		//recreate db in utf8mb4
 		try{
 			$olddb=new PDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>PERSISTENT]);
+			$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
+			$db->exec('CREATE TABLE ' . PREFIX . "captcha (id integer PRIMARY KEY AUTO_INCREMENT, time integer NOT NULL, code char(5) NOT NULL) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$result=$olddb->query('SELECT filtermatch, filterreplace, allowinpm, regex, kick, cs FROM ' . PREFIX . 'filter;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'filter;');
+			$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace text NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES(?, ?, ?, ?, ?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$result=$olddb->query('SELECT ign, ignby FROM ' . PREFIX . 'ignored;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'ignored;');
+			$db->exec('CREATE TABLE ' . PREFIX . "ignored (id integer PRIMARY KEY AUTO_INCREMENT, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES(?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
+			$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
+			$result=$olddb->query('SELECT postdate, postid, poster, recipient, text FROM ' . PREFIX . 'inbox;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'inbox;');
+			$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
+			$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
+			$result=$olddb->query('SELECT filtermatch, filterreplace, regex FROM ' . PREFIX . 'linkfilter;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'linkfilter;');
+			$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES(?, ?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$result=$olddb->query('SELECT nickname, passhash, status, refresh, bgcolour, regedby, lastlogin, timestamps, embed, incognito, style, nocache, tz, eninbox, sortupdown, hidechatters FROM ' . PREFIX . 'members;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'members;');
+			$db->exec('CREATE TABLE ' . PREFIX . "members (id integer PRIMARY KEY AUTO_INCREMENT, nickname varchar(50) NOT NULL UNIQUE, passhash char(32) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, lastlogin, timestamps, embed, incognito, style, nocache, tz, eninbox, sortupdown, hidechatters) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$result=$olddb->query('SELECT postdate, poststatus, poster, recipient, text, delstatus FROM ' . PREFIX . 'messages;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'messages;');
+			$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES(?, ?, ?, ?, ?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
+			$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
+			$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
+			$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
+			$result=$olddb->query('SELECT type, lastedited, editedby, text FROM ' . PREFIX . 'notes;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'notes;');
+			$db->exec('CREATE TABLE ' . PREFIX . "notes (id integer PRIMARY KEY AUTO_INCREMENT, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES(?, ?, ?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
+			$result=$olddb->query('SELECT setting, value FROM ' . PREFIX . 'settings;');
+			$data=$result->fetchAll(PDO::FETCH_NUM);
+			$db->exec('DROP TABLE ' . PREFIX . 'settings;');
+			$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES(?, ?);');
+			foreach($data as $tmp){
+				$stmt->execute($tmp);
+			}
 		}catch(PDOException $e){
 			send_fatal_error($I['nodb']);
-		}
-		$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
-		$db->exec('CREATE TABLE ' . PREFIX . "captcha (id integer PRIMARY KEY AUTO_INCREMENT, time integer NOT NULL, code char(5) NOT NULL) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$result=$olddb->query('SELECT filtermatch, filterreplace, allowinpm, regex, kick, cs FROM ' . PREFIX . 'filter;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'filter;');
-		$db->exec('CREATE TABLE ' . PREFIX . "filter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace text NOT NULL, allowinpm smallint NOT NULL, regex smallint NOT NULL, kick smallint NOT NULL, cs smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'filter (filtermatch, filterreplace, allowinpm, regex, kick, cs) VALUES(?, ?, ?, ?, ?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
-		}
-		$result=$olddb->query('SELECT ign, ignby FROM ' . PREFIX . 'ignored;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'ignored;');
-		$db->exec('CREATE TABLE ' . PREFIX . "ignored (id integer PRIMARY KEY AUTO_INCREMENT, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'ignored (ign, ignby) VALUES(?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
-		}
-		$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
-		$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
-		$result=$olddb->query('SELECT postdate, postid, poster, recipient, text FROM ' . PREFIX . 'inbox;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'inbox;');
-		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'inbox (postdate, postid, poster, recipient, text) VALUES(?, ?, ?, ?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
-		}
-		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
-		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
-		$result=$olddb->query('SELECT filtermatch, filterreplace, regex FROM ' . PREFIX . 'linkfilter;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'linkfilter;');
-		$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id integer PRIMARY KEY AUTO_INCREMENT, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'linkfilter (filtermatch, filterreplace, regex) VALUES(?, ?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
-		}
-		$result=$olddb->query('SELECT nickname, passhash, status, refresh, bgcolour, regedby, lastlogin, timestamps, embed, incognito, style, nocache, tz, eninbox, sortupdown, hidechatters FROM ' . PREFIX . 'members;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'members;');
-		$db->exec('CREATE TABLE ' . PREFIX . "members (id integer PRIMARY KEY AUTO_INCREMENT, nickname varchar(50) NOT NULL UNIQUE, passhash char(32) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz smallint NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, lastlogin, timestamps, embed, incognito, style, nocache, tz, eninbox, sortupdown, hidechatters) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
-		}
-		$result=$olddb->query('SELECT postdate, poststatus, poster, recipient, text, delstatus FROM ' . PREFIX . 'messages;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'messages;');
-		$db->exec('CREATE TABLE ' . PREFIX . "messages (id integer PRIMARY KEY AUTO_INCREMENT, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES(?, ?, ?, ?, ?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
-		}
-		$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
-		$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
-		$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
-		$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
-		$result=$olddb->query('SELECT type, lastedited, editedby, text FROM ' . PREFIX . 'notes;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'notes;');
-		$db->exec('CREATE TABLE ' . PREFIX . "notes (id integer PRIMARY KEY AUTO_INCREMENT, type char(5) NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES(?, ?, ?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
-		}
-		$result=$olddb->query('SELECT setting, value FROM ' . PREFIX . 'settings;');
-		$data=$result->fetchAll(PDO::FETCH_NUM);
-		$db->exec('DROP TABLE ' . PREFIX . 'settings;');
-		$db->exec('CREATE TABLE ' . PREFIX . "settings (setting varchar(50) NOT NULL PRIMARY KEY, value text NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;");
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES(?, ?);');
-		foreach($data as $tmp){
-			$stmt->execute($tmp);
 		}
 	}
 	if($dbversion<33){
@@ -4022,6 +4055,7 @@ function update_db(){
 	if($dbversion<39){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('personalnotes', '1');");
 		$result=$db->query('SELECT type, id FROM ' . PREFIX . 'notes;');
+		$data = [];
 		while($tmp=$result->fetch(PDO::FETCH_NUM)){
 			if($tmp[0]==='admin'){
 				$tmp[0]=0;
@@ -4075,20 +4109,28 @@ function update_db(){
 		$result=$db->query('SELECT id, text FROM ' . PREFIX . 'messages;');
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET text=? WHERE id=?;');
 		while($message=$result->fetch(PDO::FETCH_ASSOC)){
-			if(MSGENCRYPTED){
-				$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
-			}else{
-				$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+			try {
+				if(MSGENCRYPTED){
+					$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
+				}else{
+					$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+				}
+			} catch (SodiumException $e){
+				send_error($e->getMessage());
 			}
 			$stmt->execute([$message['text'], $message['id']]);
 		}
 		$result=$db->query('SELECT id, text FROM ' . PREFIX . 'notes;');
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET text=? WHERE id=?;');
 		while($message=$result->fetch(PDO::FETCH_ASSOC)){
-			if(MSGENCRYPTED){
-				$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
-			}else{
-				$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+			try {
+				if(MSGENCRYPTED){
+					$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
+				}else{
+					$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
+				}
+			} catch (SodiumException $e){
+				send_error($e->getMessage());
 			}
 			$stmt->execute([$message['text'], $message['id']]);
 		}
