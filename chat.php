@@ -326,7 +326,7 @@ function meta_html() : string {
 			$colbg=get_setting('colbg');
 		}
 	}
-	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes"><meta name="theme-color" content="#'.$colbg.'"><meta name="msapplication-TileColor" content="#'.$colbg.'">';
+	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes"><meta name="theme-color" content="#'.$colbg.'"><meta name="msapplication-TileColor" content="#'.$colbg.'"><meta name="description" content="'.htmlspecialchars(get_setting('metadescription')).'">';
 }
 
 function form(string $action, string $do='') : string {
