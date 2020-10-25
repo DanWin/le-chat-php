@@ -115,7 +115,7 @@ function route(){
 			}
 		}
 		send_profile($arg);
-	}elseif($_REQUEST['action']==='logout' && isPOST()){
+	}elseif($_REQUEST['action']==='logout' && $_SERVER['REQUEST_METHOD'] === 'POST'){
 		kill_session();
 		send_logout();
 	}elseif($_REQUEST['action']==='colours'){
@@ -906,9 +906,9 @@ function send_init(){
 	print_start('init');
 	echo "<h2>$I[init]</h2>";
 	echo form('init')."<table><tr><td><h3>$I[sulogin]</h3><table>";
-	echo "<tr><td>$I[sunick]</td><td><input type=\"text\" name=\"sunick\" size=\"15\"></td></tr>";
-	echo "<tr><td>$I[supass]</td><td><input type=\"password\" name=\"supass\" size=\"15\"></td></tr>";
-	echo "<tr><td>$I[suconfirm]</td><td><input type=\"password\" name=\"supassc\" size=\"15\"></td></tr>";
+	echo "<tr><td>$I[sunick]</td><td><input type=\"text\" name=\"sunick\" size=\"15\" autocomplete=\"username\"></td></tr>";
+	echo "<tr><td>$I[supass]</td><td><input type=\"password\" name=\"supass\" size=\"15\" autocomplete=\"new-password\"></td></tr>";
+	echo "<tr><td>$I[suconfirm]</td><td><input type=\"password\" name=\"supassc\" size=\"15\" autocomplete=\"new-password\"></td></tr>";
 	echo '</table></td></tr><tr><td><br>'.submit($I['initbtn']).'</td></tr></table></form>';
 	echo "<p id=\"changelang\">$I[changelang]";
 	foreach($L as $lang=>$name){
@@ -929,8 +929,8 @@ function send_alogin(){
 	global $I, $L;
 	print_start('alogin');
 	echo form('setup').'<table>';
-	echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autofocus></td></tr>";
-	echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
+	echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autocomplete=\"username\" autofocus></td></tr>";
+	echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\" autocomplete=\"current-password\"></td></tr>";
 	send_captcha();
 	echo '<tr><td colspan="2">'.submit($I['login']).'</td></tr></table></form>';
 	echo '<br><a href="?action=sa_password_reset">'.$I['forgotlogin'].'</a><br>';
@@ -1114,7 +1114,7 @@ function send_admin(string $arg){
 		foreach($members as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]</option>";
 		}
-		echo '</select></td><td><input type="password" name="pass"></td><td>'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
+		echo '</select></td><td><input type="password" name="pass" autocomplete="off"></td><td>'.submit($I['change']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 		echo "<tr><td><table id=\"register\"><tr><th>$I[regguest]</th><td>";
 		echo form('admin', 'register');
@@ -1129,7 +1129,7 @@ function send_admin(string $arg){
 		echo "<tr><td><table id=\"regnew\"><tr><th>$I[regmem]</th></tr><tr><td>";
 		echo form('admin', 'regnew');
 		echo "<table><tr><td>$I[nick]</td><td>&nbsp;</td><td><input type=\"text\" name=\"name\" size=\"20\"></td><td>&nbsp;</td></tr>";
-		echo "<tr><td>$I[pass]</td><td>&nbsp;</td><td><input type=\"password\" name=\"pass\" size=\"20\"></td><td>";
+		echo "<tr><td>$I[pass]</td><td>&nbsp;</td><td><input type=\"password\" name=\"pass\" size=\"20\" autocomplete=\"off\"></td><td>";
 		echo submit($I['register']).'</td></tr></table></form></td></tr></table></td></tr>';
 		thr();
 	}
@@ -1332,7 +1332,7 @@ function get_linkfilters() : array {
 	return $filters;
 }
 
-function send_filter($arg=''){
+function send_filter(string $arg=''){
 	global $I, $U;
 	print_start('filter');
 	echo "<h2>$I[filter]</h2><i>$arg</i><table>";
@@ -1396,7 +1396,7 @@ function send_filter($arg=''){
 	print_end();
 }
 
-function send_linkfilter($arg=''){
+function send_linkfilter(string $arg=''){
 	global $I, $U;
 	print_start('linkfilter');
 	echo "<h2>$I[linkfilter]</h2><i>$arg</i><table>";
@@ -2020,13 +2020,13 @@ function send_profile(string $arg=''){
 	if($U['status']>=2){
 		echo "<tr><td><table id=\"changepass\"><tr><th>$I[changepass]</th></tr>";
 		echo '<tr><td><table>';
-		echo "<tr><td>&nbsp;</td><td>$I[oldpass]</td><td><input type=\"password\" name=\"oldpass\" size=\"20\"></td></tr>";
-		echo "<tr><td>&nbsp;</td><td>$I[newpass]</td><td><input type=\"password\" name=\"newpass\" size=\"20\"></td></tr>";
-		echo "<tr><td>&nbsp;</td><td>$I[confirmpass]</td><td><input type=\"password\" name=\"confirmpass\" size=\"20\"></td></tr>";
+		echo "<tr><td>&nbsp;</td><td>$I[oldpass]</td><td><input type=\"password\" name=\"oldpass\" size=\"20\" autocomplete=\"current-password\"></td></tr>";
+		echo "<tr><td>&nbsp;</td><td>$I[newpass]</td><td><input type=\"password\" name=\"newpass\" size=\"20\" autocomplete=\"new-password\"></td></tr>";
+		echo "<tr><td>&nbsp;</td><td>$I[confirmpass]</td><td><input type=\"password\" name=\"confirmpass\" size=\"20\" autocomplete=\"new-password\"></td></tr>";
 		echo '</table></td></tr></table></td></tr>';
 		thr();
 		echo "<tr><td><table id=\"changenick\"><tr><th>$I[changenick]</th><td><table>";
-		echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\">";
+		echo "<tr><td>&nbsp;</td><td>$I[newnickname]</td><td><input type=\"text\" name=\"newnickname\" size=\"20\" autocomplete=\"username\">";
 		echo '</table></td></tr></table></td></tr>';
 		thr();
 	}
@@ -2135,12 +2135,12 @@ function send_login(){
 	}
 	echo '<table>';
 	if($englobal!==1 || (isset($_POST['globalpass']) && $_POST['globalpass']==get_setting('globalpass'))){
-		echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autofocus></td></tr>";
-		echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\"></td></tr>";
+		echo "<tr><td>$I[nick]</td><td><input type=\"text\" name=\"nick\" size=\"15\" autocomplete=\"username\" autofocus></td></tr>";
+		echo "<tr><td>$I[pass]</td><td><input type=\"password\" name=\"pass\" size=\"15\" autocomplete=\"current-password\"></td></tr>";
 		send_captcha();
 		if($ga!==0){
 			if(get_setting('guestreg')!=0){
-				echo "<tr><td>$I[regpass]</td><td><input type=\"password\" name=\"regpass\" size=\"15\" placeholder=\"$I[optional]\"></td></tr>";
+				echo "<tr><td>$I[regpass]</td><td><input type=\"password\" name=\"regpass\" size=\"15\" placeholder=\"$I[optional]\" autocomplete=\"new-password\"></td></tr>";
 			}
 			if($englobal===2){
 				echo "<tr><td>$I[globalloginpass]</td><td><input type=\"password\" name=\"globalpass\" size=\"15\"></td></tr>";
@@ -4287,10 +4287,6 @@ function load_lang(){
 			$I[$name]=$translation;
 		}
 	}
-}
-
-function isPOST() : bool {
-    return $_SERVER['REQUEST_METHOD'] === 'POST';
 }
 
 function load_config(){
