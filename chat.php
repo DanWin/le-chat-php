@@ -2926,9 +2926,12 @@ function validate_input() : string {
 	$maxmessage=get_setting('maxmessage');
 	$message=mb_substr($_POST['message'], 0, $maxmessage);
 	$rejected=mb_substr($_POST['message'], $maxmessage);
-	if($U['postid']===$_POST['postid']){// ignore double post=reload from browser or proxy
+	if(!isset($_POST['postid'])){ // auto-kick spammers not setting a postid
+		kick_chatter([$U['nickname']], '', false);
+	}
+	if($U['postid']===$_POST['postid']){ // ignore double post=reload from browser or proxy
 		$message='';
-	}elseif((time()-$U['lastpost'])<=1){// time between posts too short, reject!
+	}elseif((time()-$U['lastpost'])<=1){ // time between posts too short, reject!
 		$rejected=$_POST['message'];
 		$message='';
 	}
