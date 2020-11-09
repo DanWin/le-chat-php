@@ -4263,7 +4263,7 @@ function load_lang(){
 	global $I, $L, $language;
 	$L=[
 		'bg'	=>'Български',
-		'cz'	=>'čeština',
+		'cs'	=>'čeština',
 		'de'	=>'Deutsch',
 		'en'	=>'English',
 		'es'	=>'Español',
@@ -4273,7 +4273,7 @@ function load_lang(){
 		'ru'	=>'Русский',
 		'tr'	=>'Türkçe',
 		'uk'	=>'Українська',
-		'zh_CN'	=>'简体中文',
+		'zh-Hans'	=>'简体中文',
 	];
 	if(isset($_REQUEST['lang']) && isset($L[$_REQUEST['lang']])){
 		$language=$_REQUEST['lang'];
