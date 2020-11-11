@@ -1211,7 +1211,7 @@ function send_sessions(){
 	print_end();
 }
 
-function check_filter_match(int &$reg) : string|bool {
+function check_filter_match(int &$reg) : string {
 	global $I;
 	$_POST['match']=htmlspecialchars($_POST['match']);
 	if(isset($_POST['regex']) && $_POST['regex']==1){
@@ -1226,14 +1226,14 @@ function check_filter_match(int &$reg) : string|bool {
 	if(mb_strlen($_POST['match'])>255){
 		return "$I[matchtoolong]<br>$I[prevmatch]: " . htmlspecialchars($_POST['match']);
 	}
-	return false;
+	return '';
 }
 
 function manage_filter() : string {
 	global $db, $memcached;
 	if(isset($_POST['id'])){
 		$reg=0;
-		if($tmp=check_filter_match($reg)){
+		if(($tmp=check_filter_match($reg)) !== ''){
 			return $tmp;
 		}
 		if(isset($_POST['allowinpm']) && $_POST['allowinpm']==1){
@@ -1274,7 +1274,7 @@ function manage_linkfilter() : string {
 	global $db, $memcached;
 	if(isset($_POST['id'])){
 		$reg=0;
-		if($tmp=check_filter_match($reg)){
+		if(($tmp=check_filter_match($reg)) !== ''){
 			return $tmp;
 		}
 		if(preg_match('/^[0-9]+$/', $_POST['id'])){
