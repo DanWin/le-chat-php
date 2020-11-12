@@ -4146,7 +4146,7 @@ function update_db(){
 	send_update($msg);
 }
 
-function get_setting(string $setting) : mixed {
+function get_setting(string $setting) {
 	global $db, $memcached;
 	$value = '';
 	if(!MEMCACHED || !$value=$memcached->get(DBNAME . '-' . PREFIX . "settings-$setting")){
@@ -4161,7 +4161,7 @@ function get_setting(string $setting) : mixed {
 	return $value;
 }
 
-function update_setting(string $setting, mixed $value){
+function update_setting(string $setting, $value){
 	global $db, $memcached;
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'settings SET value=? WHERE setting=?;');
 	$stmt->execute([$value, $setting]);
