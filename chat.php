@@ -317,16 +317,18 @@ function credit() : string {
 }
 
 function meta_html() : string {
-	global $db;
-	$colbg='000000';
+	global $U, $db;
+	$colbg = '000000';
+	$description = '';
 	if(!empty($U['bgcolour'])){
-		$colbg=$U['bgcolour'];
+		$colbg = $U['bgcolour'];
 	}else{
 		if($db instanceof PDO){
-			$colbg=get_setting('colbg');
+			$colbg = get_setting('colbg');
+			$description = '<meta name="description" content="'.htmlspecialchars(get_setting('metadescription')).'">';
 		}
 	}
-	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes"><meta name="theme-color" content="#'.$colbg.'"><meta name="msapplication-TileColor" content="#'.$colbg.'"><meta name="description" content="'.htmlspecialchars(get_setting('metadescription')).'">';
+	return '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="referrer" content="no-referrer"><meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes"><meta name="theme-color" content="#'.$colbg.'"><meta name="msapplication-TileColor" content="#'.$colbg.'">' . $description;
 }
 
 function form(string $action, string $do='') : string {
