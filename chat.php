@@ -4272,6 +4272,7 @@ function load_lang(){
 		'fr'	=>'Français',
 		'id'	=>'Bahasa Indonesia',
 		'it'	=>'Italiano',
+		'pt'	=>'Português',
 		'ru'	=>'Русский',
 		'tr'	=>'Türkçe',
 		'uk'	=>'Українська',
