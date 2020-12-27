@@ -67,7 +67,7 @@ function route(){
 		send_waiting_room();
 	}elseif($_REQUEST['action']==='post'){
 		check_session();
-		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s &'){
+		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s _'){
 			if($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick'))){
 				if(isset($_POST['what']) && $_POST['what']==='purge'){
 					kick_chatter([$_POST['sendto']], $_POST['message'], true);
@@ -974,7 +974,7 @@ function send_admin(string $arg){
 	$ga=(int) get_setting('guestaccess');
 	print_start('admin');
 	$chlist="<select name=\"name[]\" size=\"5\" multiple><option value=\"\">$I[choose]</option>";
-	$chlist.="<option value=\"s &amp;\">$I[allguests]</option>";
+	$chlist.="<option value=\"s &#42;\">$I[allguests]</option>";
 	$users=[];
 	$stmt=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 ORDER BY LOWER(nickname);');
 	while($user=$stmt->fetch(PDO::FETCH_NUM)){
@@ -1796,17 +1796,17 @@ function send_post(string $rejected=''){
 	}
 	if($U['status']>=5){
 		echo '<option ';
-		if($_REQUEST['sendto']==='s #'){
+		if($_REQUEST['sendto']==='s %'){
 			echo 'selected ';
 		}
-		echo "value=\"s #\">-$I[tostaff]-</option>";
+		echo "value=\"s %\">-$I[tostaff]-</option>";
 	}
 	if($U['status']>=6){
 		echo '<option ';
-		if($_REQUEST['sendto']==='s &'){
+		if($_REQUEST['sendto']==='s _'){
 			echo 'selected ';
 		}
-		echo "value=\"s &amp;\">-$I[toadmin]-</option>";
+		echo "value=\"s _\">-$I[toadmin]-</option>";
 	}
 	$disablepm=(bool) get_setting('disablepm');
 	if(!$disablepm){
@@ -2233,21 +2233,32 @@ function print_chatters(){
 		$nc=substr(time(), -6);
 		$G=$M=[];
 		while($user=$stmt->fetch(PDO::FETCH_NUM)){
-			$link="<a href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=".htmlspecialchars($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
+			$lnk="<a href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
+			$link=$lnk.htmlspecialchars($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
 			if($user[2]<=2){
 				$G[]=$link;
 			}else{
 				$M[]=$link;
 			}
 		}
+		if($U['status']>5){
+			echo '<th>' . $lnk . 's _" target="post">[' . $I[admin] . ']</a></td>&nbsp;</a></td>';
+		}
+		if($U['status']>4){
+			echo '<th>' . $lnk . 's &#37;" target="post">[' . $I[staff] . ']</a></td>&nbsp;</a></td>';
+		}
 		if(!empty($M)){
+			if($U['status']<2){
 			echo "<th>$I[members]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $M).'</td>';
-			if(!empty($G)){
+			} else {
+				echo '<th>' . $lnk . 's ?" target="post">' . $I[members] . ':</a></td>&nbsp;</a></td><td>'.implode(' &nbsp; ', $M).'</td>';
+			}
+			if(!empty($M)){
 				echo '<td>&nbsp;&nbsp;</td>';
 			}
 		}
 		if(!empty($G)){
-			echo "<th>$I[guests]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $G).'</td>';
+			echo '<th>' . $lnk . 's *" target="post">' . $I[guests] . ':</a></td>&nbsp;</a></td><td>'.implode(' &nbsp; ', $G).'</td>';
 		}
 		echo '</tr></table></div>';
 	}
@@ -2468,7 +2479,7 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 	$check=$db->prepare('SELECT style, entry FROM ' . PREFIX . 'sessions WHERE nickname=? AND status!=0 AND (status<? OR nickname=?);');
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=?;');
 	$all=false;
-	if($names[0]==='s &'){
+	if($names[0]==='s _'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
 		while($name=$tmp->fetch(PDO::FETCH_NUM)){
@@ -2507,7 +2518,7 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 function logout_chatter(array $names){
 	global $U, $db;
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<?;');
-	if($names[0]==='s &'){
+	if($names[0]==='s _'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
 		while($name=$tmp->fetch(PDO::FETCH_NUM)){
@@ -2960,10 +2971,10 @@ function validate_input() : string {
 	}elseif($_POST['sendto']==='s ?' && $U['status']>=3){
 		$poststatus=3;
 		$displaysend=sprintf(get_setting('msgsendmem'), style_this(htmlspecialchars($U['nickname']), $U['style']));
-	}elseif($_POST['sendto']==='s #' && $U['status']>=5){
+	}elseif($_POST['sendto']==='s %' && $U['status']>=5){
 		$poststatus=5;
 		$displaysend=sprintf(get_setting('msgsendmod'), style_this(htmlspecialchars($U['nickname']), $U['style']));
-	}elseif($_POST['sendto']==='s &' && $U['status']>=6){
+	}elseif($_POST['sendto']==='s _' && $U['status']>=6){
 		$poststatus=6;
 		$displaysend=sprintf(get_setting('msgsendadm'), style_this(htmlspecialchars($U['nickname']), $U['style']));
 	}else{ // known nick in room?
