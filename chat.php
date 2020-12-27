@@ -3042,10 +3042,12 @@ function validate_input() : string {
 			$stmt->execute([$newmessage['postdate'], $id[0], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
 		}
 		if(isset($hash) && $id){
-			if(!empty($_FILES['file']['type']) && preg_match('~^[a-z0-9/\-.+]*$~i', $_FILES['file']['type'])){
-				$type=$_FILES['file']['type'];
+			if(function_exists('mime_content_type')){
+				$type = mime_content_type($_FILES['file']['tmp_name']);
+			}elseif(!empty($_FILES['file']['type']) && preg_match('~^[a-z0-9/\-.+]*$~i', $_FILES['file']['type'])){
+				$type = $_FILES['file']['type'];
 			}else{
-				$type='application/octet-stream';
+				$type = 'application/octet-stream';
 			}
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'files (postid, hash, filename, type, data) VALUES (?, ?, ?, ?, ?);');
 			$stmt->execute([$id[0], $hash, str_replace('"', '\"', $_FILES['file']['name']), $type, base64_encode(file_get_contents($_FILES['file']['tmp_name']))]);
