@@ -2242,23 +2242,23 @@ function print_chatters(){
 			}
 		}
 		if($U['status']>5){
-			echo '<th>' . $lnk . 's _" target="post">[' . $I[admin] . ']</a></td>&nbsp;</a></td>';
+			echo '<th>' . $lnk . 's _" target="post">[' . $I['admin'] . ']</a></td>&nbsp;</a></td>';
 		}
 		if($U['status']>4){
-			echo '<th>' . $lnk . 's &#37;" target="post">[' . $I[staff] . ']</a></td>&nbsp;</a></td>';
+			echo '<th>' . $lnk . 's &#37;" target="post">[' . $I['staff'] . ']</a></td>&nbsp;</a></td>';
 		}
 		if(!empty($M)){
 			if($U['status']<2){
 			echo "<th>$I[members]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $M).'</td>';
 			} else {
-				echo '<th>' . $lnk . 's ?" target="post">' . $I[members] . ':</a></td>&nbsp;</a></td><td>'.implode(' &nbsp; ', $M).'</td>';
+				echo '<th>' . $lnk . 's ?" target="post">' . $I['members'] . ':</a></td>&nbsp;</a></td><td>'.implode(' &nbsp; ', $M).'</td>';
 			}
 			if(!empty($M)){
 				echo '<td>&nbsp;&nbsp;</td>';
 			}
 		}
 		if(!empty($G)){
-			echo '<th>' . $lnk . 's *" target="post">' . $I[guests] . ':</a></td>&nbsp;</a></td><td>'.implode(' &nbsp; ', $G).'</td>';
+			echo '<th>' . $lnk . 's *" target="post">' . $I['guests'] . ':</a></td>&nbsp;</a></td><td>'.implode(' &nbsp; ', $G).'</td>';
 		}
 		echo '</tr></table></div>';
 	}
