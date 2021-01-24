@@ -268,7 +268,7 @@ function prepare_stylesheets(bool $init = false){
 	$styles['default'] .= '.setup table table table,.admin table table table,.profile table table table{border-spacing:0px;margin-left:auto;margin-right:unset;width:unset} ';
 	$styles['default'] .= '.setup table table td,.backup #restoresubmit,.backup #backupsubmit,.admin table table td,.profile table table td,.login td+td,.alogin td+td{text-align:right} ';
 	$styles['default'] .= '.init td,.backup #restorecheck td,.admin #clean td,.admin #regnew td,.session td,.messages,.inbox,.approve_waiting td,.choose_messages,.greeting,.help,.login td,.alogin td{text-align:left} ';
-	$styles['default'] .= '.messages #chatters{max-height:100px;overflow-y:auto} .messages #chatters a{text-decoration-line:none} .messages #chatters table{border-spacing:0px} ';
+	$styles['default'] .= '.messages #chatters{max-height:100px;overflow-y:auto} .messages #chatters .messages #chatters table{border-spacing:0px} ';
 	$styles['default'] .= '.messages #chatters th,.messages #chatters td,.post #firstline{vertical-align:top} ';
 	$styles['default'] .= '.approve_waiting #action td:only-child,.help #backcredit,.login td:only-child,.alogin td:only-child,.init td:only-child{text-align:center} .sessions td,.sessions th,.approve_waiting td,.approve_waiting th{padding: 5px} ';
 	$styles['default'] .= '.sessions td td{padding: 1px} .messages #bottom_link{position:fixed;top:0.5em;right:0.5em} .messages #top_link{position:fixed;bottom:0.5em;right:0.5em} ';
@@ -2224,6 +2224,7 @@ function print_notifications(){
 	}
 	echo '</span>';
 }
+
 function print_chatters(){
 	global $I, $U, $db, $language;
 	if(!$U['hidechatters']){
@@ -2231,35 +2232,37 @@ function print_chatters(){
 		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
 		$stmt->execute([$U['nickname'], $U['nickname']]);
 		$nc=substr(time(), -6);
-		$G=$M=[];
+		$G=$M=$S=$A=[];
+		$channellink="<a style=\"text-decoration:underline\" href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
+		$nicklink="<a style=\"text-decoration:none\" href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
 		while($user=$stmt->fetch(PDO::FETCH_NUM)){
-			$lnk="<a href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
-			$link=$lnk.htmlspecialchars($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
-			if($user[2]<=2){
+			$link=$nicklink.htmlspecialchars($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
+			if($user[2]<3){ // guest or superguest
 				$G[]=$link;
-			}else{
+			} elseif($user[2]>=7){ // admin or superadmin
+				$A[]=$link;
+			} elseif(($user[2]>=5) && ($user[2]<=6)){ // moderator or supermoderator
+				$S[]=$link;
+			} elseif($user[2]=3){ // member
 				$M[]=$link;
 			}
 		}
-		if($U['status']>5){
-			echo '<th>' . $lnk . 's _" target="post">[' . $I['admin'] . ']</a></th><td>&nbsp;</td>';
-		}
-		if($U['status']>4){
-			echo '<th>' . $lnk . 's &#37;" target="post">[' . $I['staff'] . ']</a></th><td>&nbsp;</td>';
-		}
-		if(!empty($M)){
-			if($U['status']<3){
-				echo "<th>$I[members]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $M).'</td>';
+		if($U['status']>5){ // can chat in admin channel
+				echo '<th>' . $channellink . 's _" target="post">' . $I['admin'] . ':</a></th><td>&nbsp;</td><td>'.implode(' &nbsp; ', $A).'</td>';
 			} else {
-				echo '<th>' . $lnk . 's ?" target="post">' . $I['members'] . ':</a></th><td>&nbsp;</td><td>'.implode(' &nbsp; ', $M).'</td>';
-			}
-			if(!empty($M)){
-				echo '<td>&nbsp;&nbsp;</td>';
-			}
+				echo "<th>$I[admin]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $A).'</td>';
 		}
-		if(!empty($G)){
-			echo '<th>' . $lnk . 's *" target="post">' . $I['guests'] . ':</a></th><td>&nbsp;</td><td>'.implode(' &nbsp; ', $G).'</td>';
+		if($U['status']>4){ // can chat in staff channel
+				echo '<th><br/>' . $channellink . 's &#37;" target="post">' . $I['staff'] . ':</a></th><td>&nbsp;</td><td>'.implode(' &nbsp; ', $S).'</td>';
+			} else {
+				echo "<th><br/>$I[staff]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $S).'</td>';
 		}
+		if($U['status']>=3){ // can chat in member channel
+			echo '<th>' . $channellink . 's ?" target="post"><br/>' . $I['members'] . ':</a></th><td>&nbsp;</td><td class=\"chattername\">'.implode(' &nbsp; ', $M).'</td>';
+		} else {
+			echo "<th><br/>$I[members]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $M).'</td>';
+		}
+		echo '<th>' . $channellink . 's *" target="post"><br/>' . $I['guests'] . ':</a></th><td>&nbsp;</td><td class=\"chattername\">'.implode(' &nbsp; ', $G).'</td>';
 		echo '</tr></table></div>';
 	}
 }
