@@ -128,14 +128,19 @@ function route(){
 			send_notes(0);
 		}elseif($_POST['do']==='staff' && $U['status']>=5){
 			send_notes(1);
+		}elseif($_POST['do']==='public' && $U['status']>=3){
+			send_notes(3);
 		}
-		if($U['status']<3 || !get_setting('personalnotes')){
+		if($U['status']<3 || (!get_setting('personalnotes') && !get_setting('publicnotes'))){
 			send_access_denied();
 		}
 		send_notes(2);
 	}elseif($_REQUEST['action']==='help'){
 		check_session();
 		send_help();
+	}elseif($_REQUEST['action']==='viewpublicnotes'){
+		check_session();
+		view_publicnotes();
 	}elseif($_REQUEST['action']==='inbox'){
 		check_session();
 		if(isset($_POST['do'])){
@@ -230,7 +235,7 @@ function route_setup(){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=['suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'personalnotes', 'filtermodkick'];
+	$C['bool_settings']=['suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'personalnotes', 'publicnotes', 'filtermodkick'];
 	$C['colour_settings']=['colbg', 'coltxt'];
 	$C['msg_settings']=['msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv', 'msgattache'];
 	$C['number_settings']=['memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize', 'enfileupload'];
@@ -783,6 +788,8 @@ function restore_backup(array $C){
 				$note['type']=0;
 			}elseif($note['type']==='staff'){
 				$note['type']=1;
+			}elseif($note['type']==='public'){
+				$note['type']=3;
 			}
 			if(MSGENCRYPTED){
 				try {
@@ -1579,14 +1586,20 @@ function send_notes(int $type){
 	global $I, $U, $db;
 	print_start('notes');
 	$personalnotes=(bool) get_setting('personalnotes');
-	if($U['status']>=5 && ($personalnotes || $U['status']>6)){
+	$publicnotes=(bool) get_setting('publicnotes');
+	if($U['status']>=3 && ($personalnotes || $publicnotes)){
 		echo '<table><tr>';
 		if($U['status']>6){
 			echo '<td>'.form_target('view', 'notes', 'admin').submit($I['admnotes']).'</form></td>';
 		}
+		if($U['status']>=5){
 		echo '<td>'.form_target('view', 'notes', 'staff').submit($I['staffnotes']).'</form></td>';
+		}
 		if($personalnotes){
 			echo '<td>'.form_target('view', 'notes').submit($I['personalnotes']).'</form></td>';
+		}
+		if($publicnotes){
+			echo '<td>'.form_target('view', 'notes', 'public').submit($I['publicnotes']).'</form></td>';
 		}
 		echo '</tr></table>';
 	}
@@ -1596,9 +1609,12 @@ function send_notes(int $type){
 	}elseif($type===0){
 		echo "<h2>$I[adminnotes]</h2><p>";
 		$hiddendo=hidden('do', 'admin');
-	}else{
+	}elseif($type===2){
 		echo "<h2>$I[personalnotes]</h2><p>";
 		$hiddendo='';
+	}elseif($type===3){
+		echo "<h2>$I[publicnotes]</h2><p>";
+		$hiddendo=hidden('do', 'public');
 	}
 	if(isset($_POST['text'])){
 		if(MSGENCRYPTED){
@@ -1614,7 +1630,7 @@ function send_notes(int $type){
 		echo "<b>$I[notessaved]</b> ";
 	}
 	$dateformat=get_setting('dateformat');
-	if($type!==2){
+	if(($type!==2) && ($type !==3)){
 		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'notes WHERE type=?;');
 		$stmt->execute([$type]);
 	}else{
@@ -1627,7 +1643,7 @@ function send_notes(int $type){
 	}else{
 		$revision=0;
 	}
-	if($type!==2){
+	if(($type!==2) && ($type !==3)){
 		$stmt=$db->prepare('SELECT * FROM ' . PREFIX . "notes WHERE type=? ORDER BY id DESC LIMIT 1 OFFSET $revision;");
 		$stmt->execute([$type]);
 	}else{
@@ -1898,6 +1914,25 @@ function send_help(){
 	print_end();
 }
 
+function view_publicnotes(){
+        global $I, $db;
+	$dateformat=get_setting('dateformat');
+	print_start('publicnotes');
+	echo "<h2>$I[publicnotes]</h2><p>";
+	// SQL adapted from AdamMc331 https://stackoverflow.com/questions/27991484/using-max-within-inner-join-sql
+	$query=$db->query('SELECT pubs.* FROM notes pubs JOIN (SELECT lastedited,editedby,text,MAX(id) AS latest FROM notes WHERE type=3 GROUP BY editedby) t ON t.editedby = pubs.editedby AND t.latest = pubs.id;');
+	while($result=$query->fetch(PDO::FETCH_OBJ)){
+		if ($result->text <> "") {
+			print '<hr/>';
+			printf($I['lastedited'], htmlspecialchars($result->editedby), date($dateformat, $result->lastedited));
+			print '<br/>';
+			print '<textarea cols="80" rows="9" readonly="true">'.$result->text.'</textarea>';
+			print '<br/>';
+		}
+	}
+	print_end();
+}
+
 function send_profile(string $arg=''){
 	global $I, $L, $U, $db, $language;
 	print_start('profile');
@@ -2048,6 +2083,7 @@ function send_controls(){
 	global $I, $U;
 	print_start('controls');
 	$personalnotes=(bool) get_setting('personalnotes');
+	$publicnotes=(bool) get_setting('publicnotes');
 	echo '<table><tr>';
 	echo '<td>'.form_target('post', 'post').submit($I['reloadpb']).'</form></td>';
 	echo '<td>'.form_target('view', 'view').submit($I['reloadmsgs']).'</form></td>';
@@ -2058,8 +2094,11 @@ function send_controls(){
 			echo '<td>'.form_target('view', 'notes', 'staff').submit($I['notes']).'</form></td>';
 		}
 	}
+	if($publicnotes){
+		echo '<td>'.form_target('view', 'viewpublicnotes').submit($I['viewpublicnotes']).'</form></td>';
+	}
 	if($U['status']>=3){
-		if($personalnotes){
+		if($personalnotes || $publicnotes){
 			echo '<td>'.form_target('view', 'notes').submit($I['notes']).'</form></td>';
 		}
 		echo '<td>'.form_target('_blank', 'login').submit($I['clone']).'</form></td>';
@@ -3589,7 +3628,7 @@ function cron(){
 	}
 	// delete old notes
 	$limit=get_setting('numnotes');
-	$db->exec('DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND id NOT IN (SELECT * FROM ( (SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit) UNION (SELECT id FROM " . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit) ) AS t);");
+	$db->exec('DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND type!=3 AND id NOT IN (SELECT * FROM ( (SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit) UNION (SELECT id FROM " . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit) ) AS t);");
 	$result=$db->query('SELECT editedby, COUNT(*) AS cnt FROM ' . PREFIX . "notes WHERE type=2 GROUP BY editedby HAVING cnt>$limit;");
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE type=2 AND editedby=? AND id NOT IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "notes WHERE type=2 AND editedby=? ORDER BY id DESC LIMIT $limit) AS t);");
 	while($tmp=$result->fetch(PDO::FETCH_NUM)){
@@ -3764,6 +3803,7 @@ function init_chat(){
 			['maxuploadsize', '1024'],
 			['nextcron', '0'],
 			['personalnotes', '1'],
+			['publicnotes', '1'],
 			['filtermodkick', '0'],
 			['metadescription', $I['defaultmetadescription']],
 		];

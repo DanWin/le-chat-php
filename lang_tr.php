@@ -164,6 +164,7 @@ $T=[
 	'savechanges' => 'Değişiklikleri kaydet',
 	'reloadpb' => 'Posta Kutusunu Yenile',
 	'reloadmsgs' => 'İletileri yenile',
+	'viewpublicnotes' => 'Oku kamu profilim',
 	'chgprofile' => 'Profil',
 	'adminbtn' => 'Yönetici',
 	'admnotes' => 'Yönetici Notları',
@@ -367,6 +368,7 @@ $T=[
 	'cssupdate' => 'Not: Default CSS is now hardcoded and can be removed from the CSS setting',
 	'manualrefresh' => 'Manuel yenileme gerekli',
 	'personalnotes' => 'Kişisel notlar',
+	'publicnotes' => 'Kamu profiller',
 	'filtermodkick' => 'Moderatörler için atma filtresini etkinleştir',
 ];
 

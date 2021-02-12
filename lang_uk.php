@@ -164,6 +164,7 @@ $T=[
 	'savechanges' => 'Зберігти иізмінення',
 	'reloadpb' => 'Перезагрузити почтовий ящік',
 	'reloadmsgs' => 'Обновити',
+	'viewpublicnotes' => 'Читати зауваження публічний',
 	'chgprofile' => 'Профіль',
 	'adminbtn' => 'Администратор',
 	'admnotes' => 'Зауваження администратора',
@@ -366,6 +367,7 @@ $T=[
 	'cssupdate' => 'Note: Default CSS is now hardcoded and can be removed from the CSS setting',
 	'manualrefresh' => 'Потрібно обновити сторінку вручну',
 	'personalnotes' => 'Лічні замітки',
+	'publicnotes' => 'Зауваження публічний',
 	'filtermodkick' => 'Примінити фільтр исключення для модераторів',
 ];
 

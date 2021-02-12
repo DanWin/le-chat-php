@@ -164,6 +164,7 @@ $T=[
 	'savechanges' => 'Uložit',
 	'reloadpb' => 'Znovu načíst poštovní schránku',
 	'reloadmsgs' => 'Znovu načíst zprávy',
+	'viewpublicnotes' => 'Zobrazit poznámky publikovaný',
 	'chgprofile' => 'Profil',
 	'adminbtn' => 'Admin',
 	'admnotes' => 'Admin poznámky',
@@ -366,5 +367,6 @@ $T=[
 	'cssupdate' => 'Poznámka: Výchozí CSS je nyní napevno a může být odstraněn z nastavení CSS',
 	'manualrefresh' => 'Nutná ruční aktualizace ',
 	'personalnotes' => 'Osobní poznámky',
+	'publicnotes' => 'Poznámky publikovaný',
 	'filtermodkick' => 'Použít vyhazovací filtr na moderátory',
 ];

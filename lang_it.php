@@ -164,6 +164,7 @@ $T=[
 	'savechanges' => 'Salavre cambiamenti',
 	'reloadpb' => 'Ricarica Chat',
 	'reloadmsgs' => 'Aggiorna/Indietro',
+	'viewpublicnotes' => 'Leggere appunti pubbliche',
 	'chgprofile' => 'Profilo',
 	'adminbtn' => 'Amministratore',
 	'admnotes' => 'Note del amministratore',
@@ -366,5 +367,6 @@ $T=[
 	'cssupdate' => 'Note: Default CSS is now hardcoded and can be removed from the CSS setting',
 	'manualrefresh' => 'Bisogna aggiornare pagina manualmente',
 	'personalnotes' => 'Appunti personali',
+	'publicnotes' => 'Appunti pubbliche',
 	'filtermodkick' => 'Utlizzare filtro di esclusione per moderatori',
 ];

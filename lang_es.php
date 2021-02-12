@@ -164,6 +164,7 @@ $T=[
 	'savechanges' => 'Guardar cambios',
 	'reloadpb' => 'Recargar caja de publicación',
 	'reloadmsgs' => 'Recargar mensajes',
+	'viewpublicnotes' => 'Ver notas públicas',
 	'chgprofile' => 'Perfil',
 	'adminbtn' => 'Admin',
 	'admnotes' => 'Notas de administrador',
@@ -366,5 +367,6 @@ $T=[
 	'cssupdate' => 'Note: Css predeterminado está ahora hardcoded y puede ser removido de la configuración CSS',
 	'manualrefresh' => 'Recarga manual requerida',
 	'personalnotes' => 'Notas personales',
+	'publicnotes' => 'Notas públicas',
 	'filtermodkick' => 'Aplicar Kick filter en moderadores o administradores',
 ];
