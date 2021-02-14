@@ -1593,7 +1593,7 @@ function send_notes(int $type){
 			echo '<td>'.form_target('view', 'notes', 'admin').submit($I['admnotes']).'</form></td>';
 		}
 		if($U['status']>=5){
-		echo '<td>'.form_target('view', 'notes', 'staff').submit($I['staffnotes']).'</form></td>';
+			echo '<td>'.form_target('view', 'notes', 'staff').submit($I['staffnotes']).'</form></td>';
 		}
 		if($personalnotes){
 			echo '<td>'.form_target('view', 'notes').submit($I['personalnotes']).'</form></td>';
