@@ -1092,7 +1092,7 @@ function send_admin(string $arg){
 			if($member[2]==0){
 				echo ' (!)';
 			}elseif($member[2]==2){
-				echo ' (G)';
+				echo ' (SG)';
 			}elseif($member[2]==3){
 			}elseif($member[2]==5){
 				echo ' (M)';
@@ -1165,8 +1165,10 @@ function send_sessions(){
 	foreach($lines as $temp){
 		if($temp['status']==0){
 			$s=' (K)';
-		}elseif($temp['status']<=2){
+		}elseif($temp['status']<=1){
 			$s=' (G)';
+		}elseif($temp['status']==2){
+			$s=' (SG)';
 		}elseif($temp['status']==3){
 			$s='';
 		}elseif($temp['status']==5){
