@@ -4168,6 +4168,9 @@ function update_db(){
 	if($dbversion<43){
 		$db->exec('INSERT IGNORE INTO ' . PREFIX . "settings (setting, value) VALUES ('metadescription', '$I[defaultmetadescription]');");
 	}
+	if($dbversion<44){
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('publicnotes', '0');");
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -4360,7 +4363,7 @@ function load_lang(){
 function load_config(){
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 43); // Database layout version
+	define('DBVERSION', 44); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
