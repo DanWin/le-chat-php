@@ -36,7 +36,9 @@ $T=[
 	'globalloginpass' => '全局密码:',
 	'login' => '登录',
 	'dbupdate' => '数据库更新成功',
+	'sysmessage' => '系统信息',
 	'sysmessages' => '系统信息',
+	'sysmessagetxt' => '此文本先于来自系统的消息。',
 	'msgenter' => '入口',
 	'msgexit' => '离开',
 	'msgmemreg' => '成员注册',
@@ -250,6 +252,7 @@ $T=[
 	'trackip' => '显示会话-IP',
 	'captchachars' => '验证码中使用的字符',
 	'memkick' => '如果没有主持人，会员可以踢',
+	'memkickalways' => '会员总是可以驱逐客人',
 	'forceredirect' => '强制重定向',
 	'redirect' => '自定义重定向脚本',
 	'backuprestore' => '备份还原',
@@ -345,5 +348,5 @@ $T=[
 	'maxuploadsize' => '最大上载大小（KB）',
 	'maxsize' => 'Max %d KB',
 	'cssupdate' => '注意：默认的CSS现在是硬编码的，可以从CSS设置中删除。',
+	'namedoers'  => '显示谁驱逐人或清除所有消息。',
 ];
-

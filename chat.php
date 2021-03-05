@@ -68,7 +68,7 @@ function route(){
 	}elseif($_REQUEST['action']==='post'){
 		check_session();
 		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s _'){
-			if($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick'))){
+			if($U['status']>=5 || ($U['status']>=3 && (get_setting('memkickalways') || (get_count_mods()==0 && get_setting('memkick'))))){
 				if(isset($_POST['what']) && $_POST['what']==='purge'){
 					kick_chatter([$_POST['sendto']], $_POST['message'], true);
 				}else{
@@ -235,12 +235,12 @@ function route_setup(){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=['suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'personalnotes', 'publicnotes', 'filtermodkick'];
+	$C['bool_settings']=['suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'memkickalways', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'personalnotes', 'publicnotes', 'filtermodkick', 'namedoers'];
 	$C['colour_settings']=['colbg', 'coltxt'];
 	$C['msg_settings']=['msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv', 'msgattache'];
 	$C['number_settings']=['memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize', 'enfileupload'];
 	$C['textarea_settings']=['rulestxt', 'css', 'disabletext'];
-	$C['text_settings']=['dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss', 'metadescription'];
+	$C['text_settings']=['dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss', 'metadescription', 'sysmessagetxt'];
 	$C['settings']=array_merge(['guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'], $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
 	if(!isset($_POST['do'])){
 	}elseif($_POST['do']==='save'){
@@ -1850,12 +1850,12 @@ function send_post(string $rejected=''){
 	}
 	echo '</select></td>';
 	if(get_setting('enfileupload')>0 && get_setting('enfileupload')<=$U['status']){
-		if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick')))){
+		if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && (get_setting('memkickalways') || (get_count_mods()==0 && get_setting('memkick')))))){
 			echo '</tr></table><table><tr id="secondline">';
 		}
 		printf("<td><input type=\"file\" name=\"file\"><small>$I[maxsize]</small></td>", get_setting('maxuploadsize'));
 	}
-	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && get_count_mods()==0 && get_setting('memkick')))){
+	if(!$disablepm && ($U['status']>=5 || ($U['status']>=3 && (get_setting('memkickalways') || (get_count_mods()==0 && get_setting('memkick')))))){
 		echo "<td><label><input type=\"checkbox\" name=\"kick\" id=\"kick\" value=\"kick\">$I[kick]</label></td>";
 		echo "<td><label><input type=\"checkbox\" name=\"what\" id=\"what\" value=\"purge\" checked>$I[alsopurge]</label></td>";
 	}
@@ -2432,7 +2432,7 @@ function write_new_session(string $password){
 		$session = $U['session'];
 		set_secure_cookie(COOKIENAME, $U['session']);
 		if($U['status']>=3 && !$U['incognito']){
-			add_system_message(sprintf(get_setting('msgenter'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
+			add_system_message(sprintf(get_setting('msgenter'), style_this(htmlspecialchars($U['nickname']), $U['style'])), '');
 		}
 	}
 }
@@ -2512,7 +2512,7 @@ function kill_session(){
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE session=?;');
 	$stmt->execute([$U['session']]);
 	if($U['status']>=3 && !$U['incognito']){
-		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])));
+		add_system_message(sprintf(get_setting('msgexit'), style_this(htmlspecialchars($U['nickname']), $U['style'])), '');
 	}
 }
 
@@ -2545,13 +2545,13 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 	}
 	if($i>0){
 		if($all){
-			add_system_message(get_setting('msgallkick'));
+			add_system_message(get_setting('msgallkick'), $U['nickname']);
 		}else{
 			$lonick=substr($lonick, 0, -2);
 			if($i>1){
-				add_system_message(sprintf(get_setting('msgmultikick'), $lonick));
+				add_system_message(sprintf(get_setting('msgmultikick'), $lonick), $U['nickname']);
 			}else{
-				add_system_message(sprintf(get_setting('msgkick'), $lonick));
+				add_system_message(sprintf(get_setting('msgkick'), $lonick), $U['nickname']);
 			}
 		}
 		return true;
@@ -2698,9 +2698,9 @@ function register_guest(int $status, string $nick) : string {
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, timestamps, embed, style, incognito, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 	$stmt->execute([$reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $U['nickname'], $reg['timestamps'], $reg['embed'], $reg['style'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']]);
 	if($reg['status']==3){
-		add_system_message(sprintf(get_setting('msgmemreg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])));
+		add_system_message(sprintf(get_setting('msgmemreg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])), $U['nickname']);
 	}else{
-		add_system_message(sprintf(get_setting('msgsureg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])));
+		add_system_message(sprintf(get_setting('msgsureg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])), $U['nickname']);
 	}
 	return sprintf($I['successreg'], style_this(htmlspecialchars($reg['nickname']), $reg['style']));
 }
@@ -3252,18 +3252,31 @@ function add_message(string $message, string $recipient, string $poster, int $de
 	return true;
 }
 
-function add_system_message(string $mes){
+function add_system_message(string $mes, string $doer){
+	global $I;
 	if($mes===''){
 		return;
 	}
+	if($doer==='' || !get_setting('namedoers')){
+		$sysmessage=[
+			'postdate'	=>time(),
+			'poststatus'	=>4,
+			'poster'	=>'',
+			'recipient'	=>'',
+			'text'		=>"$mes",
+			'delstatus'	=>4
+		];
+
+	} else {
 	$sysmessage=[
 		'postdate'	=>time(),
-		'poststatus'	=>1,
+			'poststatus'	=>4,
 		'poster'	=>'',
 		'recipient'	=>'',
-		'text'		=>"<span class=\"sysmsg\">$mes</span>",
+			'text'		=>"$mes ($doer)",
 		'delstatus'	=>4
 	];
+	}
 	write_message($sysmessage);
 }
 
@@ -3287,9 +3300,9 @@ function write_message($message){
 }
 
 function clean_room(){
-	global $db;
+	global $U, $db;
 	$db->query('DELETE FROM ' . PREFIX . 'messages;');
-	add_system_message(sprintf(get_setting('msgclean'), get_setting('chatname')));
+	add_system_message(sprintf(get_setting('msgclean'), get_setting('chatname')), $U['nickname']);
 }
 
 function clean_selected(int $status, string $nick){
@@ -3341,7 +3354,7 @@ function del_last_message(){
 }
 
 function print_messages(int $delstatus=0){
-	global $U, $db;
+	global $I, $U, $db;
 	$dateformat=get_setting('dateformat');
 	if(!$U['embed'] && get_setting('imgembed')){
 		$removeEmbed=true;
@@ -3377,7 +3390,7 @@ function print_messages(int $delstatus=0){
 			echo " $message[text]</label></div>";
 		}
 	}else{
-		$stmt=$db->prepare('SELECT id, postdate, text FROM ' . PREFIX . 'messages WHERE (poststatus<=? OR '.
+		$stmt=$db->prepare('SELECT id, postdate, poststatus, text FROM ' . PREFIX . 'messages WHERE (poststatus<=? OR poststatus=4 OR '.
 		'(poststatus=9 AND ( (poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ) OR recipient=?) AND postdate>=?)'.
 		') AND poster NOT IN (SELECT ign FROM ' . PREFIX . "ignored WHERE ignby=?) ORDER BY id $direction;");
 		$stmt->execute([$U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname']]);
@@ -3387,8 +3400,12 @@ function print_messages(int $delstatus=0){
 			if($timestamps){
 				echo '<small>'.date($dateformat, $message['postdate']).' - </small>';
 			}
+			if ($message['poststatus']==4) {
+				echo "<span class=\"sysmsg\" title=\"$I[sysmessage]\">".get_setting('sysmessagetxt')."$message[text]</span></div>";
+			} else {
 			echo "$message[text]</div>";
 		}
+	}
 	}
 	echo '</div>';
 }
@@ -3609,7 +3626,7 @@ function cron(){
 	$stmt->execute([$time, $time]);
 	// delete old messages
 	$limit=get_setting('messagelimit');
-	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 ORDER BY id DESC LIMIT 1 OFFSET $limit;");
+	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 OR poststatus=4 ORDER BY id DESC LIMIT 1 OFFSET $limit;");
 	if($id=$stmt->fetch(PDO::FETCH_NUM)){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id<=?;');
 		$stmt->execute($id);
@@ -3766,6 +3783,8 @@ function init_chat(){
 			['trackip', '0'],
 			['captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'],
 			['memkick', '1'],
+			['memkickalways', '0'],
+			['namedoers', '1'],
 			['forceredirect', '0'],
 			['redirect', ''],
 			['incognito', '1'],
@@ -3808,6 +3827,7 @@ function init_chat(){
 			['publicnotes', '1'],
 			['filtermodkick', '0'],
 			['metadescription', $I['defaultmetadescription']],
+			['sysmessagetxt', 'ℹ️ '],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -4171,6 +4191,9 @@ function update_db(){
 	if($dbversion<44){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('publicnotes', '0');");
 	}
+	if($dbversion<45){
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('memkickalways', '0'), (sysmessagetxt', 'ℹ️ '),('namedoers', '1');");
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -4363,7 +4386,7 @@ function load_lang(){
 function load_config(){
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 44); // Database layout version
+	define('DBVERSION', 45); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
