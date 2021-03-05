@@ -3827,7 +3827,7 @@ function init_chat(){
 			['publicnotes', '1'],
 			['filtermodkick', '0'],
 			['metadescription', $I['defaultmetadescription']],
-			['sysmessagetxt', 'ℹ️ '],
+			['sysmessagetxt', 'ℹ️ &nbsp;'],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -4192,7 +4192,7 @@ function update_db(){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('publicnotes', '0');");
 	}
 	if($dbversion<45){
-		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('memkickalways', '0'), ('sysmessagetxt', 'ℹ️ '),('namedoers', '1');");
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('memkickalways', '0'), ('sysmessagetxt', 'ℹ️ &nbsp;'),('namedoers', '1');");
 	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
