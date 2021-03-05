@@ -4192,7 +4192,7 @@ function update_db(){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('publicnotes', '0');");
 	}
 	if($dbversion<45){
-		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('memkickalways', '0'), (sysmessagetxt', 'ℹ️ '),('namedoers', '1');");
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('memkickalways', '0'), ('sysmessagetxt', 'ℹ️ '),('namedoers', '1');");
 	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
