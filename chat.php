@@ -3268,14 +3268,14 @@ function add_system_message(string $mes, string $doer){
 		];
 
 	} else {
-	$sysmessage=[
-		'postdate'	=>time(),
+		$sysmessage=[
+			'postdate'	=>time(),
 			'poststatus'	=>4,
-		'poster'	=>'',
-		'recipient'	=>'',
+			'poster'	=>'',
+			'recipient'	=>'',
 			'text'		=>"$mes ($doer)",
-		'delstatus'	=>4
-	];
+			'delstatus'	=>4
+		];
 	}
 	write_message($sysmessage);
 }
@@ -3403,9 +3403,9 @@ function print_messages(int $delstatus=0){
 			if ($message['poststatus']==4) {
 				echo "<span class=\"sysmsg\" title=\"$I[sysmessage]\">".get_setting('sysmessagetxt')."$message[text]</span></div>";
 			} else {
-			echo "$message[text]</div>";
+				echo "$message[text]</div>";
+			}
 		}
-	}
 	}
 	echo '</div>';
 }
