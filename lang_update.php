@@ -1,6 +1,6 @@
 <?php
-$native = 'Español (España)'; // Native lanugae name
-$english = 'Spanish (ES)'; // Enlish language name
+$native = 'Español (España)'; // Native language name
+$english = 'Spanish (ES)'; // English language name
 $code = 'es_ES'; // Language code
 
 ob_start();
