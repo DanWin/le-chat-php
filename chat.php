@@ -2673,7 +2673,7 @@ function delete_account(){
 		$stmt->execute([$U['nickname']]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
 		$stmt->execute([$U['nickname']]);
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE type=2 AND editedby=?;');
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby=?;');
 		$stmt->execute([$U['nickname']]);
 		$U['status']=1;
 	}
@@ -3649,7 +3649,7 @@ function cron(){
 	$limit=get_setting('numnotes');
 	$db->exec('DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND type!=3 AND id NOT IN (SELECT * FROM ( (SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit) UNION (SELECT id FROM " . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit) ) AS t);");
 	$result=$db->query('SELECT editedby, COUNT(*) AS cnt FROM ' . PREFIX . "notes WHERE type=2 GROUP BY editedby HAVING cnt>$limit;");
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE type=2 AND editedby=? AND id NOT IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "notes WHERE type=2 AND editedby=? ORDER BY id DESC LIMIT $limit) AS t);");
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby=? AND id NOT IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "notes WHERE (type=2 OR type=3) AND editedby=? ORDER BY id DESC LIMIT $limit) AS t);");
 	while($tmp=$result->fetch(PDO::FETCH_NUM)){
 		$stmt->execute([$tmp[0], $tmp[0]]);
 	}
