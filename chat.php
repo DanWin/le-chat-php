@@ -3662,7 +3662,7 @@ function destroy_chat(array $C){
 	global $I, $db, $memcached, $session;
 	setcookie(COOKIENAME, false);
 	$session = '';
-	print_start('destory');
+	print_start('destroy');
 	$db->exec('DROP TABLE ' . PREFIX . 'captcha;');
 	$db->exec('DROP TABLE ' . PREFIX . 'files;');
 	$db->exec('DROP TABLE ' . PREFIX . 'filter;');
