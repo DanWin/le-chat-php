@@ -311,6 +311,8 @@ $T=[
 	'newnickname' => 'Nama baru:',
 	'nicknametaken' => 'Nama sudah ada',
 	'nopass' => 'Kata sandi salah (Minimal %d karakter), tak merubah nama',
-	'namedoers' => 'Memperlihatkan siapa yang mengusir orang atau membersihkan semua pesan.'
+	'namedoers' => 'Memperlihatkan siapa yang mengusir orang atau membersihkan semua pesan.',
+	'failednotice' => 'upaya log masuk gagal',
+	'dismiss' => 'mengakui',
 ];
 
