@@ -2440,7 +2440,7 @@ function write_new_session(string $password){
 
 function show_fails() {
 	global $db, $I, $U;
-	if($U['loginfails']>0){
+	if(isset($U['loginfails']) && $U['loginfails'] > 0){
 		print_start('failednotice');
 		echo $U['loginfails']. "&nbsp;" . $I['failednotice']. "<br>";
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
@@ -2672,7 +2672,7 @@ function check_member(string $password) : bool {
 			return true;
 		}else{
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
-			$stmt->execute([$U['loginfails']+1, $temp['nickname']]);
+			$stmt->execute([$temp['loginfails']+1, $temp['nickname']]);
 			send_error("$I[regednick]<br>$I[wrongpass]");
 		}
 	}
