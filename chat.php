@@ -4353,6 +4353,7 @@ function load_lang(){
 		'de'	=>'Deutsch',
 		'en'	=>'English',
 		'es'	=>'Español',
+		'fi'	=>'Suomi',
 		'fr'	=>'Français',
 		'id'	=>'Bahasa Indonesia',
 		'it'	=>'Italiano',

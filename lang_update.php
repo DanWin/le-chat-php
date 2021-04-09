@@ -1,7 +1,7 @@
 <?php
-$native = 'Español (España)'; // Native lanugae name
-$english = 'Spanish (ES)'; // Enlish language name
-$code = 'es_ES'; // Language code
+$native = 'suomi (Suomi)'; // Native lanugae name
+$english = 'Suomi (FI)'; // Enlish language name
+$code = 'fi_FI'; // Language code
 
 ob_start();
 $file = "<?php
