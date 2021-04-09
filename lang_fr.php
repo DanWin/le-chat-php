@@ -53,7 +53,9 @@ $T=[
 	'globalloginpass' => 'Mot de passe global:',
 	'login' => 'Connexion',
 	'dbupdate' => 'Base de données installée!',
+	'sysmessage' => 'message du système',
 	'sysmessages' => 'Messages du système',
+	'sysmessagetxt' => 'Ce texte précède les messages du système.',
 	'msgenter' => 'Entrer',
 	'msgexit' => 'Quitter',
 	'msgmemreg' => 'Membre enregisté',
@@ -267,6 +269,7 @@ $T=[
 	'trackip' => 'Voir la session-IP',
 	'captchachars' => 'Charactères utilisés dans le Captcha',
 	'memkick' => 'Membres peuvent expulsés, si le modérateur est absent',
+	'memkickalways' => 'Membres peuvent toujours expulser',
 	'forceredirect' => 'Forcer la redirection',
 	'redirect' => 'Personnalisation du script de redirection',
 	'backuprestore' => 'Sauvegarder et récupérer',
@@ -308,5 +311,6 @@ $T=[
 	'newnickname' => 'Nouveau Pseudo:',
 	'nicknametaken' => 'Pseudo déjà pris',
 	'nopass' => 'Mot de passe invalide (au moins % caractères), ne pas changer le pseudo',
+	'namedoers'  => 'Montrez qui expulse les gens ou nettoie tous les messages.',
 ];
 

@@ -53,7 +53,9 @@ $T=[
 	'globalloginpass' => 'Sandi global:',
 	'login' => 'Masuk',
 	'dbupdate' => 'Basisdata berhasil diperbarui!',
+	'sysmessage' => 'pesan dari sistem',
 	'sysmessages' => 'Sistem perpesanan',
+	'sysmessagetxt' => 'Teks ini mendahului pesan dari sistem.',
 	'msgenter' => 'Memasuki',
 	'msgexit' => 'Meninggalkan',
 	'msgmemreg' => 'Anggota terdaftar',
@@ -267,6 +269,7 @@ $T=[
 	'trackip' => 'Tunjukkan sesi-IP',
 	'captchachars' => 'Karakter yang digunakan dalam Captcha',
 	'memkick' => 'Anggota dapat mengusir, jika tak ada moderator',
+	'memkickalways' => 'Anggota selalu dapat mengusir',
 	'forceredirect' => 'Paksa pengalihan',
 	'redirect' => 'Skrip pengalihan kustom',
 	'backuprestore' => 'Cadang dan pulihkan',
@@ -307,6 +310,7 @@ $T=[
 	'loggedinas' => 'Anda masuk sebagai %s dan tak dapat mengakses bagian ini.',
 	'newnickname' => 'Nama baru:',
 	'nicknametaken' => 'Nama sudah ada',
-	'nopass' => 'Kata sandi salah (Minimal %d karakter), tak merubah nama'
+	'nopass' => 'Kata sandi salah (Minimal %d karakter), tak merubah nama',
+	'namedoers' => 'Memperlihatkan siapa yang mengusir orang atau membersihkan semua pesan.'
 ];
 

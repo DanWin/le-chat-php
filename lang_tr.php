@@ -55,7 +55,9 @@ $T=[
 	'globalloginpass' => 'Global şifre:',
 	'login' => 'Giriş',
 	'dbupdate' => 'Veritabanı başarıyla güncellendi!',
+	'sysmessage' => 'Sistem ileti',
 	'sysmessages' => 'Sistem iletileri',
+	'sysmessagetxt' => 'Bu metin, sistemden gelen iletilerden önce gelir.',
 	'msgenter' => 'Giriş',
 	'msgexit' => 'Ayrılınıyor',
 	'msgmemreg' => 'Üye kaydedildi',
@@ -271,6 +273,7 @@ $T=[
 	'trackip' => 'Oturum IP\'sini göster',
 	'captchachars' => 'Captcha\'da kullanılan harfler',
 	'memkick' => 'Eğer herhangi bir moderatör yoksa, üyeler birini atabilir',
+	'memkickalways' => 'Üyeler her zaman birini atabilir',
 	'forceredirect' => 'Yönlendirmeye zorla',
 	'redirect' => 'Özel yönlendirme script\'i',
 	'backuprestore' => 'Yedekle ve onar',
@@ -370,6 +373,7 @@ $T=[
 	'personalnotes' => 'Kişisel notlar',
 	'publicnotes' => 'Kamu profiller',
 	'filtermodkick' => 'Moderatörler için atma filtresini etkinleştir',
+	'namedoers' => 'İnsanları kimin dışarı attığını veya tüm iletileri kimin temizlediğini gösterin.',
 ];
 
 
