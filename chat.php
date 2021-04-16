@@ -4381,6 +4381,7 @@ function load_lang(){
 		'tr'	=>'Türkçe',
 		'uk'	=>'Українська',
 		'zh-Hans'	=>'简体中文',
+		'zh-Hant'	=>'正體中文',
 	];
 	if(isset($_REQUEST['lang']) && isset($L[$_REQUEST['lang']])){
 		$language=$_REQUEST['lang'];
