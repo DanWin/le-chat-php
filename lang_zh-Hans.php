@@ -47,7 +47,7 @@ $T=[
 	'msgmultikick' => '批量踢出',
 	'msgallkick' => '全部踢出',
 	'msgclean' => '房间清理',
-	'dateformat' => '<a target="_blank" href="http://php.net/manual/en/function.date.php#refsect1-function.date-parameters">日期格式</a>', 
+	'dateformat' => '<a target="_blank" href="http://php.net/manual/zh/function.date.php#refsect1-function.date-parameters">日期格式</a>', 
 	'admfunc' => '管理员功能',
 	'allguests' => '全部游客',
 	'cleanmsgs' => '清理消息',
