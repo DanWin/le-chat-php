@@ -2247,6 +2247,12 @@ function send_fatal_error(string $err){
 function print_notifications(){
 	global $I, $U, $db;
 	echo '<span id="notifications">';
+	$stmt=$db->prepare('SELECT loginfails FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$U['nickname']]);
+	$temp=$stmt->fetch(PDO::FETCH_NUM);
+	if($temp[0]>0){
+		echo '<p align="middle">' . $temp[0] . "&nbsp;" . $I['failednotice'] . "</p>";
+	}
 	if($U['status']>=2 && $U['eninbox']!=0){
 		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'inbox WHERE recipient=?;');
 		$stmt->execute([$U['nickname']]);
@@ -2440,9 +2446,12 @@ function write_new_session(string $password){
 
 function show_fails() {
 	global $db, $I, $U;
-	if(isset($U['loginfails']) && $U['loginfails'] > 0){
+	$stmt=$db->prepare('SELECT loginfails FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$U['nickname']]);
+	$temp=$stmt->fetch(PDO::FETCH_NUM);
+	if($temp[0]>0){
 		print_start('failednotice');
-		echo $U['loginfails']. "&nbsp;" . $I['failednotice']. "<br>";
+		echo $temp[0] . "&nbsp;" . $I['failednotice'] . "<br>";
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
 		$stmt->execute([0, $U['nickname']]);
 		echo form_target('_self', 'login').submit($I['dismiss']).'</form></td>';
