@@ -64,7 +64,7 @@ $T=[
 	'msgmultikick' => 'Multiples éjections',
 	'msgallkick' => 'Éjection globale',
 	'msgclean' => 'Messages nettoyés',
-	'dateformat' => '<a target="_blank" href="http://php.net/manual/en/function.date.php#refsect1-function.date-parameters">Format de date</a>',
+	'dateformat' => '<a target="_blank" href="http://php.net/manual/fr/function.date.php#refsect1-function.date-parameters">Format de date</a>',
 	'admfunc' => 'Fonctions d\'administration',
 	'allguests' => 'Tous les invités',
 	'cleanmsgs' => 'Messages nettoyés',
