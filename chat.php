@@ -4305,6 +4305,7 @@ function check_db(){
 				send_fatal_error($I['pdo_sqliteextrequired']);
 			}
 			$db=new PDO('sqlite:' . SQLITEDBFILE, NULL, NULL, $options);
+			$db->exec('PRAGMA foreign_keys = ON;');
 		}
 	}catch(PDOException $e){
 		try{
