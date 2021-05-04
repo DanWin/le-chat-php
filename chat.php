@@ -2947,6 +2947,12 @@ function set_new_nickname() : string {
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return $I['nicknametaken'];
 	}else{
+		// Make sure members can not read private messages of previous guests with the same name
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET poster = "" WHERE poster = ? AND poststatus = 9;');
+		$stmt->execute([$_POST['newnickname']]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET recipient = "" WHERE recipient = ? AND poststatus = 9;');
+		$stmt->execute([$_POST['newnickname']]);
+		// change names in all tables
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET nickname=? WHERE nickname=?;');
 		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET nickname=? WHERE nickname=?;');
@@ -4305,6 +4311,7 @@ function check_db(){
 				send_fatal_error($I['pdo_sqliteextrequired']);
 			}
 			$db=new PDO('sqlite:' . SQLITEDBFILE, NULL, NULL, $options);
+			$db->exec('PRAGMA foreign_keys = ON;');
 		}
 	}catch(PDOException $e){
 		try{
