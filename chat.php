@@ -1790,7 +1790,7 @@ function send_post(string $rejected=''){
 		$_REQUEST['sendto']='';
 	}
 	echo '<table><tr><td>'.form('post');
-	echo hidden('postid', substr(time(), -6));
+	echo hidden('postid', $U['postid']);
 	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
@@ -2344,6 +2344,11 @@ function create_session(bool $setup, string $nickname, string $password){
 			send_error($I['wrongglobalpass']);
 		}
 	}
+	try {
+		$U[ 'postid' ] = bin2hex( random_bytes( 3 ) );
+	} catch(Exception $e) {
+		send_error($e->getMessage());
+	}
 	write_new_session($password);
 }
 
@@ -2434,8 +2439,8 @@ function write_new_session(string $password){
 		}else{
 			$ip='';
 		}
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, useragent, bgcolour, entry, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
-		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old']]);
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, useragent, bgcolour, entry, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old, postid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
+		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old'], $U['postid']]);
 		$session = $U['session'];
 		set_secure_cookie(COOKIENAME, $U['session']);
 		if($U['status']>=3 && !$U['incognito']){
@@ -3017,9 +3022,7 @@ function validate_input() : string {
 	if(!isset($_POST['postid'])){ // auto-kick spammers not setting a postid
 		kick_chatter([$U['nickname']], '', false);
 	}
-	if($U['postid']===$_POST['postid']){ // ignore double post=reload from browser or proxy
-		$message='';
-	}elseif((time()-$U['lastpost'])<=1){ // time between posts too short, reject!
+	if($U['postid'] !== $_POST['postid'] || (time() - $U['lastpost']) <= 1){ // reject bogus messages
 		$rejected=$_POST['message'];
 		$message='';
 	}
@@ -3052,6 +3055,8 @@ function validate_input() : string {
 	}elseif($_POST['sendto']==='s _' && $U['status']>=6){
 		$poststatus=6;
 		$displaysend=sprintf(get_setting('msgsendadm'), style_this(htmlspecialchars($U['nickname']), $U['style']));
+	}elseif($_POST['sendto'] === $U['nickname']){ // message to yourself?
+		return '';
 	}else{ // known nick in room?
 		if(get_setting('disablepm')){
 			//PMs disabled
@@ -3094,8 +3099,13 @@ function validate_input() : string {
 	}
 	if(add_message($message, $recipient, $U['nickname'], (int) $U['status'], $poststatus, $displaysend, $U['style'])){
 		$U['lastpost']=time();
+		try {
+			$U[ 'postid' ] = bin2hex( random_bytes( 3 ) );
+		} catch(Exception $e) {
+			$U['postid'] = substr(time(), -6);
+		}
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, postid=? WHERE session=?;');
-		$stmt->execute([$U['lastpost'], $_POST['postid'], $U['session']]);
+		$stmt->execute([$U['lastpost'], $U['postid'], $U['session']]);
 		$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poster=? ORDER BY id DESC LIMIT 1;');
 		$stmt->execute([$U['nickname']]);
 		$id=$stmt->fetch(PDO::FETCH_NUM);
