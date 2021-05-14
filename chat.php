@@ -3471,13 +3471,18 @@ function prepare_message_print(array &$message, bool $removeEmbed){
 // this and that
 
 function send_headers(){
-	global $styles;
+	global $U, $styles;
 	header('Content-Type: text/html; charset=UTF-8');
 	header('Pragma: no-cache');
 	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private');
 	header('Expires: 0');
 	header('Referrer-Policy: no-referrer');
 	header("Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), sync-script=(), vertical-scroll=(), serial=(), trust-token-redemption=()");
+	if(!get_setting('imgembed') || !($U['embed'] ?? false)){
+		header("Cross-Origin-Embedder-Policy: require-corp");
+	}
+	header("Cross-Origin-Opener-Policy: same-origin");
+	header("Cross-Origin-Resource-Policy: same-origin");
 	$style_hashes = '';
 	foreach($styles as $style) {
 		$style_hashes .= " 'sha256-".base64_encode(hash('sha256', $style, true))."'";
@@ -4276,11 +4281,11 @@ function update_db(){
 	send_update($msg);
 }
 
-function get_setting(string $setting) {
+function get_setting(string $setting) : string {
 	global $db, $memcached;
 	$value = '';
-	if(!MEMCACHED || !$value=$memcached->get(DBNAME . '-' . PREFIX . "settings-$setting")){
-		$stmt=$db->prepare('SELECT value FROM ' . PREFIX . 'settings WHERE setting=?;');
+	if($db instanceof PDO && ( !MEMCACHED || ! ($value = $memcached->get(DBNAME . '-' . PREFIX . "settings-$setting") ) ) ){
+		$stmt = $db->prepare('SELECT value FROM ' . PREFIX . 'settings WHERE setting=?;');
 		$stmt->execute([$setting]);
 		$stmt->bindColumn(1, $value);
 		$stmt->fetch(PDO::FETCH_BOUND);
