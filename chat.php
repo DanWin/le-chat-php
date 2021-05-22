@@ -3654,9 +3654,14 @@ function style_this(string $text, string $styleinfo) : string {
 	return "<span style=\"$styleinfo\">$text</span>";
 }
 
-function check_init(){
+function check_init() : bool {
 	global $db;
-	return @$db->query('SELECT null FROM ' . PREFIX . 'settings LIMIT 1;');
+	try {
+		$db->query( 'SELECT null FROM ' . PREFIX . 'settings LIMIT 1;' );
+	} catch (Exception $e){
+		return false;
+	}
+	return true;
 }
 
 // run every minute doing various database cleanup task
@@ -4313,7 +4318,7 @@ function update_setting(string $setting, $value){
 
 function check_db(){
 	global $I, $db, $memcached;
-	$options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>PERSISTENT];
+	$options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_PERSISTENT=>PERSISTENT];
 	try{
 		if(DBDRIVER===0){
 			if(!extension_loaded('pdo_mysql')){
