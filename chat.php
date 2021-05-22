@@ -4285,12 +4285,16 @@ function get_setting(string $setting) : string {
 	global $db, $memcached;
 	$value = '';
 	if($db instanceof PDO && ( !MEMCACHED || ! ($value = $memcached->get(DBNAME . '-' . PREFIX . "settings-$setting") ) ) ){
-		$stmt = $db->prepare('SELECT value FROM ' . PREFIX . 'settings WHERE setting=?;');
-		$stmt->execute([$setting]);
-		$stmt->bindColumn(1, $value);
-		$stmt->fetch(PDO::FETCH_BOUND);
-		if(MEMCACHED){
-			$memcached->set(DBNAME . '-' . PREFIX . "settings-$setting", $value);
+		try {
+			$stmt = $db->prepare( 'SELECT value FROM ' . PREFIX . 'settings WHERE setting=?;' );
+			$stmt->execute( [ $setting ] );
+			$stmt->bindColumn( 1, $value );
+			$stmt->fetch( PDO::FETCH_BOUND );
+			if ( MEMCACHED ) {
+				$memcached->set( DBNAME . '-' . PREFIX . "settings-$setting", $value );
+			}
+		} catch (Exception $e){
+			return '';
 		}
 	}
 	return $value;
