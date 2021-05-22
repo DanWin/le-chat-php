@@ -2454,7 +2454,7 @@ function show_fails() {
 	$stmt=$db->prepare('SELECT loginfails FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	$temp=$stmt->fetch(PDO::FETCH_NUM);
-	if($temp[0]>0){
+	if($temp && $temp[0]>0){
 		print_start('failednotice');
 		echo $temp[0] . "&nbsp;" . $I['failednotice'] . "<br>";
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
