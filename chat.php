@@ -3698,7 +3698,25 @@ function cron(){
 	}
 	// delete old notes
 	$limit=get_setting('numnotes');
-	$db->exec('DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND type!=3 AND id NOT IN (SELECT * FROM ( (SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit) UNION (SELECT id FROM " . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit) ) AS t);");
+	$to_keep = [];
+	$stmt = $db->query('SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit;");
+	while($tmp = $stmt->fetch(PDO::FETCH_ASSOC)){
+		$to_keep []= $tmp['id'];
+	}
+	$stmt = $db->query('SELECT id FROM ' . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit;");
+	while($tmp = $stmt->fetch(PDO::FETCH_ASSOC)){
+		$to_keep []= $tmp['id'];
+	}
+	$query = 'DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND type!=3';
+	if(!empty($to_keep)){
+		$query .= ' AND id NOT IN (';
+		for($i = count($to_keep); $i > 1; --$i){
+			$query .= '?, ';
+		}
+		$query .= '?)';
+	}
+	$stmt = $db->prepare($query);
+	$stmt->execute($to_keep);
 	$result=$db->query('SELECT editedby, COUNT(*) AS cnt FROM ' . PREFIX . "notes WHERE type=2 GROUP BY editedby HAVING cnt>$limit;");
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby=? AND id NOT IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "notes WHERE (type=2 OR type=3) AND editedby=? ORDER BY id DESC LIMIT $limit) AS t);");
 	while($tmp=$result->fetch(PDO::FETCH_NUM)){
