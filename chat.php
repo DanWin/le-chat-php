@@ -2250,7 +2250,7 @@ function print_notifications(){
 	$stmt=$db->prepare('SELECT loginfails FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	$temp=$stmt->fetch(PDO::FETCH_NUM);
-	if($temp[0]>0){
+	if($temp && $temp[0]>0){
 		echo '<p align="middle">' . $temp[0] . "&nbsp;" . $I['failednotice'] . "</p>";
 	}
 	if($U['status']>=2 && $U['eninbox']!=0){
@@ -2454,7 +2454,7 @@ function show_fails() {
 	$stmt=$db->prepare('SELECT loginfails FROM ' . PREFIX . 'members WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	$temp=$stmt->fetch(PDO::FETCH_NUM);
-	if($temp[0]>0){
+	if($temp && $temp[0]>0){
 		print_start('failednotice');
 		echo $temp[0] . "&nbsp;" . $I['failednotice'] . "<br>";
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
@@ -3654,9 +3654,14 @@ function style_this(string $text, string $styleinfo) : string {
 	return "<span style=\"$styleinfo\">$text</span>";
 }
 
-function check_init(){
+function check_init() : bool {
 	global $db;
-	return @$db->query('SELECT null FROM ' . PREFIX . 'settings LIMIT 1;');
+	try {
+		$db->query( 'SELECT null FROM ' . PREFIX . 'settings LIMIT 1;' );
+	} catch (Exception $e){
+		return false;
+	}
+	return true;
 }
 
 // run every minute doing various database cleanup task
@@ -3693,7 +3698,25 @@ function cron(){
 	}
 	// delete old notes
 	$limit=get_setting('numnotes');
-	$db->exec('DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND type!=3 AND id NOT IN (SELECT * FROM ( (SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit) UNION (SELECT id FROM " . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit) ) AS t);");
+	$to_keep = [];
+	$stmt = $db->query('SELECT id FROM ' . PREFIX . "notes WHERE type=0 ORDER BY id DESC LIMIT $limit;");
+	while($tmp = $stmt->fetch(PDO::FETCH_ASSOC)){
+		$to_keep []= $tmp['id'];
+	}
+	$stmt = $db->query('SELECT id FROM ' . PREFIX . "notes WHERE type=1 ORDER BY id DESC LIMIT $limit;");
+	while($tmp = $stmt->fetch(PDO::FETCH_ASSOC)){
+		$to_keep []= $tmp['id'];
+	}
+	$query = 'DELETE FROM ' . PREFIX . 'notes WHERE type!=2 AND type!=3';
+	if(!empty($to_keep)){
+		$query .= ' AND id NOT IN (';
+		for($i = count($to_keep); $i > 1; --$i){
+			$query .= '?, ';
+		}
+		$query .= '?)';
+	}
+	$stmt = $db->prepare($query);
+	$stmt->execute($to_keep);
 	$result=$db->query('SELECT editedby, COUNT(*) AS cnt FROM ' . PREFIX . "notes WHERE type=2 GROUP BY editedby HAVING cnt>$limit;");
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby=? AND id NOT IN (SELECT * FROM (SELECT id FROM ' . PREFIX . "notes WHERE (type=2 OR type=3) AND editedby=? ORDER BY id DESC LIMIT $limit) AS t);");
 	while($tmp=$result->fetch(PDO::FETCH_NUM)){
@@ -3779,12 +3802,11 @@ function init_chat(){
 		$db->exec('CREATE TABLE ' . PREFIX . "ignored (id $primary, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
-		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash varchar(255) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, loginfails integer unsigned NOT NULL DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, FOREIGN KEY (recipient) REFERENCES " . PREFIX . "members(nickname) ON DELETE CASCADE ON UPDATE CASCADE)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
 		$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash varchar(255) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, loginfails integer unsigned NOT NULL DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$diskengine$charset;");
-		$db->exec('ALTER TABLE ' . PREFIX . 'inbox ADD FOREIGN KEY (recipient) REFERENCES ' . PREFIX . 'members(nickname) ON DELETE CASCADE ON UPDATE CASCADE;');
 		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
@@ -4285,12 +4307,16 @@ function get_setting(string $setting) : string {
 	global $db, $memcached;
 	$value = '';
 	if($db instanceof PDO && ( !MEMCACHED || ! ($value = $memcached->get(DBNAME . '-' . PREFIX . "settings-$setting") ) ) ){
-		$stmt = $db->prepare('SELECT value FROM ' . PREFIX . 'settings WHERE setting=?;');
-		$stmt->execute([$setting]);
-		$stmt->bindColumn(1, $value);
-		$stmt->fetch(PDO::FETCH_BOUND);
-		if(MEMCACHED){
-			$memcached->set(DBNAME . '-' . PREFIX . "settings-$setting", $value);
+		try {
+			$stmt = $db->prepare( 'SELECT value FROM ' . PREFIX . 'settings WHERE setting=?;' );
+			$stmt->execute( [ $setting ] );
+			$stmt->bindColumn( 1, $value );
+			$stmt->fetch( PDO::FETCH_BOUND );
+			if ( MEMCACHED ) {
+				$memcached->set( DBNAME . '-' . PREFIX . "settings-$setting", $value );
+			}
+		} catch (Exception $e){
+			return '';
 		}
 	}
 	return $value;
@@ -4309,7 +4335,7 @@ function update_setting(string $setting, $value){
 
 function check_db(){
 	global $I, $db, $memcached;
-	$options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_WARNING, PDO::ATTR_PERSISTENT=>PERSISTENT];
+	$options=[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_PERSISTENT=>PERSISTENT];
 	try{
 		if(DBDRIVER===0){
 			if(!extension_loaded('pdo_mysql')){
