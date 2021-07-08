@@ -4420,6 +4420,7 @@ function load_fonts() : array {
 function load_lang(){
 	global $I, $L, $language;
 	$L=[
+		'ar'	=>'العربية',
 		'bg'	=>'Български',
 		'cs'	=>'čeština',
 		'de'	=>'Deutsch',
