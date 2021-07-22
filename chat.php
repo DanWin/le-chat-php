@@ -1459,15 +1459,12 @@ function send_frameset(){
 	if(isset($_POST['sort'])){
 		if($_POST['sort']==1){
 			$U['sortupdown']=1;
-			$tmp=$U['nocache'];
-			$U['nocache']=$U['nocache_old'];
-			$U['nocache_old']=$tmp;
 		}else{
 			$U['sortupdown']=0;
-			$tmp=$U['nocache'];
-			$U['nocache']=$U['nocache_old'];
-			$U['nocache_old']=$tmp;
 		}
+		$tmp=$U['nocache'];
+		$U['nocache']=$U['nocache_old'];
+		$U['nocache_old']=$tmp;
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET sortupdown=?, nocache=?, nocache_old=? WHERE nickname=?;');
 		$stmt->execute([$U['sortupdown'], $U['nocache'], $U['nocache_old'], $U['nickname']]);
 		if($U['status']>1){
@@ -3294,7 +3291,6 @@ function add_message(string $message, string $recipient, string $poster, int $de
 }
 
 function add_system_message(string $mes, string $doer){
-	global $I;
 	if($mes===''){
 		return;
 	}
@@ -3477,7 +3473,7 @@ function send_headers(){
 	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private');
 	header('Expires: 0');
 	header('Referrer-Policy: no-referrer');
-	header("Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), sync-script=(), vertical-scroll=(), serial=(), trust-token-redemption=(), interest-cohort=()");
+	header("Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=(), clipboard-read=(), clipboard-write=(), gamepad=(), speaker-selection=(), conversion-measurement=(), focus-without-user-activation=(), hid=(), idle-detection=(), sync-script=(), vertical-scroll=(), serial=(), trust-token-redemption=(), interest-cohort=(), otp-credentials=()");
 	if(!get_setting('imgembed') || !($U['embed'] ?? false)){
 		header("Cross-Origin-Embedder-Policy: require-corp");
 	}
@@ -4424,6 +4420,7 @@ function load_fonts() : array {
 function load_lang(){
 	global $I, $L, $language;
 	$L=[
+		'ar'	=>'العربية',
 		'bg'	=>'Български',
 		'cs'	=>'čeština',
 		'de'	=>'Deutsch',
