@@ -1,6 +1,6 @@
 <?php
 /*
-* LE CHAT-PHP - a PHP Chat based on LE CHAT - English translation
+* LE CHAT-PHP - a PHP Chat based on LE CHAT - Suomi (FI) translation
 *
 * Copyright (C) 2015-2020 Daniel Winzen <daniel@danwin1210.me>
 *
@@ -18,7 +18,7 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Native language name: English
+//Native language name: suomi (Suomi)
 $T=[
 	'nodb' => 'Ei tietokantayhteyttä!',
 	'nodbsetup' => 'Tietokantaa ei ole asetettu, luo se ja yhdistä skripti siihen.',
@@ -55,7 +55,9 @@ $T=[
 	'globalloginpass' => 'Yleinen salasana:',
 	'login' => 'Kirjaudu',
 	'dbupdate' => 'Tietokanta päivitetty onnistuneesti!',
+	'sysmessage' => 'system message',
 	'sysmessages' => 'Järjestelmäviestit',
+	'sysmessagetxt' => 'Prepend this text to system messages',
 	'msgenter' => 'Liittyi',
 	'msgexit' => 'Poistui',
 	'msgmemreg' => 'Käyttäjä luotu',
@@ -271,6 +273,7 @@ $T=[
 	'trackip' => 'Näytä istunnon IP',
 	'captchachars' => 'Captchan merkit',
 	'memkick' => 'Jäsenet voivat heittää ulos, jos moderaattori ei ole paikalla',
+	'memkickalways' => 'Members can always kick',
 	'forceredirect' => 'Pakota uudelleenohjaus',
 	'redirect' => 'Oma uudelleenohjausskripti',
 	'backuprestore' => 'Varmuuskopioi ja palauta',
@@ -370,6 +373,7 @@ $T=[
 	'personalnotes' => 'Henkilökohtaiset muistiinpanot',
 	'publicnotes' => 'Julkiset muistiinpanot',
 	'filtermodkick' => 'Käytä ulosheittosuodatinta moderaattoreihin',
+	'namedoers' => 'Show who kicks people or purges all messages.',
 	'forgotlogin' => 'Unohditko tunnukset?',
 	'resetinstruction' => 'Muokkaa skriptiä ja lisää tämä loppuun, muuta salasana ja päivitä tämä sivu: define(\'RESET_SUPERADMIN_PASSWORD\', \'changeme\');',
 	'resetpassword' => 'Nollaa salasana',
