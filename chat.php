@@ -1006,7 +1006,7 @@ function send_admin(string $arg){
 	echo "$I[room]</label></td><td>&nbsp;</td><td><label><input type=\"radio\" name=\"what\" id=\"choose\" value=\"choose\" checked>";
 	echo "$I[selection]</label></td><td>&nbsp;</td></tr><tr><td colspan=\"3\"><label><input type=\"radio\" name=\"what\" id=\"nick\" value=\"nick\">";
 	echo "$I[cleannick]</label> <select name=\"nickname\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . "messages WHERE delstatus<? AND poster!='' GROUP BY poster;");
+	$stmt=$db->prepare('SELECT DISTINCT poster FROM ' . PREFIX . "messages WHERE delstatus<? AND poster!='';");
 	$stmt->execute([$U['status']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0]).'">'.htmlspecialchars($nick[0]).'</option>';
@@ -1957,7 +1957,7 @@ function send_profile(string $arg=''){
 	}
 	echo "<tr><td><table id=\"ignore\"><tr><th>$I[ignore]</th><td>";
 	echo "<select name=\"ignore\" size=\"1\"><option value=\"\">$I[choose]</option>";
-	$stmt=$db->prepare('SELECT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' . PREFIX . 'messages.poster=t.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) GROUP BY poster ORDER BY LOWER(poster);');
+	$stmt=$db->prepare('SELECT DISTINCT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' . PREFIX . 'messages.poster=t.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ORDER BY LOWER(poster);');
 	$stmt->execute([$U['nickname'], $U['nickname']]);
 	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
 		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
