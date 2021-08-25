@@ -1917,19 +1917,18 @@ function send_help(){
 }
 
 function view_publicnotes(){
-        global $I, $db;
-	$dateformat=get_setting('dateformat');
+	global $I, $db;
+	$dateformat = get_setting('dateformat');
 	print_start('publicnotes');
 	echo "<h2>$I[publicnotes]</h2><p>";
-	// SQL adapted from AdamMc331 https://stackoverflow.com/questions/27991484/using-max-within-inner-join-sql
-	$query=$db->query('SELECT pubs.* FROM notes pubs JOIN (SELECT lastedited,editedby,text,MAX(id) AS latest FROM notes WHERE type=3 GROUP BY editedby) t ON t.editedby = pubs.editedby AND t.latest = pubs.id;');
-	while($result=$query->fetch(PDO::FETCH_OBJ)){
-		if ($result->text <> "") {
-			print '<hr/>';
+	$query = $db->query('SELECT notes.lastedited, notes.editedby, notes.text FROM ' . PREFIX . 'notes INNER JOIN (SELECT MAX(id) AS latest FROM notes WHERE type=3 GROUP BY editedby) AS t ON t.latest = notes.id;');
+	while($result = $query->fetch(PDO::FETCH_OBJ)){
+		if (!empty($result->text)) {
+			echo '<hr>';
 			printf($I['lastedited'], htmlspecialchars($result->editedby), date($dateformat, $result->lastedited));
-			print '<br/>';
-			print '<textarea cols="80" rows="9" readonly="true">'.$result->text.'</textarea>';
-			print '<br/>';
+			echo '<br>';
+			echo '<textarea cols="80" rows="9" readonly="true">' . htmlspecialchars($result->text) . '</textarea>';
+			echo '<br>';
 		}
 	}
 	print_end();
@@ -2795,6 +2794,10 @@ function change_status(string $nick, string $status) : string {
 		$stmt->execute([$nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute([$nick]);
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
+		$stmt->execute([$U['nickname']]);
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby=?;');
+		$stmt->execute([$U['nickname']]);
 		return sprintf($I['succdel'], style_this(htmlspecialchars($nick), $old[1]));
 	}else{
 		if($status<5){
@@ -3723,6 +3726,9 @@ function cron(){
 	// delete old captchas
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'captcha WHERE time<(?-(SELECT value FROM ' . PREFIX . "settings WHERE setting='captchatime'));");
 	$stmt->execute([$time]);
+	// delete member associated data of deleted accounts
+	$db->query('DELETE FROM ' . PREFIX . 'inbox WHERE recipient NOT IN (SELECT nickname FROM ' . PREFIX . 'members);');
+	$db->query('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby NOT IN (SELECT nickname FROM ' . PREFIX . 'members);');
 }
 
 function destroy_chat(array $C){
