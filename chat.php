@@ -1924,6 +1924,13 @@ function view_publicnotes(){
 	$query = $db->query('SELECT notes.lastedited, notes.editedby, notes.text FROM ' . PREFIX . 'notes INNER JOIN (SELECT MAX(id) AS latest FROM notes WHERE type=3 GROUP BY editedby) AS t ON t.latest = notes.id;');
 	while($result = $query->fetch(PDO::FETCH_OBJ)){
 		if (!empty($result->text)) {
+			if(MSGENCRYPTED){
+				try {
+					$result->text = sodium_crypto_aead_aes256gcm_decrypt(base64_decode($result->text), null, AES_IV, ENCRYPTKEY);
+				} catch (SodiumException $e){
+					send_error($e->getMessage());
+				}
+			}
 			echo '<hr>';
 			printf($I['lastedited'], htmlspecialchars($result->editedby), date($dateformat, $result->lastedited));
 			echo '<br>';
