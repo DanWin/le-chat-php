@@ -2802,9 +2802,9 @@ function change_status(string $nick, string $status) : string {
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute([$nick]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE recipient=?;');
-		$stmt->execute([$U['nickname']]);
+		$stmt->execute([$nick]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby=?;');
-		$stmt->execute([$U['nickname']]);
+		$stmt->execute([$nick]);
 		return sprintf($I['succdel'], style_this(htmlspecialchars($nick), $old[1]));
 	}else{
 		if($status<5){
