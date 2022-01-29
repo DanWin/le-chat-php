@@ -1921,7 +1921,7 @@ function view_publicnotes(){
 	$dateformat = get_setting('dateformat');
 	print_start('publicnotes');
 	echo "<h2>$I[publicnotes]</h2><p>";
-	$query = $db->query('SELECT notes.lastedited, notes.editedby, notes.text FROM ' . PREFIX . 'notes INNER JOIN (SELECT MAX(id) AS latest FROM notes WHERE type=3 GROUP BY editedby) AS t ON t.latest = notes.id;');
+	$query = $db->query('SELECT lastedited, editedby, text FROM ' . PREFIX . 'notes INNER JOIN (SELECT MAX(id) AS latest FROM ' . PREFIX . 'notes WHERE type=3 GROUP BY editedby) AS t ON t.latest = id;');
 	while($result = $query->fetch(PDO::FETCH_OBJ)){
 		if (!empty($result->text)) {
 			if(MSGENCRYPTED){
