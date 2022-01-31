@@ -2289,7 +2289,7 @@ function print_chatters(){
 		$channellink="<a style=\"text-decoration:underline\" href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
 		$nicklink="<a style=\"text-decoration:none\" href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
 		while($user=$stmt->fetch(PDO::FETCH_NUM)){
-			$link=$nicklink.htmlspecialchars($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
+			$link=$nicklink.urlencode($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
 			if($user[2]<3){ // guest or superguest
 				$G[]=$link;
 			} elseif($user[2]>=7){ // admin or superadmin
