@@ -2311,11 +2311,11 @@ function print_chatters(){
 				echo "<th><br/>$I[staff]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $S).'</td>';
 		}
 		if($U['status']>=3){ // can chat in member channel
-			echo '<th>' . $channellink . 's ?" target="post"><br/>' . $I['members'] . ':</a></th><td>&nbsp;</td><td class=\"chattername\">'.implode(' &nbsp; ', $M).'</td>';
+			echo '<th>' . $channellink . 's ?" target="post"><br/>' . $I['members'] . ':</a></th><td>&nbsp;</td><td class="chattername">'.implode(' &nbsp; ', $M).'</td>';
 		} else {
 			echo "<th><br/>$I[members]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $M).'</td>';
 		}
-		echo '<th>' . $channellink . 's *" target="post"><br/>' . $I['guests'] . ':</a></th><td>&nbsp;</td><td class=\"chattername\">'.implode(' &nbsp; ', $G).'</td>';
+		echo '<th>' . $channellink . 's *" target="post"><br/>' . $I['guests'] . ':</a></th><td>&nbsp;</td><td class="chattername">'.implode(' &nbsp; ', $G).'</td>';
 		echo '</tr></table></div>';
 	}
 }
