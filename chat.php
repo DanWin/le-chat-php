@@ -305,12 +305,12 @@ function prepare_stylesheets(bool $init = false){
 function print_stylesheet(bool $init = false){
 	global $styles;
 	//default css
-	echo "<style type=\"text/css\">$styles[default]</style>";
+	echo "<style>$styles[default]</style>";
 	if($init){
 		return;
 	}
 	//overwrite with custom css
-	echo "<style type=\"text/css\">$styles[custom]</style>";
+	echo "<style>$styles[custom]</style>";
 }
 
 function print_end(){
@@ -2243,7 +2243,7 @@ function send_fatal_error(string $err){
 	send_headers();
 	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
 	echo "<title>$I[fatalerror]</title>";
-	echo "<style type=\"text/css\">$styles[fatal_error]</style>";
+	echo "<style>$styles[fatal_error]</style>";
 	echo '</head><body>';
 	echo "<h2>$I[fatalerror]: $err</h2>";
 	print_end();
