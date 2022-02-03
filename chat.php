@@ -305,12 +305,12 @@ function prepare_stylesheets(bool $init = false){
 function print_stylesheet(bool $init = false){
 	global $styles;
 	//default css
-	echo "<style type=\"text/css\">$styles[default]</style>";
+	echo "<style>$styles[default]</style>";
 	if($init){
 		return;
 	}
 	//overwrite with custom css
-	echo "<style type=\"text/css\">$styles[custom]</style>";
+	echo "<style>$styles[custom]</style>";
 }
 
 function print_end(){
@@ -2243,7 +2243,7 @@ function send_fatal_error(string $err){
 	send_headers();
 	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
 	echo "<title>$I[fatalerror]</title>";
-	echo "<style type=\"text/css\">$styles[fatal_error]</style>";
+	echo "<style>$styles[fatal_error]</style>";
 	echo '</head><body>';
 	echo "<h2>$I[fatalerror]: $err</h2>";
 	print_end();
@@ -2289,7 +2289,7 @@ function print_chatters(){
 		$channellink="<a style=\"text-decoration:underline\" href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
 		$nicklink="<a style=\"text-decoration:none\" href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
 		while($user=$stmt->fetch(PDO::FETCH_NUM)){
-			$link=$nicklink.htmlspecialchars($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
+			$link=$nicklink.urlencode($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
 			if($user[2]<3){ // guest or superguest
 				$G[]=$link;
 			} elseif($user[2]>=7){ // admin or superadmin
@@ -2311,11 +2311,11 @@ function print_chatters(){
 				echo "<th><br/>$I[staff]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $S).'</td>';
 		}
 		if($U['status']>=3){ // can chat in member channel
-			echo '<th>' . $channellink . 's ?" target="post"><br/>' . $I['members'] . ':</a></th><td>&nbsp;</td><td class=\"chattername\">'.implode(' &nbsp; ', $M).'</td>';
+			echo '<th>' . $channellink . 's ?" target="post"><br/>' . $I['members'] . ':</a></th><td>&nbsp;</td><td class="chattername">'.implode(' &nbsp; ', $M).'</td>';
 		} else {
 			echo "<th><br/>$I[members]:</th><td>&nbsp;</td><td>".implode(' &nbsp; ', $M).'</td>';
 		}
-		echo '<th>' . $channellink . 's *" target="post"><br/>' . $I['guests'] . ':</a></th><td>&nbsp;</td><td class=\"chattername\">'.implode(' &nbsp; ', $G).'</td>';
+		echo '<th>' . $channellink . 's *" target="post"><br/>' . $I['guests'] . ':</a></th><td>&nbsp;</td><td class="chattername">'.implode(' &nbsp; ', $G).'</td>';
 		echo '</tr></table></div>';
 	}
 }
