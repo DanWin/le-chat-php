@@ -40,6 +40,7 @@ $U=[];// This user data
 $db = null;// Database connection
 $memcached = null;// Memcached connection
 $language = LANG;// user selected language
+$scripts = []; //js enhancements
 $styles = []; //css styles
 $session = $_REQUEST['session'] ?? ''; //requested session
 // set session variable to cookie if cookies are enabled
@@ -94,7 +95,7 @@ function route(){
 		if(!isset($_POST['what'])){
 		}elseif($_POST['what']==='all'){
 			if(isset($_POST['confirm'])){
-				del_all_messages($U['nickname'], (int) ($U['status']==1 ? $U['entry'] : 0));
+				del_all_messages('', (int) ($U['status']==1 ? $U['entry'] : 0));
 			}else{
 				send_del_confirm();
 			}
@@ -236,10 +237,10 @@ function route_setup(){
 	if(!valid_admin()){
 		send_alogin();
 	}
-	$C['bool_settings']=['suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'memkickalways', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'personalnotes', 'publicnotes', 'filtermodkick', 'namedoers'];
+	$C['bool_settings']=['suguests', 'imgembed', 'timestamps', 'trackip', 'memkick', 'memkickalways', 'forceredirect', 'incognito', 'sendmail', 'modfallback', 'disablepm', 'eninbox', 'enablegreeting', 'sortupdown', 'hidechatters', 'personalnotes', 'publicnotes', 'filtermodkick', 'namedoers', 'hide_reload_post_box', 'hide_reload_messages', 'hide_profile', 'hide_admin', 'hide_notes', 'hide_clone', 'hide_rearrange', 'hide_help', 'postbox_delete_globally', 'allow_js'];
 	$C['colour_settings']=['colbg', 'coltxt'];
 	$C['msg_settings']=['msgenter', 'msgexit', 'msgmemreg', 'msgsureg', 'msgkick', 'msgmultikick', 'msgallkick', 'msgclean', 'msgsendall', 'msgsendmem', 'msgsendmod', 'msgsendadm', 'msgsendprv', 'msgattache'];
-	$C['number_settings']=['memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize', 'enfileupload'];
+	$C['number_settings']=['memberexpire', 'guestexpire', 'kickpenalty', 'entrywait', 'captchatime', 'messageexpire', 'messagelimit', 'maxmessage', 'maxname', 'minpass', 'defaultrefresh', 'numnotes', 'maxuploadsize', 'enfileupload', 'max_refresh_rate', 'min_refresh_rate'];
 	$C['textarea_settings']=['rulestxt', 'css', 'disabletext'];
 	$C['text_settings']=['dateformat', 'captchachars', 'redirect', 'chatname', 'mailsender', 'mailreceiver', 'nickregex', 'passregex', 'externalcss', 'metadescription', 'sysmessagetxt'];
 	$C['settings']=array_merge(['guestaccess', 'englobalpass', 'globalpass', 'captcha', 'dismemcaptcha', 'topic', 'guestreg', 'defaulttz'], $C['bool_settings'], $C['colour_settings'], $C['msg_settings'], $C['number_settings'], $C['textarea_settings'], $C['text_settings']); // All settings in the database
@@ -262,8 +263,8 @@ function route_setup(){
 }
 
 //  html output subs
-function prepare_stylesheets(bool $init = false){
-	global $U, $db, $styles;
+function prepare_stylesheets(string $class){
+	global $U, $db, $scripts, $styles;
 	$styles['fatal_error'] = 'body{background-color:#000000;color:#FF0033}';
 	$styles['default'] = 'body,iframe{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center}';
 	$styles['default'] .= 'a:visited{color:#B33CB4} a:link{color:#00A2D4} a:active{color:#55A2D4} #messages{word-wrap:break-word}';
@@ -289,7 +290,7 @@ function prepare_stylesheets(bool $init = false){
 	$styles['default'] .= '@keyframes timeout_messages{0%{top:-200%} 99%{top:-200%} 100%{top:0%}} ';
 	$styles['default'] .= '.notes textarea{height:80vh;width:80%} iframe{width:100%;height:100%;margin:0;padding:0;border:none}';
 	$styles['default'] .= '.msg{max-height:180px;overflow-y:auto}';
-	if($init || ! $db instanceof PDO){
+	if($class === 'init' || ! $db instanceof PDO){
 		return;
 	}
 	$css=get_setting('css');
@@ -300,17 +301,26 @@ function prepare_stylesheets(bool $init = false){
 		$colbg=get_setting('colbg');
 	}
 	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body,iframe{background-color:#$colbg;color:#$coltxt} $css");
+	$allow_js = (bool) get_setting('allow_js');
+	if($allow_js){
+		$scripts['default'] = '';
+	}
 }
 
-function print_stylesheet(bool $init = false){
-	global $styles;
+function print_stylesheet(string $class)
+{
+	global $scripts, $styles;
 	//default css
 	echo "<style>$styles[default]</style>";
-	if($init){
+	if ( $class === 'init' ) {
 		return;
 	}
 	//overwrite with custom css
 	echo "<style>$styles[custom]</style>";
+	$allow_js = (bool) get_setting( 'allow_js' );
+	if ( $allow_js ) {
+		echo "<script>$scripts[default]</script>";
+	}
 }
 
 function print_end(){
@@ -375,7 +385,7 @@ function thr(){
 
 function print_start(string $class='', int $ref=0, string $url=''){
 	global $I, $language;
-	prepare_stylesheets($class === 'init');
+	prepare_stylesheets($class);
 	send_headers();
 	if(!empty($url)){
 		$url=str_replace('&amp;', '&', $url);// Don't escape "&" in URLs here, it breaks some (older) browsers and js refresh!
@@ -387,11 +397,10 @@ function print_start(string $class='', int $ref=0, string $url=''){
 	}
 	if($class==='init'){
 		echo "<title>$I[init]</title>";
-		print_stylesheet(true);
 	}else{
 		echo '<title>'.get_setting('chatname').'</title>';
-		print_stylesheet();
 	}
+	print_stylesheet($class);
 	echo "</head><body class=\"$class\">";
 	if($class!=='init' && ($externalcss=get_setting('externalcss'))!=''){
 		//external css - in body to make it non-renderblocking
@@ -1452,11 +1461,11 @@ function send_linkfilter(string $arg=''){
 
 function send_frameset(){
 	global $U, $db, $language;
-	prepare_stylesheets();
+	prepare_stylesheets('frameset');
 	send_headers();
 	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
 	echo '<title>'.get_setting('chatname').'</title>';
-	print_stylesheet();
+	print_stylesheet('frameset');
 	echo '</head><body>';
 	if(isset($_POST['sort'])){
 		if($_POST['sort']==1){
@@ -1970,8 +1979,10 @@ function send_profile(string $arg=''){
 	}
 	echo '</select></td></tr></table></td></tr>';
 	thr();
-	echo "<tr><td><table id=\"refresh\"><tr><th>$I[refreshrate]</th><td>";
-	echo "<input type=\"number\" name=\"refresh\" size=\"3\" maxlength=\"3\" min=\"5\" max=\"150\" value=\"$U[refresh]\"></td></tr></table></td></tr>";
+	$max_refresh_rate = get_setting('max_refresh_rate');
+	$min_refresh_rate = get_setting('min_refresh_rate');
+	echo '<tr><td><table id="refresh"><tr><th>'.sprintf($I['refreshrate'], $min_refresh_rate, $max_refresh_rate).'</th><td>';
+	echo '<input type="number" name="refresh" size="3" min="'.$min_refresh_rate.'" max="'.$max_refresh_rate.'" value="'.$U['refresh'].'"></td></tr></table></td></tr>';
 	thr();
 	preg_match('/#([0-9a-f]{6})/i', $U['style'], $matches);
 	echo "<tr><td><table id=\"colour\"><tr><th>$I[fontcolour] (<a href=\"$_SERVER[SCRIPT_NAME]?action=colours&amp;session=$U[session]&amp;lang=$language\" target=\"view\">$I[viewexample]</a>)</th><td>";
@@ -2092,13 +2103,29 @@ function send_controls(){
 	print_start('controls');
 	$personalnotes=(bool) get_setting('personalnotes');
 	$publicnotes=(bool) get_setting('publicnotes');
+	$hide_reload_post_box=(bool) get_setting('hide_reload_post_box');
+	$hide_reload_messages=(bool) get_setting('hide_reload_messages');
+	$hide_profile=(bool) get_setting('hide_profile');
+	$hide_admin=(bool) get_setting('hide_admin');
+	$hide_notes=(bool) get_setting('hide_notes');
+	$hide_clone=(bool) get_setting('hide_clone');
+	$hide_rearrange=(bool) get_setting('hide_rearrange');
+	$hide_help=(bool) get_setting('hide_help');
 	echo '<table><tr>';
-	echo '<td>'.form_target('post', 'post').submit($I['reloadpb']).'</form></td>';
-	echo '<td>'.form_target('view', 'view').submit($I['reloadmsgs']).'</form></td>';
-	echo '<td>'.form_target('view', 'profile').submit($I['chgprofile']).'</form></td>';
+	if(!$hide_reload_post_box) {
+		echo '<td>' . form_target( 'post', 'post' ) . submit( $I[ 'reloadpb' ] ) . '</form></td>';
+	}
+	if(!$hide_reload_messages) {
+		echo '<td>' . form_target( 'view', 'view' ) . submit( $I[ 'reloadmsgs' ] ) . '</form></td>';
+	}
+	if(!$hide_profile) {
+		echo '<td>' . form_target( 'view', 'profile' ) . submit( $I[ 'chgprofile' ] ) . '</form></td>';
+	}
 	if($U['status']>=5){
-		echo '<td>'.form_target('view', 'admin').submit($I['adminbtn']).'</form></td>';
-		if(!$personalnotes){
+		if(!$hide_admin) {
+			echo '<td>' . form_target( 'view', 'admin' ) . submit( $I[ 'adminbtn' ] ) . '</form></td>';
+		}
+		if(!$personalnotes && !$hide_notes){
 			echo '<td>'.form_target('view', 'notes', 'staff').submit($I['notes']).'</form></td>';
 		}
 	}
@@ -2109,15 +2136,21 @@ function send_controls(){
 		if($personalnotes || $publicnotes){
 			echo '<td>'.form_target('view', 'notes').submit($I['notes']).'</form></td>';
 		}
-		echo '<td>'.form_target('_blank', 'login').submit($I['clone']).'</form></td>';
+		if(!$hide_clone) {
+			echo '<td>' . form_target( '_blank', 'login' ) . submit( $I[ 'clone' ] ) . '</form></td>';
+		}
 	}
 	if(!isset($_GET['sort'])){
 		$sort=0;
 	}else{
 		$sort=1;
 	}
-	echo '<td>'.form_target('_parent', 'login').hidden('sort', $sort).submit($I['sortframe']).'</form></td>';
-	echo '<td>'.form_target('view', 'help').submit($I['randh']).'</form></td>';
+	if(!$hide_rearrange) {
+		echo '<td>' . form_target( '_parent', 'login' ) . hidden( 'sort', $sort ) . submit( $I[ 'sortframe' ] ) . '</form></td>';
+	}
+	if(!$hide_help) {
+		echo '<td>' . form_target( 'view', 'help' ) . submit( $I[ 'randh' ] ) . '</form></td>';
+	}
 	echo '<td>'.form_target('_parent', 'logout').submit($I['exit'], 'id="exitbutton"').'</form></td>';
 	echo '</tr></table>';
 	print_end();
@@ -2239,7 +2272,7 @@ function send_error(string $err){
 
 function send_fatal_error(string $err){
 	global $I, $language, $styles;
-	prepare_stylesheets();
+	prepare_stylesheets('fatal_error');
 	send_headers();
 	echo '<!DOCTYPE html><html lang="'.$language.'"><head>'.meta_html();
 	echo "<title>$I[fatalerror]</title>";
@@ -3375,14 +3408,20 @@ function clean_inbox_selected(){
 }
 
 function del_all_messages(string $nick, int $entry){
-	global $db;
-	if($nick==''){
-		return;
+	global $db, $U;
+	$globally = (bool) get_setting('postbox_delete_globally');
+	if($globally && $U['status'] > 4){
+		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'messages;' );
+		$stmt->execute();
+	} else {
+		if ( $nick === '' ) {
+			$nick = $U[ 'nickname' ];
+		}
+		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=?;' );
+		$stmt->execute( [ $nick, $entry ] );
+		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'inbox WHERE poster=? AND postdate>=?;' );
+		$stmt->execute( [ $nick, $entry ] );
 	}
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=?;');
-	$stmt->execute([$nick, $entry]);
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE poster=? AND postdate>=?;');
-	$stmt->execute([$nick, $entry]);
 }
 
 function del_last_message(){
@@ -3392,13 +3431,19 @@ function del_last_message(){
 	}else{
 		$entry=$U['entry'];
 	}
-	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=? ORDER BY id DESC LIMIT 1;');
-	$stmt->execute([$U['nickname'], $entry]);
-	if($id=$stmt->fetch(PDO::FETCH_NUM)){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=?;');
-		$stmt->execute($id);
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'inbox WHERE postid=?;');
-		$stmt->execute($id);
+	$globally = (bool) get_setting('postbox_delete_globally');
+	if($globally && $U['status'] > 4) {
+		$stmt = $db->prepare( 'SELECT id FROM ' . PREFIX . 'messages WHERE postdate>=? ORDER BY id DESC LIMIT 1;' );
+		$stmt->execute( [ $entry ] );
+	} else {
+		$stmt = $db->prepare( 'SELECT id FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=? ORDER BY id DESC LIMIT 1;' );
+		$stmt->execute( [ $U[ 'nickname' ], $entry ] );
+	}
+	if ( $id = $stmt->fetch( PDO::FETCH_NUM ) ) {
+		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'messages WHERE id=?;' );
+		$stmt->execute( $id );
+		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'inbox WHERE postid=?;' );
+		$stmt->execute( $id );
 	}
 }
 
@@ -3479,7 +3524,7 @@ function prepare_message_print(array &$message, bool $removeEmbed){
 // this and that
 
 function send_headers(){
-	global $U, $styles;
+	global $U, $scripts, $styles;
 	header('Content-Type: text/html; charset=UTF-8');
 	header('Pragma: no-cache');
 	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private');
@@ -3495,7 +3540,11 @@ function send_headers(){
 	foreach($styles as $style) {
 		$style_hashes .= " 'sha256-".base64_encode(hash('sha256', $style, true))."'";
 	}
-	header("Content-Security-Policy: base-uri 'self'; default-src 'none'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline'"); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
+	$script_hashes = '';
+	foreach($scripts as $script) {
+		$script_hashes .= " 'sha256-".base64_encode(hash('sha256', $script, true))."'";
+	}
+	header("Content-Security-Policy: base-uri 'self'; default-src 'none'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline'; style-src $script_hashes"); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
 	header('X-Content-Type-Options: nosniff');
 	header('X-Frame-Options: sameorigin');
 	header('X-XSS-Protection: 1; mode=block');
@@ -3907,6 +3956,18 @@ function init_chat(){
 			['filtermodkick', '0'],
 			['metadescription', $I['defaultmetadescription']],
 			['sysmessagetxt', 'ℹ️ &nbsp;'],
+			['hide_reload_post_box', '0'],
+			['hide_reload_messages', '0'],
+			['hide_profile', '0'],
+			['hide_admin', '0'],
+			['hide_notes', '0'],
+			['hide_clone', '0'],
+			['hide_rearrange', '0'],
+			['hide_help', '0'],
+			['max_refresh_rate', '150'],
+			['min_refresh_rate', '5'],
+			['postbox_delete_globally', '0'],
+			['allow_js', '1'],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -4276,6 +4337,9 @@ function update_db(){
 	if($dbversion<46){
 		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN loginfails integer unsigned NOT NULL DEFAULT 0;');
 	}
+	if($dbversion<47){
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('hide_reload_post_box', '0'), ('hide_reload_messages', '0'),('hide_profile', '0'),('hide_admin', '0'),('hide_notes', '0'),('hide_clone', '0'),('hide_rearrange', '0'),('hide_help', '0'),('max_refresh_rate', '150'),('min_refresh_rate', '5'),('postbox_delete_globally', '0'),('allow_js', '1');");
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -4476,7 +4540,7 @@ function load_lang(){
 function load_config(){
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 46); // Database layout version
+	define('DBVERSION', 47); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
