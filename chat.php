@@ -265,7 +265,9 @@ function route_setup(){
 //  html output subs
 function prepare_stylesheets(string $class){
 	global $U, $db, $scripts, $styles;
-	$styles['fatal_error'] = 'body{background-color:#000000;color:#FF0033}';
+	if($class === 'fatal_error') {
+		$styles[ 'fatal_error' ] = 'body{background-color:#000000;color:#FF0033}';
+	}
 	$styles['default'] = 'body,iframe{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center}';
 	$styles['default'] .= 'a:visited{color:#B33CB4} a:link{color:#00A2D4} a:active{color:#55A2D4} #messages{word-wrap:break-word}';
 	$styles['default'] .= 'input,select,textarea{color:#FFFFFF;background-color:#000000} .messages a img{width:15%} .messages a:hover img{width:35%} ';
@@ -303,7 +305,21 @@ function prepare_stylesheets(string $class){
 	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body,iframe{background-color:#$colbg;color:#$coltxt} $css");
 	$allow_js = (bool) get_setting('allow_js');
 	if($allow_js){
-		$scripts['default'] = '';
+		if($class === 'frameset') {
+			$scripts[ 'frameset' ] = 'window.addEventListener("message", (e)=>{
+				if(e.data === "post_box_loaded"){
+					let autofocus = document.querySelector("iframe[name=post").contentDocument.querySelector("input[autofocus]");
+					if(autofocus){
+						autofocus.focus();
+					}
+				}
+			});';
+		}
+		if($class === 'post') {
+			$scripts[ 'post' ] = 'window.addEventListener("load", _=>{
+				window.top.postMessage("post_box_loaded", window.location.origin);
+			})';
+		}
 	}
 }
 
@@ -319,7 +335,12 @@ function print_stylesheet(string $class)
 	echo "<style>$styles[custom]</style>";
 	$allow_js = (bool) get_setting( 'allow_js' );
 	if ( $allow_js ) {
-		echo "<script>$scripts[default]</script>";
+		if($class === 'frameset') {
+			echo "<script>$scripts[frameset]</script>";
+		}
+		if($class === 'post') {
+			echo "<script>$scripts[post]</script>";
+		}
 	}
 }
 
@@ -329,7 +350,7 @@ function print_end(){
 }
 
 function credit() : string {
-	return '<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php" rel="noopener">LE CHAT-PHP - ' . VERSION . '</a></small>';
+	return '<small><br><br><a target="_blank" href="https://github.com/DanWin/le-chat-php" rel="noreferrer noopener">LE CHAT-PHP - ' . VERSION . '</a></small>';
 }
 
 function meta_html() : string {
@@ -3544,7 +3565,7 @@ function send_headers(){
 	foreach($scripts as $script) {
 		$script_hashes .= " 'sha256-".base64_encode(hash('sha256', $script, true))."'";
 	}
-	header("Content-Security-Policy: base-uri 'self'; default-src 'none'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline'; style-src $script_hashes"); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
+	header("Content-Security-Policy: base-uri 'self'; default-src 'none'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline';" . (empty($script_hashes) ? '' : " script-src $script_hashes;")); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
 	header('X-Content-Type-Options: nosniff');
 	header('X-Frame-Options: sameorigin');
 	header('X-XSS-Protection: 1; mode=block');
