@@ -331,7 +331,7 @@ function prepare_stylesheets(string $class): void
 		$styles['post'] = '.spacer{width:10px}';
 	}
 	if($class === 'messages'){
-		$styles['post'] = '.nicklink{text-decoration:none}.channellink{text-decoration:underline}';
+		$styles['messages'] = '.nicklink{text-decoration:none}.channellink{text-decoration:underline}';
 	}
 	$css=get_setting('css');
 	$coltxt=get_setting('coltxt');
