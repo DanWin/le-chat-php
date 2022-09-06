@@ -271,30 +271,18 @@ function prepare_stylesheets(string $class): void
 	if($class === 'fatal_error') {
 		$styles[ 'fatal_error' ] = 'body{background-color:#000000;color:#FF0033}';
 	}
-	$styles['default'] = 'body,iframe{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center}';
-	$styles['default'] .= 'a:visited{color:#B33CB4} a:link{color:#00A2D4} a:active{color:#55A2D4} #messages{word-wrap:break-word}';
-	$styles['default'] .= 'input,select,textarea{color:#FFFFFF;background-color:#000000} .messages a img{width:15%} .messages a:hover img{width:35%} ';
+	$styles['default'] = 'body,iframe{background-color:#000000;color:#FFFFFF;font-size:14px;text-align:center;width:100%;height:100%;margin:0;padding:0;border:none}';
+	$styles['default'] .= 'a:visited{color:#B33CB4} a:link{color:#00A2D4} a:active{color:#55A2D4}';
+	$styles['default'] .= 'input,select,textarea{color:#FFFFFF;background-color:#000000} ';
 	$styles['default'] .= '.error{color:#FF0033;text-align:left} .delbutton{background-color:#660000} .backbutton{background-color:#004400} #exitbutton{background-color:#AA0000} ';
 	$styles['default'] .= '.setup table table,.admin table table,.profile table table{width:100%;text-align:left} ';
 	$styles['default'] .= '.alogin table,.init table,.destroy_chat table,.delete_account table,.sessions table,.filter table,.linkfilter table,.notes table,.approve_waiting table,.del_confirm table,.profile table,.admin table,.backup table,.setup table{margin-left:auto;margin-right:auto} ';
 	$styles['default'] .= '.setup table table table,.admin table table table,.profile table table table{border-spacing:0px;margin-left:auto;margin-right:unset;width:unset} ';
 	$styles['default'] .= '.setup table table td,.backup #restoresubmit,.backup #backupsubmit,.admin table table td,.profile table table td,.login td+td,.alogin td+td{text-align:right} ';
 	$styles['default'] .= '.init td,.backup #restorecheck td,.admin #clean td,.admin #regnew td,.session td,.messages,.inbox,.approve_waiting td,.choose_messages,.greeting,.help,.login td,.alogin td{text-align:left} ';
-	$styles['default'] .= '.messages #chatters{max-height:100px;overflow-y:auto} .messages #chatters .messages #chatters table{border-spacing:0px} ';
-	$styles['default'] .= '.messages #chatters th,.messages #chatters td,.post #firstline{vertical-align:top} ';
 	$styles['default'] .= '.approve_waiting #action td:only-child,.help #backcredit,.login td:only-child,.alogin td:only-child,.init td:only-child{text-align:center} .sessions td,.sessions th,.approve_waiting td,.approve_waiting th{padding: 5px} ';
-	$styles['default'] .= '.sessions td td{padding: 1px} .messages #bottom_link{position:fixed;top:0.5em;right:0.5em} .messages #top_link{position:fixed;bottom:0.5em;right:0.5em} ';
+	$styles['default'] .= '.sessions td td{padding: 1px} .notes textarea{height:80vh;width:80%} ';
 	$styles['default'] .= '.post table,.controls table,.login table{border-spacing:0px;margin-left:auto;margin-right:auto} .login table{border:2px solid} .controls{overflow-y:none} ';
-	$styles['default'] .= '#manualrefresh{display:block;position:fixed;text-align:center;left:25%;width:50%;top:-200%;animation:timeout_messages ';
-	if(isset($U['refresh'])){
-		$styles['default'] .= $U['refresh']+20;
-	}else{
-		$styles['default'] .='160';
-	}
-	$styles['default'] .= 's forwards;z-index:2;background-color:#500000;border:2px solid #ff0000} ';
-	$styles['default'] .= '@keyframes timeout_messages{0%{top:-200%} 99%{top:-200%} 100%{top:0%}} ';
-	$styles['default'] .= '.notes textarea{height:80vh;width:80%} iframe{width:100%;height:100%;margin:0;padding:0;border:none}';
-	$styles['default'] .= '.msg{max-height:180px;overflow-y:auto}';
 	if($class === 'init' || ! $db instanceof PDO){
 		return;
 	}
@@ -328,10 +316,18 @@ function prepare_stylesheets(string $class): void
 		$styles['linkfilter'] .= 'table table td:nth-child(4),table table td:nth-child(5){width:5em} ';
 	}
 	if($class === 'post'){
-		$styles['post'] = '.spacer{width:10px}';
+		$styles['post'] = '.spacer{width:10px} #firstline{vertical-align:top}';
 	}
 	if($class === 'messages'){
 		$styles['messages'] = '.nicklink{text-decoration:none}.channellink{text-decoration:underline}';
+		$styles['messages'] .= '#chatters{max-height:100px;overflow-y:auto} #chatters, #chatters table{border-spacing:0px} ';
+		$styles['messages'] .= '#manualrefresh{display:block;position:fixed;text-align:center;left:25%;width:50%;top:-200%;animation:timeout_messages ';
+		$styles['messages'] .= $U['refresh']+20;
+		$styles['messages'] .= 's forwards;z-index:2;background-color:#500000;border:2px solid #ff0000} ';
+		$styles['messages'] .= '@keyframes timeout_messages{0%{top:-200%} 99%{top:-200%} 100%{top:0%}} ';
+		$styles['messages'] .= '.msg{max-height:180px;overflow-y:auto} #bottom_link{position:fixed;top:0.5em;right:0.5em} #top_link{position:fixed;bottom:0.5em;right:0.5em} ';
+		$styles['messages'] .= '#chatters th,#chatters td{vertical-align:top} a img{width:15%} a:hover img{width:35%}';
+		$styles['messages'] .= '#messages{word-wrap:break-word}';
 	}
 	$css=get_setting('css');
 	$coltxt=get_setting('coltxt');
@@ -3712,10 +3708,12 @@ function save_setup(array $C): void
 	if($_POST['captchatime']<30){
 		$_POST['memberexpire']=30;
 	}
-	if($_POST['defaultrefresh']<5){
-		$_POST['defaultrefresh']=5;
-	}elseif($_POST['defaultrefresh']>150){
-		$_POST['defaultrefresh']=150;
+	$max_refresh_rate = (int) get_setting('max_refresh_rate');
+	$min_refresh_rate = (int) get_setting('min_refresh_rate');
+	if($_POST['defaultrefresh']<$min_refresh_rate){
+		$_POST['defaultrefresh']=$min_refresh_rate;
+	}elseif($_POST['defaultrefresh']>$max_refresh_rate){
+		$_POST['defaultrefresh']=$max_refresh_rate;
 	}
 	if($_POST['maxname']<1){
 		$_POST['maxname']=1;
