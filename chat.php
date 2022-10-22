@@ -339,6 +339,7 @@ function prepare_stylesheets(string $class): void
 	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body,iframe{background-color:#$colbg;color:#$coltxt} $css");
 	$allow_js = (bool) get_setting('allow_js');
 	if($allow_js){
+		$scripts['default'] = 'if(window.history.replaceState){window.history.replaceState(null,"");}';
 		if($class === 'frameset') {
 			$scripts[ 'frameset' ] = 'window.addEventListener("message", (e)=>{
 				if(e.data === "post_box_loaded"){
@@ -372,6 +373,7 @@ function print_stylesheet(string $class): void
 	echo "<style>$styles[custom]</style>";
 	$allow_js = (bool) get_setting( 'allow_js' );
 	if ( $allow_js ) {
+		echo "<script>$scripts[default]</script>";
 		if(isset($scripts[$class])) {
 			echo "<script>$scripts[$class]</script>";
 		}
