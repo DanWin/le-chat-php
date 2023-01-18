@@ -283,8 +283,8 @@ msgid ""
 "formating</a>"
 msgstr ""
 "<a target=\"_blank\" href=\"https://php.net/manual/en/function.date."
-"php#refsect1-function.date-parameters\" rel=\"noopener "
-"noreferrer\">Päivämäärän esitystapa</a>"
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer"
+"\">Päivämäärän esitystapa</a>"
 
 #: chat.php:336
 msgid "Characters used in Captcha"
@@ -1258,8 +1258,8 @@ msgid ""
 "Invalid password (At least %1$d characters and has to match the regular "
 "expression \"%2$s\")"
 msgstr ""
-"Kelpaamaton salasana, vähintään %1$d merkkiä, täytyy sisältää regexpin "
-"\"%2$s\""
+"Kelpaamaton salasana, vähintään %1$d merkkiä, täytyy sisältää regexpin \"%2$s"
+"\""
 
 #: chat.php:2574 chat.php:2739
 msgid "Wrong global Password!"

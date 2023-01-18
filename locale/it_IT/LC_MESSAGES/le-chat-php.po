@@ -969,10 +969,10 @@ msgstr ""
 "Se questa finestra non si aggiorna ogni %d secondi. Dovete abilitare "
 "aggiornamento automatico (meta refresh) nel vostro browser. Assicuratevi che "
 "non ci sia filtro-web, verificate impostazioni proxy, o plugin del browser "
-"per il blocco del aggiornamento! Esempi dei plugin: \"Polipo\", "
-"\"NoScript\", ecc...<br>Nota, (nel caso di errore di ricarica delle pagine a "
-"causa del server/proxy) Вы всегда можете использовать кнопки внизуpotete "
-"sempre utilizzare tasti in basso della pagina per ricaricare manualmente."
+"per il blocco del aggiornamento! Esempi dei plugin: \"Polipo\", \"NoScript"
+"\", ecc...<br>Nota, (nel caso di errore di ricarica delle pagine a causa del "
+"server/proxy) Вы всегда можете использовать кнопки внизуpotete sempre "
+"utilizzare tasti in basso della pagina per ricaricare manualmente."
 
 #: chat.php:2087
 msgid "Help"
@@ -1254,8 +1254,8 @@ msgid ""
 "Invalid nickname (%1$d characters maximum and has to match the regular "
 "expression \"%2$s\")"
 msgstr ""
-"Nome sbagliato (%1$d simboli al massimo e deve coincidere con il "
-"testo\"%2$s\")"
+"Nome sbagliato (%1$d simboli al massimo e deve coincidere con il testo\"%2$s"
+"\")"
 
 #: chat.php:2566 chat.php:2996 chat.php:3162 chat.php:4094
 #, php-format
@@ -1263,8 +1263,8 @@ msgid ""
 "Invalid password (At least %1$d characters and has to match the regular "
 "expression \"%2$s\")"
 msgstr ""
-"Password sbagliata (Almeno %1$d simboli e deve coincidere con il testo "
-"\"%2$s\")"
+"Password sbagliata (Almeno %1$d simboli e deve coincidere con il testo \"%2$s"
+"\")"
 
 #: chat.php:2574 chat.php:2739
 msgid "Wrong global Password!"

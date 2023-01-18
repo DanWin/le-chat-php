@@ -283,8 +283,8 @@ msgid ""
 "formating</a>"
 msgstr ""
 "<a target=\"_blank\" href=\"https://www.php.net/manual/pt_BR/function.date."
-"php#refsect1-function.date-parameters\" rel=\"noopener "
-"noreferrer\">Formatação da data</a>"
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer"
+"\">Formatação da data</a>"
 
 #: chat.php:336
 msgid "Characters used in Captcha"
