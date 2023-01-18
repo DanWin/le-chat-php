@@ -1,0 +1,1621 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-18 21:32+0100\n"
+"PO-Revision-Date: 2023-01-18 21:38+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: id_ID\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#: chat.php:261
+msgid "Enable applicants"
+msgstr "Memungkinkan pemohon"
+
+#: chat.php:262
+msgid "Embed images"
+msgstr "Tanamkan gambar"
+
+#: chat.php:263 chat.php:2202
+msgid "Show Timestamps"
+msgstr "Tunjukkan penanda waktu"
+
+#: chat.php:264
+msgid "Show session-IP"
+msgstr "Tunjukkan sesi-IP"
+
+#: chat.php:265
+msgid "Members can kick, if no moderator is present"
+msgstr "Anggota dapat mengusir, jika tak ada moderator"
+
+#: chat.php:266
+msgid "Members can always kick"
+msgstr "Anggota selalu dapat mengusir"
+
+#: chat.php:267
+msgid "Force redirection"
+msgstr "Paksa pengalihan"
+
+#: chat.php:268
+msgid "Incognito mode"
+msgstr "Mode penyamaran"
+
+#: chat.php:269
+msgid "Send mail on new public message"
+msgstr ""
+
+#: chat.php:270
+msgid "Fallback to waiting room, if no moderator is present to approve guests"
+msgstr ""
+
+#: chat.php:271
+msgid "Disable private messages"
+msgstr ""
+
+#: chat.php:272 chat.php:2223
+msgid "Enable offline inbox"
+msgstr ""
+
+#: chat.php:273
+msgid "Show a greeting message before showing the messages"
+msgstr ""
+
+#: chat.php:274 chat.php:2204
+msgid "Sort messages from top to bottom"
+msgstr ""
+
+#: chat.php:275 chat.php:2205
+msgid "Hide list of chatters"
+msgstr ""
+
+#: chat.php:276 chat.php:1780 chat.php:1794
+msgid "Personal notes"
+msgstr ""
+
+#: chat.php:277 chat.php:1783 chat.php:1797 chat.php:2110
+msgid "Public notes"
+msgstr "Catatan terbuka"
+
+#: chat.php:278
+msgid "Apply kick filter on moderators"
+msgstr ""
+
+#: chat.php:279
+msgid "Show who kicks people or purges all messages."
+msgstr ""
+"Memperlihatkan siapa yang mengusir orang atau membersihkan semua pesan."
+
+#: chat.php:280
+msgid "Hide reload post box button"
+msgstr ""
+
+#: chat.php:281
+msgid "Hide reload messages button"
+msgstr ""
+
+#: chat.php:282
+msgid "Hide profile button"
+msgstr ""
+
+#: chat.php:283
+msgid "Hide admin button"
+msgstr ""
+
+#: chat.php:284
+msgid "Hide notes button"
+msgstr ""
+
+#: chat.php:285
+msgid "Hide clone button"
+msgstr ""
+
+#: chat.php:286
+msgid "Hide rearrange button"
+msgstr ""
+
+#: chat.php:287
+msgid "Hide help button"
+msgstr ""
+
+#: chat.php:288
+msgid "Apply postbox delete button globally"
+msgstr ""
+
+#: chat.php:289
+msgid "Allow enhancing functionality with JavaScript"
+msgstr ""
+
+#: chat.php:292 chat.php:2170
+msgid "Background colour"
+msgstr "Warna latar belakang"
+
+#: chat.php:293 chat.php:2167
+msgid "Font colour"
+msgstr "Warna tulisan"
+
+#: chat.php:296
+msgid "Entrance"
+msgstr "Memasuki"
+
+#: chat.php:297
+msgid "Leaving"
+msgstr "Meninggalkan"
+
+#: chat.php:298
+msgid "Member registered"
+msgstr "Anggota terdaftar"
+
+#: chat.php:299
+msgid "Applicant registered"
+msgstr "Pemohon terdaftar"
+
+#: chat.php:300
+msgid "Kicked"
+msgstr "Diusir"
+
+#: chat.php:301
+msgid "Multiple kicked"
+msgstr "Pemohon diusir"
+
+#: chat.php:302
+msgid "All kicked"
+msgstr "Semuanya diusir"
+
+#: chat.php:303
+msgid "Room cleaned"
+msgstr "Ruang dibersihkan"
+
+#: chat.php:304
+msgid "Message to all"
+msgstr "Pesan ke semuany"
+
+#: chat.php:305
+msgid "Message to members only"
+msgstr "Pesan hanya kepada member"
+
+#: chat.php:306
+msgid "Message to staff only"
+msgstr "Pesan hanya kepada staf"
+
+#: chat.php:307
+msgid "Message to admins only"
+msgstr "Pesan hanya kepada admin"
+
+#: chat.php:308
+msgid "Private message"
+msgstr "Pesan pribadi"
+
+#: chat.php:309
+msgid "Attachement"
+msgstr ""
+
+#: chat.php:312
+msgid "Member timeout (minutes)"
+msgstr "Batas waktu anggota (menit)"
+
+#: chat.php:313
+msgid "Guest timeout (minutes)"
+msgstr "Batas waktu tamu (menit)"
+
+#: chat.php:314
+msgid "Kick penalty (minutes)"
+msgstr "Sanksi pengusiran (menit)"
+
+#: chat.php:315
+msgid "Waiting room time (seconds)"
+msgstr "Waktu ruang tunggu (detik)"
+
+#: chat.php:316
+msgid "Captcha timeout (seconds)"
+msgstr "Batas waktu captcha (detik)"
+
+#: chat.php:317
+msgid "Message timeout (minutes)"
+msgstr "Batas waktu pesan (menit)"
+
+#: chat.php:318
+msgid "Message limit (public)"
+msgstr "Batas pesan (publik)"
+
+#: chat.php:319
+msgid "Maximal message length"
+msgstr "Panjang pesan maksimal"
+
+#: chat.php:320
+msgid "Maximal nickname length"
+msgstr "Panjang maksimal nama"
+
+#: chat.php:321
+msgid "Minimal password length"
+msgstr "Panjang minimal kata sandi"
+
+#: chat.php:322
+msgid "Default message reload time (seconds)"
+msgstr "Waktu muat-ulang pesan bawaan (detik)"
+
+#: chat.php:323
+msgid "Number of notes revisions to keep"
+msgstr "Jumlah catatan Revisi yang disimpan"
+
+#: chat.php:324
+msgid "Maximum upload size in KB"
+msgstr ""
+
+#: chat.php:325
+msgid "Enable file uploads"
+msgstr ""
+
+#: chat.php:326
+msgid "Lowest refresh rate"
+msgstr ""
+
+#: chat.php:327
+msgid "Highest refresh rate"
+msgstr ""
+
+#: chat.php:330
+msgid "Rules (html)"
+msgstr "Peraturan (html)"
+
+#: chat.php:331
+msgid "CSS Style"
+msgstr "CSS Style"
+
+#: chat.php:332
+msgid "Chat disabled message (html)"
+msgstr ""
+
+#: chat.php:335
+msgid ""
+"<a target=\"_blank\" href=\"https://php.net/manual/en/function.date."
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Date "
+"formating</a>"
+msgstr ""
+"<a target=\"_blank\" href=\"https://php.net/manual/en/function.date."
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Date "
+"formating</a>"
+
+#: chat.php:336
+msgid "Characters used in Captcha"
+msgstr "Karakter yang digunakan dalam Captcha"
+
+#: chat.php:337
+msgid "Custom redirection script"
+msgstr "Skrip pengalihan kustom"
+
+#: chat.php:338
+msgid "Chat name"
+msgstr "Nama obrolan"
+
+#: chat.php:339
+msgid "Send mail using this address"
+msgstr ""
+
+#: chat.php:340
+msgid "Send mail to this address"
+msgstr ""
+
+#: chat.php:341
+msgid "Nickname regex"
+msgstr ""
+
+#: chat.php:342
+msgid "Password regex"
+msgstr ""
+
+#: chat.php:343
+msgid "Link to external CSS file (on your own server)"
+msgstr ""
+
+#: chat.php:344
+msgid "Meta description (best 50 - 160 characters for SEO)"
+msgstr ""
+
+#: chat.php:345
+msgid "Prepend this text to system messages"
+msgstr "Teks ini mendahului pesan dari sistem"
+
+#: chat.php:348 chat.php:728 chat.php:1225
+msgid "Change Guestaccess"
+msgstr "Ubah akses tamu"
+
+#: chat.php:349
+msgid "Enable global Password"
+msgstr ""
+
+#: chat.php:350 chat.php:758 chat.php:2415 chat.php:2433
+msgid "Global Password:"
+msgstr "Sandi global:"
+
+#: chat.php:351 chat.php:819
+msgid "Captcha"
+msgstr "Captcha"
+
+#: chat.php:352 chat.php:775 chat.php:835
+msgid "Only for guests"
+msgstr "Hanya untuk tamu"
+
+#: chat.php:353 chat.php:1220
+msgid "Topic"
+msgstr "Topik"
+
+#: chat.php:354 chat.php:781
+msgid "Let guests register themselves"
+msgstr ""
+
+#: chat.php:355 chat.php:862
+msgid "Default time zone"
+msgstr ""
+
+#: chat.php:568 chat.php:1100 chat.php:4078 chat.php:4259
+msgid "Initial Setup"
+msgstr "Pengaturan awal"
+
+#: chat.php:588
+#, php-format
+msgid "Redirecting to: %s"
+msgstr "Mengarahkan ke: %s"
+
+#: chat.php:595
+#, php-format
+msgid ""
+"Dangerous non-http link requested, copy paste this link if you are really "
+"sure: %s"
+msgstr ""
+
+#: chat.php:597
+#, php-format
+msgid "Non-http link requested: %s"
+msgstr "Meminta tautan non-http: %s"
+
+#: chat.php:599
+#, php-format
+msgid "If it's not working, try this one: %s"
+msgstr "Jika tak bekerja, pilih salah satu: %s"
+
+#: chat.php:609
+msgid "Access denied"
+msgstr "Akses ditolak"
+
+#: chat.php:609
+#, php-format
+msgid "You are logged in as %s and don't have access to this section."
+msgstr "Anda masuk sebagai %s dan tak dapat mengakses bagian ini."
+
+#: chat.php:611 chat.php:915 chat.php:1211 chat.php:1393
+msgid "Logout"
+msgstr "Keluar"
+
+#: chat.php:636
+msgid "Copy:"
+msgstr "Salin:"
+
+#: chat.php:724
+msgid "Chat Setup"
+msgstr "Pengaturan obrolan"
+
+#: chat.php:734 chat.php:1233
+msgid "Allow"
+msgstr "Izinkan"
+
+#: chat.php:739 chat.php:1238
+msgid "Allow with waitingroom"
+msgstr "Memungkinkan dengan ruang tunggu"
+
+#: chat.php:744 chat.php:1243
+msgid "Require moderator approval"
+msgstr "Memerlukan persetujuan moderator"
+
+#: chat.php:749 chat.php:1248
+msgid "Only members"
+msgstr "Hanya anggota"
+
+#: chat.php:754 chat.php:1251
+msgid "Disable chat"
+msgstr ""
+
+#: chat.php:765 chat.php:787 chat.php:842 chat.php:896 chat.php:2229
+msgid "Disabled"
+msgstr "Dimatikan"
+
+#: chat.php:770 chat.php:830 chat.php:901 chat.php:2219
+msgid "Enabled"
+msgstr "Diaktifkan"
+
+#: chat.php:792
+msgid "As applicant"
+msgstr ""
+
+#: chat.php:797
+msgid "As member"
+msgstr ""
+
+#: chat.php:800
+msgid "System messages"
+msgstr "Sistem perpesanan"
+
+#: chat.php:822 chat.php:1053
+#, php-format
+msgid ""
+"The %s extension of PHP is required for this feature. Please install it "
+"first."
+msgstr ""
+
+#: chat.php:847
+msgid "Simple"
+msgstr "Sederhana"
+
+#: chat.php:852
+msgid "Moderate"
+msgstr "Moderat"
+
+#: chat.php:857
+msgid "Extreme"
+msgstr "Ekstrim"
+
+#: chat.php:906 chat.php:1548 chat.php:1610
+msgid "Apply"
+msgstr "Terapkan"
+
+#: chat.php:910 chat.php:1050
+msgid "Backup and restore"
+msgstr "Cadang dan pulihkan"
+
+#: chat.php:912
+msgid "Destroy chat"
+msgstr "Musnahkan obrolan"
+
+#: chat.php:1057 chat.php:1066
+msgid "Settings"
+msgstr "Pengaturan"
+
+#: chat.php:1058 chat.php:1067 chat.php:1212 chat.php:1538 chat.php:1575
+#: chat.php:1622
+msgid "Filter"
+msgstr "Saring"
+
+#: chat.php:1059 chat.php:1068 chat.php:1268 chat.php:2538
+msgid "Members"
+msgstr "Anggota"
+
+#: chat.php:1060 chat.php:1069 chat.php:2314 chat.php:2322
+msgid "Notes"
+msgstr "Catatan"
+
+#: chat.php:1061
+msgid "Backup"
+msgstr "Cadangkan"
+
+#: chat.php:1070
+msgid "Restore"
+msgstr "Pulihkan"
+
+#: chat.php:1074 chat.php:1117 chat.php:1155 chat.php:1185 chat.php:4260
+msgid "Go to the Setup-Page"
+msgstr "Ke halaman-pengaturan"
+
+#: chat.php:1082 chat.php:1091 chat.php:1949
+msgid "Are you sure?"
+msgstr "Apakah Anda yakin?"
+
+#: chat.php:1083 chat.php:1092 chat.php:1956
+msgid "Yes"
+msgstr "Ya"
+
+#: chat.php:1084 chat.php:1093 chat.php:1963
+msgid "No"
+msgstr "Tidak"
+
+#: chat.php:1101 chat.php:4259
+msgid "Superadmin Login"
+msgstr "Masuk Superadmin"
+
+#: chat.php:1102
+msgid "Superadmin Nickname:"
+msgstr "Nama Superadmin:"
+
+#: chat.php:1103
+msgid "Superadmin Password:"
+msgstr "Kata sandi Superadmin:"
+
+#: chat.php:1104
+msgid "Confirm Password:"
+msgstr "Konfirmasi kata sandi:"
+
+#: chat.php:1105
+msgid "Initialise Chat"
+msgstr "Memulai obrolan"
+
+#: chat.php:1106 chat.php:1130 chat.php:1156 chat.php:2277 chat.php:2439
+msgid "Change language:"
+msgstr "Ubah bahasa:"
+
+#: chat.php:1117
+msgid "Database successfully updated!"
+msgstr "Basisdata berhasil diperbarui!"
+
+#: chat.php:1125 chat.php:1326 chat.php:2407
+msgid "Nickname:"
+msgstr "Nama:"
+
+#: chat.php:1126 chat.php:1327 chat.php:2408
+msgid "Password:"
+msgstr "Kata sandi:"
+
+#: chat.php:1128
+msgid "Login"
+msgstr "Masuk"
+
+#: chat.php:1129
+msgid "Forgot login?"
+msgstr ""
+
+#: chat.php:1142 chat.php:1306
+msgid "Reset password"
+msgstr "Atur-ulang kata sandi"
+
+#: chat.php:1150
+#, php-format
+msgid ""
+"Successfully reset password for username %s. Please remove the password "
+"reset define from the script again."
+msgstr ""
+
+#: chat.php:1153
+msgid ""
+"Please modify the script and put the following at the bottom of it (change "
+"the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
+"'changeme');"
+msgstr ""
+
+#: chat.php:1169 chat.php:1193 chat.php:1258 chat.php:1270 chat.php:1294
+#: chat.php:1308 chat.php:1316 chat.php:2145 chat.php:2153
+msgid "(choose)"
+msgstr "(pilih)"
+
+#: chat.php:1170
+msgid "All guests"
+msgstr "Semua tamu"
+
+#: chat.php:1182
+msgid "Administrative functions"
+msgstr "Fungsi administrasi"
+
+#: chat.php:1188
+msgid "Clean messages"
+msgstr "Bersihkan pesan"
+
+#: chat.php:1191
+msgid "Whole room"
+msgstr "Seluruh ruangan"
+
+#: chat.php:1192
+msgid "Selection"
+msgstr "Pilihan"
+
+#: chat.php:1193
+msgid "Following nickname:"
+msgstr "Nama berikut:"
+
+#: chat.php:1200
+msgid "Clean"
+msgstr "Bersih"
+
+#: chat.php:1202
+#, php-format
+msgid "Kick Chatter (%d minutes)"
+msgstr "Usir pengobrol (%d menit)"
+
+#: chat.php:1204
+msgid "Kickmessage:"
+msgstr "Pesan pengusiran:"
+
+#: chat.php:1205
+msgid "Purge messages"
+msgstr "Bersihkan pesan"
+
+#: chat.php:1206 chat.php:1388 chat.php:1546 chat.php:1580 chat.php:1591
+#: chat.php:2042
+msgid "Kick"
+msgstr "Usir"
+
+#: chat.php:1208
+msgid "Logout inactive Chatter"
+msgstr "Keluar pengobrol aktif"
+
+#: chat.php:1212
+msgid "View active sessions"
+msgstr "Lihat sesi yang aktif"
+
+#: chat.php:1212 chat.php:1603
+msgid "Linkfilter"
+msgstr "Penyaring-tautan"
+
+#: chat.php:1217
+msgid "View"
+msgstr "Lihat"
+
+#: chat.php:1223 chat.php:1253 chat.php:1304 chat.php:1312 chat.php:1582
+#: chat.php:1626
+msgid "Change"
+msgstr "Ubah"
+
+#: chat.php:1256
+msgid "Register applicant"
+msgstr "Tambah pemohon"
+
+#: chat.php:1264 chat.php:1322 chat.php:1328
+msgid "Register"
+msgstr "Daftar"
+
+#: chat.php:1294
+msgid "Delete from database"
+msgstr "Hapus dari basisdata"
+
+#: chat.php:1294
+msgid "Deny access (!)"
+msgstr "Akses ditolak (!)"
+
+#: chat.php:1296
+msgid "Set to applicant (SG)"
+msgstr "Tetapkan menjadi pemohon (SG)"
+
+#: chat.php:1298
+msgid "Set to regular member"
+msgstr "Tetapkan menjadi anggota biasa"
+
+#: chat.php:1299
+msgid "Set to moderator (M)"
+msgstr "Tetapkan menjadi moderator (M)"
+
+#: chat.php:1300
+msgid "Set to supermod (SM)"
+msgstr "Tetapkan menjadi supermod (SM)"
+
+#: chat.php:1302
+msgid "Set to admin (A)"
+msgstr "Tetapkan menjadi admin (A)"
+
+#: chat.php:1314
+msgid "Register Guest"
+msgstr "Mendaftar tamu"
+
+#: chat.php:1324
+msgid "Register new Member"
+msgstr "Daftar anggota baru"
+
+#: chat.php:1332 chat.php:1408 chat.php:1595 chat.php:1636 chat.php:1710
+#: chat.php:1924
+msgid "Reload"
+msgstr "Muat-ulang"
+
+#: chat.php:1345
+msgid "Active Sessions"
+msgstr "Sesi aktif"
+
+#: chat.php:1346 chat.php:1873
+msgid "Nickname"
+msgstr "Nama"
+
+#: chat.php:1346
+msgid "Timeout in"
+msgstr "Waktu habis dalam"
+
+#: chat.php:1346 chat.php:1873
+msgid "User-Agent"
+msgstr "User-Agent"
+
+#: chat.php:1350
+msgid "IP-Address"
+msgstr "Alamat-IP"
+
+#: chat.php:1351
+msgid "Actions"
+msgstr "Tindakan"
+
+#: chat.php:1393
+msgid "Unban"
+msgstr ""
+
+#: chat.php:1416
+msgid "Incorrect regular expression!"
+msgstr "Regular expression salah!"
+
+#: chat.php:1416 chat.php:1424
+#, php-format
+msgid "Your match was as follows: %s"
+msgstr ""
+
+#: chat.php:1424
+msgid ""
+"Your match was too long. You can use max. 255 characters. Try splitting it "
+"up."
+msgstr ""
+
+#: chat.php:1541 chat.php:1606
+msgid "Filter ID:"
+msgstr "ID penyaring:"
+
+#: chat.php:1542 chat.php:1607
+msgid "Match"
+msgstr "Cocok"
+
+#: chat.php:1543 chat.php:1608
+msgid "Replace"
+msgstr "Ganti"
+
+#: chat.php:1544 chat.php:1578 chat.php:1589
+msgid "Allow in PM"
+msgstr "Izinkan pada PM"
+
+#: chat.php:1545 chat.php:1579 chat.php:1590 chat.php:1609 chat.php:1625
+#: chat.php:1633
+msgid "Regex"
+msgstr "Regex"
+
+#: chat.php:1547 chat.php:1581 chat.php:1592
+msgid "Case sensitive"
+msgstr ""
+
+#: chat.php:1586 chat.php:1630
+msgid "New filter:"
+msgstr "Penyaring baru:"
+
+#: chat.php:1593 chat.php:1634
+msgid "Add"
+msgstr "Tambah"
+
+#: chat.php:1691
+msgid ""
+"This chat uses <b>frames</b>. Please enable frames in your browser or use a "
+"suitable one!"
+msgstr ""
+"Obrolan ini menggunakan <b>frames</b>. Mohon aktifkan frame pada penjelajah "
+"anda atau gunakan penjelajah yang cocok!"
+
+#: chat.php:1691 chat.php:2370 chat.php:2457
+msgid "Back to the login page."
+msgstr "Kembali ke halaman masuk."
+
+#: chat.php:1709
+msgid "Bottom"
+msgstr "Bawah"
+
+#: chat.php:1710
+msgid "Manual refresh required"
+msgstr ""
+
+#: chat.php:1726
+msgid "Top"
+msgstr "Atas"
+
+#: chat.php:1734 chat.php:1940 chat.php:1942
+msgid "Delete selected messages"
+msgstr "Hapus pesan terpilih"
+
+#: chat.php:1761 chat.php:1888 chat.php:2101 chat.php:2281
+msgid "Back to the chat."
+msgstr "Kembali ke obrolan."
+
+#: chat.php:1774 chat.php:1791
+msgid "Admin notes"
+msgstr "Catatan admin"
+
+#: chat.php:1777 chat.php:1788
+msgid "Staff notes"
+msgstr "Catatan Staf"
+
+#: chat.php:1811
+msgid "Notes saved!"
+msgstr "Catatan tersimpan!"
+
+#: chat.php:1835 chat.php:2122
+#, php-format
+msgid "Last edited by %1$s at %2$s"
+msgstr "Terakhir disunting oleh %1$s pada %2$s"
+
+#: chat.php:1848
+msgid "Save notes"
+msgstr "Simpan catatan"
+
+#: chat.php:1850
+msgid "Revisions:"
+msgstr "Revisi:"
+
+#: chat.php:1853
+msgid "Older"
+msgstr "Lama"
+
+#: chat.php:1857
+msgid "Newer"
+msgstr "Baru"
+
+#: chat.php:1868 chat.php:1914
+msgid "Waiting room"
+msgstr "Ruang tunggu"
+
+#: chat.php:1880
+msgid "Allow checked"
+msgstr "Izinkan terpilih"
+
+#: chat.php:1881
+msgid "Allow all"
+msgstr "Izinkan semuanya"
+
+#: chat.php:1882
+msgid "Deny checked"
+msgstr "Tolak terpilih"
+
+#: chat.php:1883
+msgid "Deny all"
+msgstr "Tolak semuanya"
+
+#: chat.php:1883
+msgid "Send message to denied:"
+msgstr "Kirim pesan untuk menolak:"
+
+#: chat.php:1884
+msgid "Submit"
+msgstr "Kirim"
+
+#: chat.php:1886
+msgid "No more entry requests to approve."
+msgstr "Tak ada lagi permintaan masuk untuk disetujui."
+
+#: chat.php:1916
+#, php-format
+msgid ""
+"Welcome %1$s, your login has been delayed, you can access the chat in %2$d "
+"seconds."
+msgstr ""
+"Selamat datang %1$s, info masuk anda telah tertunda, Anda dapat mengakses "
+"obrolan dalam %2$d detik."
+
+#: chat.php:1918
+#, php-format
+msgid ""
+"Welcome %1$s, your login has been delayed, you can access the chat as soon, "
+"as a moderator lets you in."
+msgstr ""
+"Selamat datang %1$s, info masuk anda telah tertunda, Anda dapat mengakses "
+"obrolan segera, Sebagai moderator memungkinkan anda untuk masuk."
+
+#: chat.php:1921
+#, php-format
+msgid ""
+"If this page doesn't refresh every %d seconds, use the button below to "
+"reload it manually!"
+msgstr ""
+"Jika halaman tidak memuat-ulang dalam %d detik, Gunakan tombol dibawah ini "
+"untuk memuat-ulang secara manual!"
+
+#: chat.php:1926 chat.php:2339
+msgid "Exit Chat"
+msgstr "Keluar dari obrolan"
+
+#: chat.php:1929 chat.php:2074 chat.php:2085 chat.php:2430
+msgid "Rules"
+msgstr "Peraturan"
+
+#: chat.php:1985
+msgid "Send to"
+msgstr "Kirim ke"
+
+#: chat.php:1990
+msgid "All chatters"
+msgstr "Semua pengobrol"
+
+#: chat.php:1996
+msgid "Members only"
+msgstr "Hanya member"
+
+#: chat.php:2003
+msgid "Staff only"
+msgstr "Hanya staf"
+
+#: chat.php:2010
+msgid "Admin only"
+msgstr "Hanya Admin"
+
+#: chat.php:2019
+msgid "(offline)"
+msgstr ""
+
+#: chat.php:2043
+msgid "Also purge messages"
+msgstr "Juga hapus bersih pesan"
+
+#: chat.php:2050
+msgid "Delete last message"
+msgstr "Hapus pesan terakhir"
+
+#: chat.php:2055
+msgid "Delete all messages"
+msgstr "Hapus semua pesan"
+
+#: chat.php:2057
+msgid "Switch to single-line"
+msgstr "Beralih ke baris-tunggal"
+
+#: chat.php:2059
+msgid "Switch to multi-line"
+msgstr "Beralih ke multi-baris"
+
+#: chat.php:2070
+#, php-format
+msgid "Welcome %s!"
+msgstr ""
+
+#: chat.php:2071
+#, php-format
+msgid ""
+"If this frame does not reload in %d seconds, you'll have to enable automatic "
+"redirection (meta refresh) in your browser. Also make sure no web filter, "
+"local proxy tool or browser plugin is preventing automatic refreshing! This "
+"could be for example \"Polipo\", \"NoScript\", etc.<br>As a workaround (or "
+"in case of server/proxy reload errors) you can always use the buttons at the "
+"bottom to refresh manually."
+msgstr ""
+
+#: chat.php:2087
+msgid "Help"
+msgstr "Bantuan"
+
+#: chat.php:2088
+msgid ""
+"All functions should be pretty much self-explaining, just use the buttons. "
+"In your profile you can adjust the refresh rate and font colour, as well as "
+"ignore users.<br><u>Note:</u> This is a chat, so if you don't keep talking, "
+"you will be automatically logged out after a while."
+msgstr ""
+"Semua fungsi seharusnya cukup banyak memberikan penjelasan, tinggal gunakan "
+"tombol. Dalam profil Anda dapat menentukan jangka waktu muat-ulang halaman, "
+"warna font dan ukuran kotak masukan.<br><u>Note:</u> Ini adalah obrolan, "
+"jadi jika Anda tidak ikut dalam obrolan, Anda akan otomatis dikeluarkan dari "
+"obrolan dalam jangka waktu yang sudah ditentukan."
+
+#: chat.php:2090
+msgid ""
+"If you want to embed an image in your post, simply put [img] in front of "
+"your image URL. Example: [img]http://example.com/images/file.jpg will embed "
+"the image in your post."
+msgstr ""
+"Jika anda ingin menyisipkan gambar pada pos anda, taruh saja [img] didepan "
+"url gambar. Contoh: [img]http://example.com/images/file.jpg akan menyisipkan "
+"gambar pada pos anda."
+
+#: chat.php:2093
+msgid ""
+"Members: You'll have some more options in your profile. You can adjust your "
+"font face, change your password anytime and of course you can delete your "
+"account."
+msgstr ""
+"Anggota: Anda akan memiliki beberapa pilihan di profil Anda. Anda dapat "
+"menyesuaikan font dan dapat mengubah kata sandi kapan saja."
+
+#: chat.php:2095
+msgid ""
+"Moderators: Notice the Admin-button at the bottom. It'll bring up a page "
+"where you can clean the room, kick chatters, view all active sessions and "
+"disable guest access completely if needed."
+msgstr ""
+"Moderator: Perhatikan tombol admin di bagian bawah. Ini akan memunculkan "
+"halaman dimana Anda dapat membersihkan ruangan, mengusir pengobrol, melihat "
+"semua sesi aktif dan mematikan semua hak akses tamu jika diperlukan."
+
+#: chat.php:2097
+msgid ""
+"Admins: You'll be furthermore able to register guests, edit members and "
+"register new nicknames."
+msgstr ""
+"Admin: Anda dapat lebih jauh lagi bisa mendaftarkan tamu, menyunting anggota "
+"dan mendaftarkan nama baru tanpa mereka berada di ruangan."
+
+#: chat.php:2135
+msgid "Your Profile"
+msgstr "Profil Anda"
+
+#: chat.php:2144
+msgid "Don't ignore anymore"
+msgstr "Tak setuju apapun"
+
+#: chat.php:2152
+msgid "Ignore"
+msgstr "Setuju"
+
+#: chat.php:2163
+#, php-format
+msgid "Refresh rate (%1$d-%2$d seconds)"
+msgstr "Kecepatan penyegaran (%1$d-%2$d detik)"
+
+#: chat.php:2167 chat.php:2170
+msgid "View examples"
+msgstr "Lihat contoh"
+
+#: chat.php:2174
+msgid "Fontface"
+msgstr "Jenis font"
+
+#: chat.php:2175
+msgid "Room Default"
+msgstr "Ruang bawaan"
+
+#: chat.php:2188
+msgid "Bold"
+msgstr "Tebal"
+
+#: chat.php:2192
+msgid "Italic"
+msgstr "Miring"
+
+#: chat.php:2196
+msgid "Small"
+msgstr ""
+
+#: chat.php:2199
+msgid "Example for your chosen font"
+msgstr "Contoh untuk font yang anda pilih"
+
+#: chat.php:2203
+msgid "Autoscroll (for old browsers or top-to-bottom sort)."
+msgstr ""
+
+#: chat.php:2234
+msgid "For everyone"
+msgstr ""
+
+#: chat.php:2239
+msgid "For members only"
+msgstr ""
+
+#: chat.php:2244
+msgid "For staff only"
+msgstr ""
+
+#: chat.php:2248
+msgid "Time zone"
+msgstr ""
+
+#: chat.php:2261
+msgid "Change Password"
+msgstr "Ubah kata sandi"
+
+#: chat.php:2263
+msgid "Old password:"
+msgstr "Kata sandi lama:"
+
+#: chat.php:2264
+msgid "New password:"
+msgstr "Kata sandi baru:"
+
+#: chat.php:2265
+msgid "Confirm new password:"
+msgstr "Konfirmasi kata sandi baru:"
+
+#: chat.php:2268
+msgid "Change Nickname"
+msgstr ""
+
+#: chat.php:2269
+msgid "New nickname:"
+msgstr "Nama baru:"
+
+#: chat.php:2273
+msgid "Save changes"
+msgstr "Simpan perubahan"
+
+#: chat.php:2275
+msgid "Delete account"
+msgstr ""
+
+#: chat.php:2301
+msgid "Reload Post Box"
+msgstr "Muat-ulang kotak pos"
+
+#: chat.php:2304
+msgid "Reload Messages"
+msgstr "Muat-ulang pesan"
+
+#: chat.php:2307
+msgid "Profile"
+msgstr "Profil"
+
+#: chat.php:2311 chat.php:2528
+msgid "Admin"
+msgstr "Admin"
+
+#: chat.php:2318
+msgid "View public notes"
+msgstr "Baca catatan terbuka"
+
+#: chat.php:2325
+msgid "Clone"
+msgstr "Klon"
+
+#: chat.php:2334
+msgid "Rearrange"
+msgstr ""
+
+#: chat.php:2337
+msgid "Rules & Help"
+msgstr "Peraturan & Bantuan"
+
+#: chat.php:2358 chat.php:2362
+msgid "File not found!"
+msgstr ""
+
+#: chat.php:2370
+#, php-format
+msgid "Bye %s, visit again soon!"
+msgstr "Dah %s, Kunjungi lagi nanti!"
+
+#: chat.php:2377
+msgid "Colourtable"
+msgstr "Tabel warna"
+
+#: chat.php:2388
+msgid "Back to your Profile"
+msgstr "Kembali ke profil anda"
+
+#: chat.php:2412
+msgid "Repeat password<br>to register"
+msgstr ""
+
+#: chat.php:2412
+msgid "(optional)"
+msgstr ""
+
+#: chat.php:2417
+msgid "Guests, choose a colour:"
+msgstr "Silahkan pilih warna:"
+
+#: chat.php:2417
+msgid "Random Colour"
+msgstr "Warna acak"
+
+#: chat.php:2421 chat.php:2435 chat.php:2569
+msgid "Sorry, currently members only!"
+msgstr "Maaf, saat ini hanya anggota!"
+
+#: chat.php:2423 chat.php:2437
+msgid "Enter Chat"
+msgstr "Masuk obrolan"
+
+#: chat.php:2457
+#, php-format
+msgid "Error: %s"
+msgstr "Kesalahan: %s"
+
+#: chat.php:2467
+msgid "Fatal error"
+msgstr ""
+
+#: chat.php:2470
+#, php-format
+msgid "Fatal error: %s"
+msgstr ""
+
+#: chat.php:2482 chat.php:2693
+msgid "Failed login attempt(s)"
+msgstr "Upaya log masuk gagal"
+
+#: chat.php:2489
+#, php-format
+msgid "Read %d messages in your inbox"
+msgstr ""
+
+#: chat.php:2498
+#, php-format
+msgid "%d new guests to approve"
+msgstr "%d tamu baru untuk disetujui"
+
+#: chat.php:2530
+msgid "Admin:"
+msgstr "Admin:"
+
+#: chat.php:2533
+msgid "Staff"
+msgstr "Staf"
+
+#: chat.php:2535
+msgid "Staff:"
+msgstr "Staf:"
+
+#: chat.php:2540
+msgid "Members:"
+msgstr "Anggota:"
+
+#: chat.php:2542
+msgid "Guests"
+msgstr "Tamu"
+
+#: chat.php:2563 chat.php:2993 chat.php:3197 chat.php:4092
+#, php-format
+msgid ""
+"Invalid nickname (%1$d characters maximum and has to match the regular "
+"expression \"%2$s\")"
+msgstr ""
+
+#: chat.php:2566 chat.php:2996 chat.php:3162 chat.php:4094
+#, php-format
+msgid ""
+"Invalid password (At least %1$d characters and has to match the regular "
+"expression \"%2$s\")"
+msgstr ""
+
+#: chat.php:2574 chat.php:2739
+msgid "Wrong global Password!"
+msgstr "Kata sani global salah!"
+
+#: chat.php:2591 chat.php:2612
+msgid "Wrong Captcha"
+msgstr "Captcha salah"
+
+#: chat.php:2596 chat.php:2604
+msgid "Captcha already used or timed out."
+msgstr "Captcha sudah digunakan atau kadaluarsa."
+
+#: chat.php:2652
+msgid "A user with this nickname is already logged in."
+msgstr ""
+
+#: chat.php:2652 chat.php:2933 chat.php:3176
+msgid "Wrong Password!"
+msgstr "Kata sandi salah!"
+
+#: chat.php:2696
+msgid "Dismiss"
+msgstr "Mengakui"
+
+#: chat.php:2747 chat.php:3171 chat.php:4096
+msgid "Password confirmation does not match!"
+msgstr "Konfirmasi kata sandi tidak cocok!"
+
+#: chat.php:2859
+msgid "Invalid/expired session"
+msgstr "Sesi salah/kadaluarsa"
+
+#: chat.php:2875 chat.php:3412
+msgid "You have been kicked!"
+msgstr "Diusir!"
+
+#: chat.php:2885
+#, php-format
+msgid "Currently %d chatter(s) in room:"
+msgstr "Sekarang terdapat %d pengobrol di ruangan:"
+
+#: chat.php:2933
+msgid "This nickname is a registered member."
+msgstr ""
+
+#: chat.php:2960 chat.php:3001
+#, php-format
+msgid "%s is already registered."
+msgstr "%s sudah terdaftar."
+
+#: chat.php:2969 chat.php:2990
+#, php-format
+msgid "Can't register %s"
+msgstr "Tak bisa mendaftarkan %s"
+
+#: chat.php:2978 chat.php:3023
+#, php-format
+msgid "%s successfully registered."
+msgstr "%s berhasil terdaftar."
+
+#: chat.php:3031 chat.php:3036
+#, php-format
+msgid "Can't change status of %s"
+msgstr "Tak dapat mengganti status dari %s"
+
+#: chat.php:3047
+#, php-format
+msgid "%s successfully deleted from database."
+msgstr "%s berhasil dihapus dari basisdata."
+
+#: chat.php:3056
+#, php-format
+msgid "Status of %s successfully changed."
+msgstr "Status dari %s berhasil dirubah."
+
+#: chat.php:3073
+#, php-format
+msgid "Successfully reset password for %s"
+msgstr ""
+
+#: chat.php:3075
+#, php-format
+msgid "Can't reset password for %s"
+msgstr ""
+
+#: chat.php:3190
+msgid "Your profile has successfully been saved."
+msgstr "Profil anda sudah berhasil disimpan."
+
+#: chat.php:3202
+msgid "Nickname is already taken"
+msgstr "Nama sudah ada"
+
+#: chat.php:3714
+msgid "system message"
+msgstr "pesan dari sistem"
+
+#: chat.php:3921
+msgid "Beige"
+msgstr "Krem"
+
+#: chat.php:3922
+msgid "Black"
+msgstr "Hitam"
+
+#: chat.php:3923
+msgid "Blue"
+msgstr "Biru"
+
+#: chat.php:3924
+msgid "Blue violet"
+msgstr "Lembayung biru"
+
+#: chat.php:3925
+msgid "Brown"
+msgstr "Coklat"
+
+#: chat.php:3926
+msgid "Cyan"
+msgstr "Sian"
+
+#: chat.php:3927
+msgid "Dark blue"
+msgstr "Biru tua"
+
+#: chat.php:3928
+msgid "Dark green"
+msgstr "Hihau tua"
+
+#: chat.php:3929
+msgid "Dark red"
+msgstr "Merah tua"
+
+#: chat.php:3930
+msgid "Dark violet"
+msgstr "Lembayung tua"
+
+#: chat.php:3931
+msgid "Sky blue"
+msgstr "Biru langit"
+
+#: chat.php:3932
+msgid "Gold"
+msgstr "Emas"
+
+#: chat.php:3933
+msgid "Grey"
+msgstr "Abu-abu"
+
+#: chat.php:3934
+msgid "Green"
+msgstr "Hijau"
+
+#: chat.php:3935
+msgid "Hot pink"
+msgstr "Merah jambu"
+
+#: chat.php:3936
+msgid "Indigo"
+msgstr "Nila"
+
+#: chat.php:3937
+msgid "Light blue"
+msgstr "Biru muda"
+
+#: chat.php:3938
+msgid "Light green"
+msgstr "Hijau muda"
+
+#: chat.php:3939
+msgid "Lime green"
+msgstr "Hijau limu"
+
+#: chat.php:3940
+msgid "Magenta"
+msgstr "Magenta"
+
+#: chat.php:3941
+msgid "Olive"
+msgstr "Zaitun"
+
+#: chat.php:3942
+msgid "Orange"
+msgstr "Jingga"
+
+#: chat.php:3943
+msgid "Orange red"
+msgstr "Merah jingga"
+
+#: chat.php:3944
+msgid "Purple"
+msgstr "Ungu"
+
+#: chat.php:3945
+msgid "Red"
+msgstr "Merah"
+
+#: chat.php:3946
+msgid "Royal blue"
+msgstr "Biru royal"
+
+#: chat.php:3947
+msgid "Sea green"
+msgstr "Hijau laut"
+
+#: chat.php:3948
+msgid "Sienna"
+msgstr "Sienna"
+
+#: chat.php:3949
+msgid "Silver"
+msgstr "Perak"
+
+#: chat.php:3950
+msgid "Tan"
+msgstr "Kecoklatan"
+
+#: chat.php:3951
+msgid "Teal"
+msgstr "Teal"
+
+#: chat.php:3952
+msgid "Violet"
+msgstr "Lembayung"
+
+#: chat.php:3953
+msgid "White"
+msgstr "Putih"
+
+#: chat.php:3954
+msgid "Yellow"
+msgstr "Kuning"
+
+#: chat.php:3955
+msgid "Yellow green"
+msgstr "Hjau kuning"
+
+#: chat.php:4077
+msgid "Successfully destroyed chat"
+msgstr "Berhasil memusnahkan obrolan"
+
+#: chat.php:4086
+msgid ""
+"Database tables already exist! To continue, you have to delete these tables "
+"manually first."
+msgstr ""
+"Tabel basisdata sudah ada! Untuk melanjutkan, Anda harus menghapus tabel ini "
+"secara manual terlebih dahulu."
+
+#: chat.php:4089
+msgid "A Superadmin already exists!"
+msgstr "Superadmin sudah ada!"
+
+#: chat.php:4182 chat.php:4369
+#, php-format
+msgid "%s - "
+msgstr "%s - "
+
+#: chat.php:4183 chat.php:4369
+#, php-format
+msgid "[M] %s - "
+msgstr "[M] %s - "
+
+#: chat.php:4184 chat.php:4369
+#, php-format
+msgid "[Staff] %s - "
+msgstr "[Staf] %s - "
+
+#: chat.php:4185 chat.php:4369
+#, php-format
+msgid "[Admin] %s - "
+msgstr "[Admin] %s - "
+
+#: chat.php:4186 chat.php:4369
+#, php-format
+msgid "[%1$s to %2$s] - "
+msgstr "[%1$s ke %2$s] - "
+
+#: chat.php:4187
+#, php-format
+msgid "%s entered the chat."
+msgstr "%s memasuki obrolan."
+
+#: chat.php:4188
+#, php-format
+msgid "%s left the chat."
+msgstr "%s keluar dari obrolan."
+
+#: chat.php:4189
+#, php-format
+msgid "%s is now a registered member."
+msgstr "%s sekarang adalah anggota terdaftar."
+
+#: chat.php:4190
+#, php-format
+msgid "%s is now a registered applicant."
+msgstr "%s sekarang adalah pemohon terdaftar."
+
+#: chat.php:4191
+#, php-format
+msgid "%s has been kicked."
+msgstr "%s sudah diusir."
+
+#: chat.php:4192
+#, php-format
+msgid "%s have been kicked."
+msgstr "%s telah diusir."
+
+#: chat.php:4193
+msgid "All guests have been kicked."
+msgstr "Semua pengobrol sudah diusir."
+
+#: chat.php:4194
+#, php-format
+msgid "%s has been cleaned."
+msgstr "%s sudah dibersihkan."
+
+#: chat.php:4202 chat.php:4396
+msgid "Temporarily disabled"
+msgstr ""
+
+#: chat.php:4218 chat.php:4594
+msgid "A chat community"
+msgstr ""
+
+#: chat.php:4256
+msgid "Successfully registered!"
+msgstr "Berhasil terdaftar!"
+
+#: chat.php:4522 chat.php:4721 chat.php:4728
+msgid "No connection to database!"
+msgstr "Tak ada sambungan ke basisdata!"
+
+#: chat.php:4531
+msgid ""
+"Note: Default CSS is now hardcoded and can be removed from the CSS setting"
+msgstr ""
+
+#: chat.php:4611
+#, php-format
+msgid ""
+"The %s extension of PHP is required for the encryption feature. Please "
+"install it first or set the encrypted setting back to false."
+msgstr ""
+
+#: chat.php:4684 chat.php:4689 chat.php:4694
+#, php-format
+msgid ""
+"The %s extension of PHP is required for the selected database driver. Please "
+"install it first."
+msgstr ""
+
+#: chat.php:4707 chat.php:4715 chat.php:4719 chat.php:4726
+msgid ""
+"No connection to database, please create a database and edit the script to "
+"use the correct database with given username and password!"
+msgstr ""
+"Tak ada sambungan ke basisdata, silahkan buat basisdata dan sunting skrip "
+"ini agar menggunakan basisdata yang benar dengan nama pengguna dan kata "
+"sandi yang telah diberikan!"
+
+#: chat.php:4734
+msgid ""
+"The memcached extension of PHP is required for the caching feature. Please "
+"install it first or set the memcached setting back to false."
+msgstr ""

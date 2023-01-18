@@ -57,14 +57,10 @@ Note: If you updated the script, please visit http://(server)/(script-name).php?
 Translating:
 ------------
 
-Copy `lang_en.php` and rename it to `lang_YOUR_LANGCODE.php`
-Then edit the file and translate the messages into your language and change `$I` to `$T` at the top.
-If you ever use a `'` character, you have to escape it by using `\'` instead or the script will fail.
-When you are done, you have to edit the chat script, to include your translation. Simply add a line with
-`'lang_code'	=>'Language name',`
-to the `$L` array in the load_lang() function at the bottom, similar to what I did for the German translation.
-Please share your translation with me, so I can add it to the official version.
-To update your translation, you can copy each new string to your translation file or edit the automated `lang_update.php` script to reflect you language and run it.
+Translations are managed in [Weblate](https://weblate.danwin1210.de/projects/DanWin/le-chat-php).
+If you prefer manually submitting translations, the script `update-translations.sh` can be used to update the language template and translation files from source.
+It will generate the file `locale/le-chat-php.pot` which you can then use as basis to create a new language file in `YOUR_LANG_CODE/LC_MESSAGES/le-chat-php.po` and edit it with a translation program, such as [Poedit](https://poedit.net/).
+Once you are done, you can open a pull request, or [email me](mailto:daniel@danwin1210.de), to include the translation.
 
 Regex:
 ------

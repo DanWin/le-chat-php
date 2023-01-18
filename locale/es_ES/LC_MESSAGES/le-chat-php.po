@@ -1,0 +1,1637 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-01-18 21:32+0100\n"
+"PO-Revision-Date: 2023-01-18 21:37+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es_ES\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+
+#: chat.php:261
+msgid "Enable applicants"
+msgstr "Habilitar aplicantes"
+
+#: chat.php:262
+msgid "Embed images"
+msgstr "Habilitar imágenes"
+
+#: chat.php:263 chat.php:2202
+msgid "Show Timestamps"
+msgstr "Mostrar fecha y hora"
+
+#: chat.php:264
+msgid "Show session-IP"
+msgstr "Mostrar IP de la sesión"
+
+#: chat.php:265
+msgid "Members can kick, if no moderator is present"
+msgstr "Los miembros pueden expulsar, si no hay moderador presente"
+
+#: chat.php:266
+msgid "Members can always kick"
+msgstr "Los miembros siempre pueden expulsar"
+
+#: chat.php:267
+msgid "Force redirection"
+msgstr "Forzar redirección"
+
+#: chat.php:268
+msgid "Incognito mode"
+msgstr "Modo incógnito"
+
+#: chat.php:269
+msgid "Send mail on new public message"
+msgstr "Enviar mail en nuevo mensaje público"
+
+#: chat.php:270
+msgid "Fallback to waiting room, if no moderator is present to approve guests"
+msgstr "Volver a la sala de espera, si ningún moderador aprovo la visita"
+
+#: chat.php:271
+msgid "Disable private messages"
+msgstr "Desactivar mensajes privados"
+
+#: chat.php:272 chat.php:2223
+msgid "Enable offline inbox"
+msgstr "Activar inbox offline"
+
+#: chat.php:273
+msgid "Show a greeting message before showing the messages"
+msgstr "Mostrar un saludo antes de los mensajes"
+
+#: chat.php:274 chat.php:2204
+msgid "Sort messages from top to bottom"
+msgstr "Sort messages from top to bottom"
+
+#: chat.php:275 chat.php:2205
+msgid "Hide list of chatters"
+msgstr "Esconder lista de chatters"
+
+#: chat.php:276 chat.php:1780 chat.php:1794
+msgid "Personal notes"
+msgstr "Notas personales"
+
+#: chat.php:277 chat.php:1783 chat.php:1797 chat.php:2110
+msgid "Public notes"
+msgstr "Notas públicas"
+
+#: chat.php:278
+msgid "Apply kick filter on moderators"
+msgstr "Aplicar Kick filter en moderadores o administradores"
+
+#: chat.php:279
+msgid "Show who kicks people or purges all messages."
+msgstr "Mostrar quién expulsa a las personas o purga todos los mensajes."
+
+#: chat.php:280
+msgid "Hide reload post box button"
+msgstr ""
+
+#: chat.php:281
+msgid "Hide reload messages button"
+msgstr ""
+
+#: chat.php:282
+msgid "Hide profile button"
+msgstr ""
+
+#: chat.php:283
+msgid "Hide admin button"
+msgstr ""
+
+#: chat.php:284
+msgid "Hide notes button"
+msgstr ""
+
+#: chat.php:285
+msgid "Hide clone button"
+msgstr ""
+
+#: chat.php:286
+msgid "Hide rearrange button"
+msgstr ""
+
+#: chat.php:287
+msgid "Hide help button"
+msgstr ""
+
+#: chat.php:288
+msgid "Apply postbox delete button globally"
+msgstr ""
+
+#: chat.php:289
+msgid "Allow enhancing functionality with JavaScript"
+msgstr ""
+
+#: chat.php:292 chat.php:2170
+msgid "Background colour"
+msgstr "Color de fondo"
+
+#: chat.php:293 chat.php:2167
+msgid "Font colour"
+msgstr "Color de texto"
+
+#: chat.php:296
+msgid "Entrance"
+msgstr "Entrando"
+
+#: chat.php:297
+msgid "Leaving"
+msgstr "Saliendo"
+
+#: chat.php:298
+msgid "Member registered"
+msgstr "Miembro registrado"
+
+#: chat.php:299
+msgid "Applicant registered"
+msgstr "Aplicante registrado"
+
+#: chat.php:300
+msgid "Kicked"
+msgstr "Expulsado"
+
+#: chat.php:301
+msgid "Multiple kicked"
+msgstr "Expulsión múltiple"
+
+#: chat.php:302
+msgid "All kicked"
+msgstr "Todos expulsados"
+
+#: chat.php:303
+msgid "Room cleaned"
+msgstr "Sala limpiada"
+
+#: chat.php:304
+msgid "Message to all"
+msgstr "Mensajes a todos"
+
+#: chat.php:305
+msgid "Message to members only"
+msgstr "Sólo mensajes a miembros"
+
+#: chat.php:306
+msgid "Message to staff only"
+msgstr "Sólo mensajes a staff"
+
+#: chat.php:307
+msgid "Message to admins only"
+msgstr "Sólo mensajes a administradores"
+
+#: chat.php:308
+msgid "Private message"
+msgstr "Mensaje privado"
+
+#: chat.php:309
+msgid "Attachement"
+msgstr ""
+
+#: chat.php:312
+msgid "Member timeout (minutes)"
+msgstr "Vencimiento para miembros (minutos)"
+
+#: chat.php:313
+msgid "Guest timeout (minutes)"
+msgstr "Vencimiento para invitados (minutos)"
+
+#: chat.php:314
+msgid "Kick penalty (minutes)"
+msgstr "Penalidad al expulsar (minutos)"
+
+#: chat.php:315
+msgid "Waiting room time (seconds)"
+msgstr "Tiempo en sala de espera (segundos)"
+
+#: chat.php:316
+msgid "Captcha timeout (seconds)"
+msgstr "Vencimiento de captcha (segundos)"
+
+#: chat.php:317
+msgid "Message timeout (minutes)"
+msgstr "Vencimiento de mensajes (minutos)"
+
+#: chat.php:318
+msgid "Message limit (public)"
+msgstr "Límite de mensajes (público)"
+
+#: chat.php:319
+msgid "Maximal message length"
+msgstr "Largo máximo de mensaje"
+
+#: chat.php:320
+msgid "Maximal nickname length"
+msgstr "Largo máximo para apodos"
+
+#: chat.php:321
+msgid "Minimal password length"
+msgstr "Largo mínimo para contraseñas"
+
+#: chat.php:322
+msgid "Default message reload time (seconds)"
+msgstr "Tiempo de actualización de mensajes por defecto (segundos)"
+
+#: chat.php:323
+msgid "Number of notes revisions to keep"
+msgstr "Numero de notas para revisar"
+
+#: chat.php:324
+msgid "Maximum upload size in KB"
+msgstr "Máxima subida en KB"
+
+#: chat.php:325
+msgid "Enable file uploads"
+msgstr "Habilitar subida de archivos"
+
+#: chat.php:326
+msgid "Lowest refresh rate"
+msgstr ""
+
+#: chat.php:327
+msgid "Highest refresh rate"
+msgstr ""
+
+#: chat.php:330
+msgid "Rules (html)"
+msgstr "Reglas (html)"
+
+#: chat.php:331
+msgid "CSS Style"
+msgstr "Estilo CSS"
+
+#: chat.php:332
+msgid "Chat disabled message (html)"
+msgstr "Mensaje de chat desactivado (html)"
+
+#: chat.php:335
+msgid ""
+"<a target=\"_blank\" href=\"https://php.net/manual/en/function.date."
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Date "
+"formating</a>"
+msgstr ""
+"<a target=\"_blank\" href=\"https://php.net/manual/es/function.date."
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Formato "
+"de fechas</a>"
+
+#: chat.php:336
+msgid "Characters used in Captcha"
+msgstr "Caracteres usados en el Captcha"
+
+#: chat.php:337
+msgid "Custom redirection script"
+msgstr "Script de redirección personalizado"
+
+#: chat.php:338
+msgid "Chat name"
+msgstr "Nombre de la sala"
+
+#: chat.php:339
+msgid "Send mail using this address"
+msgstr "Enviar mail usando esta dirección"
+
+#: chat.php:340
+msgid "Send mail to this address"
+msgstr "Enviar mail a esta dirección"
+
+#: chat.php:341
+msgid "Nickname regex"
+msgstr ""
+
+#: chat.php:342
+msgid "Password regex"
+msgstr ""
+
+#: chat.php:343
+msgid "Link to external CSS file (on your own server)"
+msgstr "Link para archivo CSS externo"
+
+#: chat.php:344
+msgid "Meta description (best 50 - 160 characters for SEO)"
+msgstr ""
+
+#: chat.php:345
+msgid "Prepend this text to system messages"
+msgstr "Este texto precede a los mensajes del sistema"
+
+#: chat.php:348 chat.php:728 chat.php:1225
+msgid "Change Guestaccess"
+msgstr "Cambiar acceso de invitado"
+
+#: chat.php:349
+msgid "Enable global Password"
+msgstr ""
+
+#: chat.php:350 chat.php:758 chat.php:2415 chat.php:2433
+msgid "Global Password:"
+msgstr "Contraseña global:"
+
+#: chat.php:351 chat.php:819
+msgid "Captcha"
+msgstr "Captcha"
+
+#: chat.php:352 chat.php:775 chat.php:835
+msgid "Only for guests"
+msgstr "Sólo para invitados"
+
+#: chat.php:353 chat.php:1220
+msgid "Topic"
+msgstr "Asunto"
+
+#: chat.php:354 chat.php:781
+msgid "Let guests register themselves"
+msgstr "Dar permisos de invitado a si mismos"
+
+#: chat.php:355 chat.php:862
+msgid "Default time zone"
+msgstr "Zona horaria predeterminada"
+
+#: chat.php:568 chat.php:1100 chat.php:4078 chat.php:4259
+msgid "Initial Setup"
+msgstr "Configuración inicialInicializar chat"
+
+#: chat.php:588
+#, php-format
+msgid "Redirecting to: %s"
+msgstr "Redirigir a: %s"
+
+#: chat.php:595
+#, php-format
+msgid ""
+"Dangerous non-http link requested, copy paste this link if you are really "
+"sure: %s"
+msgstr ""
+
+#: chat.php:597
+#, php-format
+msgid "Non-http link requested: %s"
+msgstr "Petición de enlace que no es http: %s"
+
+#: chat.php:599
+#, php-format
+msgid "If it's not working, try this one: %s"
+msgstr "Si no funciona, probá esto: %s"
+
+#: chat.php:609
+msgid "Access denied"
+msgstr "Acceso no permitido"
+
+#: chat.php:609
+#, php-format
+msgid "You are logged in as %s and don't have access to this section."
+msgstr "Estás identificado como %s y no tenés acceso a esta sección."
+
+#: chat.php:611 chat.php:915 chat.php:1211 chat.php:1393
+msgid "Logout"
+msgstr "Desconectar"
+
+#: chat.php:636
+msgid "Copy:"
+msgstr "Copiar:"
+
+#: chat.php:724
+msgid "Chat Setup"
+msgstr "Configuración del chat"
+
+#: chat.php:734 chat.php:1233
+msgid "Allow"
+msgstr "Permitir"
+
+#: chat.php:739 chat.php:1238
+msgid "Allow with waitingroom"
+msgstr "Permitir con sala de espera"
+
+#: chat.php:744 chat.php:1243
+msgid "Require moderator approval"
+msgstr "Requiere aprobación del moderator"
+
+#: chat.php:749 chat.php:1248
+msgid "Only members"
+msgstr "Sólo miembros"
+
+#: chat.php:754 chat.php:1251
+msgid "Disable chat"
+msgstr "Desactivar chat"
+
+#: chat.php:765 chat.php:787 chat.php:842 chat.php:896 chat.php:2229
+msgid "Disabled"
+msgstr "Deshabilitado"
+
+#: chat.php:770 chat.php:830 chat.php:901 chat.php:2219
+msgid "Enabled"
+msgstr "Habilitado"
+
+#: chat.php:792
+msgid "As applicant"
+msgstr "Como aplicante"
+
+#: chat.php:797
+msgid "As member"
+msgstr "Como miembro"
+
+#: chat.php:800
+msgid "System messages"
+msgstr "Mensajes de sistema"
+
+#: chat.php:822 chat.php:1053
+#, php-format
+msgid ""
+"The %s extension of PHP is required for this feature. Please install it "
+"first."
+msgstr "La extensión %s de PHP es requerida para esto. Instálela primero."
+
+#: chat.php:847
+msgid "Simple"
+msgstr ""
+
+#: chat.php:852
+msgid "Moderate"
+msgstr "Moderado"
+
+#: chat.php:857
+msgid "Extreme"
+msgstr "Extremo"
+
+#: chat.php:906 chat.php:1548 chat.php:1610
+msgid "Apply"
+msgstr "Aplicar"
+
+#: chat.php:910 chat.php:1050
+msgid "Backup and restore"
+msgstr "Copias de seguridad"
+
+#: chat.php:912
+msgid "Destroy chat"
+msgstr "Destruir sala"
+
+#: chat.php:1057 chat.php:1066
+msgid "Settings"
+msgstr "Configuración"
+
+#: chat.php:1058 chat.php:1067 chat.php:1212 chat.php:1538 chat.php:1575
+#: chat.php:1622
+msgid "Filter"
+msgstr "Filtro"
+
+#: chat.php:1059 chat.php:1068 chat.php:1268 chat.php:2538
+msgid "Members"
+msgstr "Miembros"
+
+#: chat.php:1060 chat.php:1069 chat.php:2314 chat.php:2322
+msgid "Notes"
+msgstr "Notas"
+
+#: chat.php:1061
+msgid "Backup"
+msgstr "Hacer copia"
+
+#: chat.php:1070
+msgid "Restore"
+msgstr "Restablecer copia"
+
+#: chat.php:1074 chat.php:1117 chat.php:1155 chat.php:1185 chat.php:4260
+msgid "Go to the Setup-Page"
+msgstr "Ir a la página de configuración"
+
+#: chat.php:1082 chat.php:1091 chat.php:1949
+msgid "Are you sure?"
+msgstr "¿Estás seguro?"
+
+#: chat.php:1083 chat.php:1092 chat.php:1956
+msgid "Yes"
+msgstr "Sí"
+
+#: chat.php:1084 chat.php:1093 chat.php:1963
+msgid "No"
+msgstr "No"
+
+#: chat.php:1101 chat.php:4259
+msgid "Superadmin Login"
+msgstr "Registro de Superadministrador"
+
+#: chat.php:1102
+msgid "Superadmin Nickname:"
+msgstr "Apodo del superadmin:"
+
+#: chat.php:1103
+msgid "Superadmin Password:"
+msgstr "Contraseña del superadmin:"
+
+#: chat.php:1104
+msgid "Confirm Password:"
+msgstr "Confirmar contraseña:"
+
+#: chat.php:1105
+msgid "Initialise Chat"
+msgstr "Inicializar chat"
+
+#: chat.php:1106 chat.php:1130 chat.php:1156 chat.php:2277 chat.php:2439
+msgid "Change language:"
+msgstr "Cambiar idioma:"
+
+#: chat.php:1117
+msgid "Database successfully updated!"
+msgstr "¡La base de datos fue actualizada con éxito!"
+
+#: chat.php:1125 chat.php:1326 chat.php:2407
+msgid "Nickname:"
+msgstr "Apodo:"
+
+#: chat.php:1126 chat.php:1327 chat.php:2408
+msgid "Password:"
+msgstr "Contraseña:"
+
+#: chat.php:1128
+msgid "Login"
+msgstr "Identificarse"
+
+#: chat.php:1129
+msgid "Forgot login?"
+msgstr ""
+
+#: chat.php:1142 chat.php:1306
+msgid "Reset password"
+msgstr "Reiniciar contraseña"
+
+#: chat.php:1150
+#, php-format
+msgid ""
+"Successfully reset password for username %s. Please remove the password "
+"reset define from the script again."
+msgstr ""
+
+#: chat.php:1153
+msgid ""
+"Please modify the script and put the following at the bottom of it (change "
+"the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
+"'changeme');"
+msgstr ""
+
+#: chat.php:1169 chat.php:1193 chat.php:1258 chat.php:1270 chat.php:1294
+#: chat.php:1308 chat.php:1316 chat.php:2145 chat.php:2153
+msgid "(choose)"
+msgstr "(elegí)"
+
+#: chat.php:1170
+msgid "All guests"
+msgstr "Todos invitados"
+
+#: chat.php:1182
+msgid "Administrative functions"
+msgstr "Funciones administrativas"
+
+#: chat.php:1188
+msgid "Clean messages"
+msgstr "Limpiar mensajes"
+
+#: chat.php:1191
+msgid "Whole room"
+msgstr "Sala entera"
+
+#: chat.php:1192
+msgid "Selection"
+msgstr "Selección"
+
+#: chat.php:1193
+msgid "Following nickname:"
+msgstr "Siguiente Nick:"
+
+#: chat.php:1200
+msgid "Clean"
+msgstr "Limpiar"
+
+#: chat.php:1202
+#, php-format
+msgid "Kick Chatter (%d minutes)"
+msgstr "Expulsado (%d minutos)"
+
+#: chat.php:1204
+msgid "Kickmessage:"
+msgstr "Motivo de expulsión:"
+
+#: chat.php:1205
+msgid "Purge messages"
+msgstr "Mensaje de purga"
+
+#: chat.php:1206 chat.php:1388 chat.php:1546 chat.php:1580 chat.php:1591
+#: chat.php:2042
+msgid "Kick"
+msgstr "Expulsar"
+
+#: chat.php:1208
+msgid "Logout inactive Chatter"
+msgstr "Desconectar persona inactiva"
+
+#: chat.php:1212
+msgid "View active sessions"
+msgstr "Ver sesiones activas"
+
+#: chat.php:1212 chat.php:1603
+msgid "Linkfilter"
+msgstr "Filtro de enlaces"
+
+#: chat.php:1217
+msgid "View"
+msgstr "Ver"
+
+#: chat.php:1223 chat.php:1253 chat.php:1304 chat.php:1312 chat.php:1582
+#: chat.php:1626
+msgid "Change"
+msgstr "Cambiar"
+
+#: chat.php:1256
+msgid "Register applicant"
+msgstr "Agregar aplicante"
+
+#: chat.php:1264 chat.php:1322 chat.php:1328
+msgid "Register"
+msgstr "Registrar"
+
+#: chat.php:1294
+msgid "Delete from database"
+msgstr "Borrar de la base de datos"
+
+#: chat.php:1294
+msgid "Deny access (!)"
+msgstr "Prohibir acceso (!)"
+
+#: chat.php:1296
+msgid "Set to applicant (SG)"
+msgstr "Convertir en aplicante (SG)"
+
+#: chat.php:1298
+msgid "Set to regular member"
+msgstr "Convertir en miembro regular"
+
+#: chat.php:1299
+msgid "Set to moderator (M)"
+msgstr "Convertir en moderador (M)"
+
+#: chat.php:1300
+msgid "Set to supermod (SM)"
+msgstr "Convertir en supermoderador (SM)"
+
+#: chat.php:1302
+msgid "Set to admin (A)"
+msgstr "Convertir administrador (A)"
+
+#: chat.php:1314
+msgid "Register Guest"
+msgstr "Registrar invitado"
+
+#: chat.php:1324
+msgid "Register new Member"
+msgstr "Registrar miembro nuevo"
+
+#: chat.php:1332 chat.php:1408 chat.php:1595 chat.php:1636 chat.php:1710
+#: chat.php:1924
+msgid "Reload"
+msgstr "Recargar"
+
+#: chat.php:1345
+msgid "Active Sessions"
+msgstr "Sesiones activas"
+
+#: chat.php:1346 chat.php:1873
+msgid "Nickname"
+msgstr "Apodo"
+
+#: chat.php:1346
+msgid "Timeout in"
+msgstr "Vencimiento"
+
+#: chat.php:1346 chat.php:1873
+msgid "User-Agent"
+msgstr "Navegador"
+
+#: chat.php:1350
+msgid "IP-Address"
+msgstr "Dirección IP"
+
+#: chat.php:1351
+msgid "Actions"
+msgstr "Acciones"
+
+#: chat.php:1393
+msgid "Unban"
+msgstr "Desbanear"
+
+#: chat.php:1416
+msgid "Incorrect regular expression!"
+msgstr "¡Expresión regular incorrecta!"
+
+#: chat.php:1416 chat.php:1424
+#, php-format
+msgid "Your match was as follows: %s"
+msgstr ""
+
+#: chat.php:1424
+msgid ""
+"Your match was too long. You can use max. 255 characters. Try splitting it "
+"up."
+msgstr ""
+
+#: chat.php:1541 chat.php:1606
+msgid "Filter ID:"
+msgstr "ID del filtro:"
+
+#: chat.php:1542 chat.php:1607
+msgid "Match"
+msgstr "Coincidencia"
+
+#: chat.php:1543 chat.php:1608
+msgid "Replace"
+msgstr "Reemplazar"
+
+#: chat.php:1544 chat.php:1578 chat.php:1589
+msgid "Allow in PM"
+msgstr "Permitir en MP"
+
+#: chat.php:1545 chat.php:1579 chat.php:1590 chat.php:1609 chat.php:1625
+#: chat.php:1633
+msgid "Regex"
+msgstr "Expresión regular"
+
+#: chat.php:1547 chat.php:1581 chat.php:1592
+msgid "Case sensitive"
+msgstr ""
+
+#: chat.php:1586 chat.php:1630
+msgid "New filter:"
+msgstr "Filtro nuevo:"
+
+#: chat.php:1593 chat.php:1634
+msgid "Add"
+msgstr "Agregar"
+
+#: chat.php:1691
+msgid ""
+"This chat uses <b>frames</b>. Please enable frames in your browser or use a "
+"suitable one!"
+msgstr ""
+"Este chat usa <b>frames</b>. ¡Por favor, habilitalos en tu navegador o usá "
+"uno que los permita!"
+
+#: chat.php:1691 chat.php:2370 chat.php:2457
+msgid "Back to the login page."
+msgstr "Volver a la página de identificación."
+
+#: chat.php:1709
+msgid "Bottom"
+msgstr "Inicio"
+
+#: chat.php:1710
+msgid "Manual refresh required"
+msgstr "Recarga manual requerida"
+
+#: chat.php:1726
+msgid "Top"
+msgstr "Fin"
+
+#: chat.php:1734 chat.php:1940 chat.php:1942
+msgid "Delete selected messages"
+msgstr "Borrar mensajes seleccionados"
+
+#: chat.php:1761 chat.php:1888 chat.php:2101 chat.php:2281
+msgid "Back to the chat."
+msgstr "Volver a la sala."
+
+#: chat.php:1774 chat.php:1791
+msgid "Admin notes"
+msgstr "Notas de administrador"
+
+#: chat.php:1777 chat.php:1788
+msgid "Staff notes"
+msgstr "Notas del equipo"
+
+#: chat.php:1811
+msgid "Notes saved!"
+msgstr "¡Notas guardadas!"
+
+#: chat.php:1835 chat.php:2122
+#, php-format
+msgid "Last edited by %1$s at %2$s"
+msgstr "Editada por última vez por %1$s el %2$s"
+
+#: chat.php:1848
+msgid "Save notes"
+msgstr "Guardar notas"
+
+#: chat.php:1850
+msgid "Revisions:"
+msgstr "Revisiones:"
+
+#: chat.php:1853
+msgid "Older"
+msgstr "Antiguo"
+
+#: chat.php:1857
+msgid "Newer"
+msgstr "Nuevo"
+
+#: chat.php:1868 chat.php:1914
+msgid "Waiting room"
+msgstr "Sala de espera"
+
+#: chat.php:1880
+msgid "Allow checked"
+msgstr "Aceptar marcados"
+
+#: chat.php:1881
+msgid "Allow all"
+msgstr "Aceptar todos"
+
+#: chat.php:1882
+msgid "Deny checked"
+msgstr "Rechazar marcados"
+
+#: chat.php:1883
+msgid "Deny all"
+msgstr "Rechazar todos"
+
+#: chat.php:1883
+msgid "Send message to denied:"
+msgstr "Enviar mensaje a rechazados:"
+
+#: chat.php:1884
+msgid "Submit"
+msgstr "Enviar"
+
+#: chat.php:1886
+msgid "No more entry requests to approve."
+msgstr "No hay más peticiones para aprobar."
+
+#: chat.php:1916
+#, php-format
+msgid ""
+"Welcome %1$s, your login has been delayed, you can access the chat in %2$d "
+"seconds."
+msgstr ""
+"Bienvenido %1$s, tu identificación fue demorada, podrás acceder a la sala en "
+"%2$d segundos."
+
+#: chat.php:1918
+#, php-format
+msgid ""
+"Welcome %1$s, your login has been delayed, you can access the chat as soon, "
+"as a moderator lets you in."
+msgstr ""
+"Bienvenido %1$s, tu identificación fue demorada, podrás acceder a la sala en "
+"cuanto un administrador lo permita."
+
+#: chat.php:1921
+#, php-format
+msgid ""
+"If this page doesn't refresh every %d seconds, use the button below to "
+"reload it manually!"
+msgstr ""
+"Si esta página no se actualiza cada %d segundos, usa el botón de abajo para "
+"hacerlo manualmente!"
+
+#: chat.php:1926 chat.php:2339
+msgid "Exit Chat"
+msgstr "Salir de la sala"
+
+#: chat.php:1929 chat.php:2074 chat.php:2085 chat.php:2430
+msgid "Rules"
+msgstr "Reglas"
+
+#: chat.php:1985
+msgid "Send to"
+msgstr "Enviar a"
+
+#: chat.php:1990
+msgid "All chatters"
+msgstr "Todos"
+
+#: chat.php:1996
+msgid "Members only"
+msgstr "Sólo miembros"
+
+#: chat.php:2003
+msgid "Staff only"
+msgstr "Sólo equipo"
+
+#: chat.php:2010
+msgid "Admin only"
+msgstr "Sólo administradores"
+
+#: chat.php:2019
+msgid "(offline)"
+msgstr "(offline)"
+
+#: chat.php:2043
+msgid "Also purge messages"
+msgstr "Además purgar mensajes"
+
+#: chat.php:2050
+msgid "Delete last message"
+msgstr "Eliminar el último mensaje"
+
+#: chat.php:2055
+msgid "Delete all messages"
+msgstr "Eliminar todos los mensajes"
+
+#: chat.php:2057
+msgid "Switch to single-line"
+msgstr "Cambiar a una sola línea"
+
+#: chat.php:2059
+msgid "Switch to multi-line"
+msgstr "Cambiar a múltiples líneas"
+
+#: chat.php:2070
+#, php-format
+msgid "Welcome %s!"
+msgstr "Bienvenido %s!"
+
+#: chat.php:2071
+#, php-format
+msgid ""
+"If this frame does not reload in %d seconds, you'll have to enable automatic "
+"redirection (meta refresh) in your browser. Also make sure no web filter, "
+"local proxy tool or browser plugin is preventing automatic refreshing! This "
+"could be for example \"Polipo\", \"NoScript\", etc.<br>As a workaround (or "
+"in case of server/proxy reload errors) you can always use the buttons at the "
+"bottom to refresh manually."
+msgstr ""
+"Si no se te redirige en %d segundos, asegurate de tener activado la "
+"redirección automática (meta refresh) en tu navegador. También asegurate de "
+"que ningún filtro web, local proxy tool o browser plugin evita tu "
+"redirección automática! Podría ser por ejemplo \"Polipo\", \"NoScript\", etc."
+"<br>o puedes usar el botón de recargar de manera manual."
+
+#: chat.php:2087
+msgid "Help"
+msgstr "Ayuda"
+
+#: chat.php:2088
+msgid ""
+"All functions should be pretty much self-explaining, just use the buttons. "
+"In your profile you can adjust the refresh rate and font colour, as well as "
+"ignore users.<br><u>Note:</u> This is a chat, so if you don't keep talking, "
+"you will be automatically logged out after a while."
+msgstr ""
+"Todas las funciones deberían ser auto-explicativas, sólo usa los botones. En "
+"tu perfil puedes ajustar el tiempo de actualización, el color del texto y el "
+"tamaño de caja que prefieras.<br><u>Nota:</u> Esto es una sala de chat, así "
+"que si no te mantenés hablando, vas a ser expulsado automáticamente después "
+"de un tiempo."
+
+#: chat.php:2090
+msgid ""
+"If you want to embed an image in your post, simply put [img] in front of "
+"your image URL. Example: [img]http://example.com/images/file.jpg will embed "
+"the image in your post."
+msgstr ""
+"Si querés incluir una imagen en tu publicación, simplemente poné [img] al "
+"comienzo de la dirección URL de la imagen. Por ejemplo: [img]http://example."
+"com/images/file.jpg incluirá la imagen en tu publicación."
+
+#: chat.php:2093
+msgid ""
+"Members: You'll have some more options in your profile. You can adjust your "
+"font face, change your password anytime and of course you can delete your "
+"account."
+msgstr ""
+"Miembros: Vas a tener algunas opciones más en tu perfil. Vas a poder ajustar "
+"la tipografía del texto y cambiar la contraseña en cualquier momento."
+
+#: chat.php:2095
+msgid ""
+"Moderators: Notice the Admin-button at the bottom. It'll bring up a page "
+"where you can clean the room, kick chatters, view all active sessions and "
+"disable guest access completely if needed."
+msgstr ""
+"Moderadores: Notá el botón de administración al final de la página. Te va a "
+"llevar a una página donde podés limpiar la sala, expulsar personas, ver "
+"todas las sesiones activas y deshabilitar el acceso a invitados totalmente "
+"si fuese necesario."
+
+#: chat.php:2097
+msgid ""
+"Admins: You'll be furthermore able to register guests, edit members and "
+"register new nicknames."
+msgstr ""
+"Administradores: Además vas a poder registrar invitados, editar miembros y "
+"registrar nuevos apodos sin que estén en la sala."
+
+#: chat.php:2135
+msgid "Your Profile"
+msgstr "Tu perfil"
+
+#: chat.php:2144
+msgid "Don't ignore anymore"
+msgstr "Dejar de ignorar"
+
+#: chat.php:2152
+msgid "Ignore"
+msgstr "Ignorar"
+
+#: chat.php:2163
+#, php-format
+msgid "Refresh rate (%1$d-%2$d seconds)"
+msgstr "Tiempo de actualización (%1$d-%2$d segundos)"
+
+#: chat.php:2167 chat.php:2170
+msgid "View examples"
+msgstr "Ver ejemplos"
+
+#: chat.php:2174
+msgid "Fontface"
+msgstr "Tipografía"
+
+#: chat.php:2175
+msgid "Room Default"
+msgstr "Sala por defecto"
+
+#: chat.php:2188
+msgid "Bold"
+msgstr "Negrita"
+
+#: chat.php:2192
+msgid "Italic"
+msgstr "Bastardilla"
+
+#: chat.php:2196
+msgid "Small"
+msgstr "Pequeño"
+
+#: chat.php:2199
+msgid "Example for your chosen font"
+msgstr "Ejemplo de la tipografía seleccionada"
+
+#: chat.php:2203
+msgid "Autoscroll (for old browsers or top-to-bottom sort)."
+msgstr "Autoscroll (para buscadores antiguos o tipo top to bottom)."
+
+#: chat.php:2234
+msgid "For everyone"
+msgstr "Para todos"
+
+#: chat.php:2239
+msgid "For members only"
+msgstr "Solo para miembros"
+
+#: chat.php:2244
+msgid "For staff only"
+msgstr "Solo para staff"
+
+#: chat.php:2248
+msgid "Time zone"
+msgstr "Zona horaria"
+
+#: chat.php:2261
+msgid "Change Password"
+msgstr "Cambiar la contraseña"
+
+#: chat.php:2263
+msgid "Old password:"
+msgstr "Contraseña anterior:"
+
+#: chat.php:2264
+msgid "New password:"
+msgstr "Contraseña nueva:"
+
+#: chat.php:2265
+msgid "Confirm new password:"
+msgstr "Confirmar contraseña nueva:"
+
+#: chat.php:2268
+msgid "Change Nickname"
+msgstr "Cambiar Nick"
+
+#: chat.php:2269
+msgid "New nickname:"
+msgstr "Nuevo apodo:"
+
+#: chat.php:2273
+msgid "Save changes"
+msgstr "Guardar cambios"
+
+#: chat.php:2275
+msgid "Delete account"
+msgstr "Borrar cuenta"
+
+#: chat.php:2301
+msgid "Reload Post Box"
+msgstr "Recargar caja de publicación"
+
+#: chat.php:2304
+msgid "Reload Messages"
+msgstr "Recargar mensajes"
+
+#: chat.php:2307
+msgid "Profile"
+msgstr "Perfil"
+
+#: chat.php:2311 chat.php:2528
+msgid "Admin"
+msgstr "Admin"
+
+#: chat.php:2318
+msgid "View public notes"
+msgstr "Ver notas públicas"
+
+#: chat.php:2325
+msgid "Clone"
+msgstr "Clone"
+
+#: chat.php:2334
+msgid "Rearrange"
+msgstr ""
+
+#: chat.php:2337
+msgid "Rules & Help"
+msgstr ""
+
+#: chat.php:2358 chat.php:2362
+msgid "File not found!"
+msgstr "Documento no encontrado!"
+
+#: chat.php:2370
+#, php-format
+msgid "Bye %s, visit again soon!"
+msgstr "¡Chau %s, visítanos pronto!"
+
+#: chat.php:2377
+msgid "Colourtable"
+msgstr "Colourtable"
+
+#: chat.php:2388
+msgid "Back to your Profile"
+msgstr "Volver a tu perfil"
+
+#: chat.php:2412
+msgid "Repeat password<br>to register"
+msgstr "Repetir contraseña<br>para registrarse"
+
+#: chat.php:2412
+msgid "(optional)"
+msgstr "(opcional)"
+
+#: chat.php:2417
+msgid "Guests, choose a colour:"
+msgstr "Invitado, elegí un color:"
+
+#: chat.php:2417
+msgid "Random Colour"
+msgstr "Color al azar"
+
+#: chat.php:2421 chat.php:2435 chat.php:2569
+msgid "Sorry, currently members only!"
+msgstr "¡Perdón! Actualmente sólo se permiten miembros!"
+
+#: chat.php:2423 chat.php:2437
+msgid "Enter Chat"
+msgstr "Entrar a la sala"
+
+#: chat.php:2457
+#, php-format
+msgid "Error: %s"
+msgstr "Error: %s"
+
+#: chat.php:2467
+msgid "Fatal error"
+msgstr "Error fatal"
+
+#: chat.php:2470
+#, php-format
+msgid "Fatal error: %s"
+msgstr "Error fatal: %s"
+
+#: chat.php:2482 chat.php:2693
+msgid "Failed login attempt(s)"
+msgstr "Intento(s) de inicio de sesión fallido(s)"
+
+#: chat.php:2489
+#, php-format
+msgid "Read %d messages in your inbox"
+msgstr "Leer %d mensajes en tu bandeja"
+
+#: chat.php:2498
+#, php-format
+msgid "%d new guests to approve"
+msgstr "%d nuevos invitados para aprobar"
+
+#: chat.php:2530
+msgid "Admin:"
+msgstr "Admin:"
+
+#: chat.php:2533
+msgid "Staff"
+msgstr "Equipo"
+
+#: chat.php:2535
+msgid "Staff:"
+msgstr "Equipo:"
+
+#: chat.php:2540
+msgid "Members:"
+msgstr "Miembros:"
+
+#: chat.php:2542
+msgid "Guests"
+msgstr "Invitados"
+
+#: chat.php:2563 chat.php:2993 chat.php:3197 chat.php:4092
+#, fuzzy, php-format
+msgid ""
+"Invalid nickname (%1$d characters maximum and has to match the regular "
+"expression \"%2$s\")"
+msgstr ""
+"NickName inválido (%1$d characters maximum and has to match the regular "
+"expression \"%2$s\")"
+
+#: chat.php:2566 chat.php:2996 chat.php:3162 chat.php:4094
+#, fuzzy, php-format
+msgid ""
+"Invalid password (At least %1$d characters and has to match the regular "
+"expression \"%2$s\")"
+msgstr ""
+"Contraseña erronea(At least %1$d characters and has to match the regular "
+"expression \"%2$s\")"
+
+#: chat.php:2574 chat.php:2739
+msgid "Wrong global Password!"
+msgstr "¡Contraseña global incorrecta!"
+
+#: chat.php:2591 chat.php:2612
+msgid "Wrong Captcha"
+msgstr "Captcha incorrecto"
+
+#: chat.php:2596 chat.php:2604
+msgid "Captcha already used or timed out."
+msgstr "Captcha ya usado o vencido."
+
+#: chat.php:2652
+msgid "A user with this nickname is already logged in."
+msgstr "Un usuario con ese nombre ya está registrado."
+
+#: chat.php:2652 chat.php:2933 chat.php:3176
+msgid "Wrong Password!"
+msgstr "¡Contraseña incorrecta!"
+
+#: chat.php:2696
+msgid "Dismiss"
+msgstr "Reconocido"
+
+#: chat.php:2747 chat.php:3171 chat.php:4096
+msgid "Password confirmation does not match!"
+msgstr "¡La contraseña y su confirmación no coinciden!"
+
+#: chat.php:2859
+msgid "Invalid/expired session"
+msgstr "La sesión es inválida o expiró"
+
+#: chat.php:2875 chat.php:3412
+msgid "You have been kicked!"
+msgstr "¡Te expulsaron!"
+
+#: chat.php:2885
+#, php-format
+msgid "Currently %d chatter(s) in room:"
+msgstr "En este momento hay %d personas en la sala:"
+
+#: chat.php:2933
+msgid "This nickname is a registered member."
+msgstr "Este nombre es un usuario registrado."
+
+#: chat.php:2960 chat.php:3001
+#, php-format
+msgid "%s is already registered."
+msgstr "%s ya fue registrado."
+
+#: chat.php:2969 chat.php:2990
+#, php-format
+msgid "Can't register %s"
+msgstr "No pudo registrarse %s"
+
+#: chat.php:2978 chat.php:3023
+#, php-format
+msgid "%s successfully registered."
+msgstr "%s se registro sin problemas."
+
+#: chat.php:3031 chat.php:3036
+#, php-format
+msgid "Can't change status of %s"
+msgstr "No pudo cambiarse el estado de %s"
+
+#: chat.php:3047
+#, php-format
+msgid "%s successfully deleted from database."
+msgstr "%s fue eliminado de la base de datos."
+
+#: chat.php:3056
+#, php-format
+msgid "Status of %s successfully changed."
+msgstr "Se cambió el estado de %s sin problemas."
+
+#: chat.php:3073
+#, php-format
+msgid "Successfully reset password for %s"
+msgstr ""
+
+#: chat.php:3075
+#, php-format
+msgid "Can't reset password for %s"
+msgstr ""
+
+#: chat.php:3190
+msgid "Your profile has successfully been saved."
+msgstr "Tu perfil se guardó sin problemas."
+
+#: chat.php:3202
+msgid "Nickname is already taken"
+msgstr "Ese apodo ya fue tomado"
+
+#: chat.php:3714
+msgid "system message"
+msgstr "mensaje de sistema"
+
+#: chat.php:3921
+msgid "Beige"
+msgstr "Beige"
+
+#: chat.php:3922
+msgid "Black"
+msgstr "Negro"
+
+#: chat.php:3923
+msgid "Blue"
+msgstr "Azul"
+
+#: chat.php:3924
+msgid "Blue violet"
+msgstr "Azul violáceo"
+
+#: chat.php:3925
+msgid "Brown"
+msgstr "Marrón"
+
+#: chat.php:3926
+msgid "Cyan"
+msgstr "Cian"
+
+#: chat.php:3927
+msgid "Dark blue"
+msgstr "Azul oscuro"
+
+#: chat.php:3928
+msgid "Dark green"
+msgstr "Verde oscuro"
+
+#: chat.php:3929
+msgid "Dark red"
+msgstr "Rojo oscuro"
+
+#: chat.php:3930
+msgid "Dark violet"
+msgstr "Violeta oscuro"
+
+#: chat.php:3931
+msgid "Sky blue"
+msgstr "Azul celeste"
+
+#: chat.php:3932
+msgid "Gold"
+msgstr "Dorado"
+
+#: chat.php:3933
+msgid "Grey"
+msgstr "Gris"
+
+#: chat.php:3934
+msgid "Green"
+msgstr "Verde"
+
+#: chat.php:3935
+msgid "Hot pink"
+msgstr "Rosa cálido"
+
+#: chat.php:3936
+msgid "Indigo"
+msgstr "Índigo"
+
+#: chat.php:3937
+msgid "Light blue"
+msgstr "Azul claro"
+
+#: chat.php:3938
+msgid "Light green"
+msgstr "Verde claro"
+
+#: chat.php:3939
+msgid "Lime green"
+msgstr "Verde lima"
+
+#: chat.php:3940
+msgid "Magenta"
+msgstr "Magenta"
+
+#: chat.php:3941
+msgid "Olive"
+msgstr "Oliva"
+
+#: chat.php:3942
+msgid "Orange"
+msgstr "Naranja"
+
+#: chat.php:3943
+msgid "Orange red"
+msgstr "Rojo anaranjado"
+
+#: chat.php:3944
+msgid "Purple"
+msgstr "Púrpura"
+
+#: chat.php:3945
+msgid "Red"
+msgstr "Rojo"
+
+#: chat.php:3946
+msgid "Royal blue"
+msgstr "Azul real"
+
+#: chat.php:3947
+msgid "Sea green"
+msgstr "Verde marino"
+
+#: chat.php:3948
+msgid "Sienna"
+msgstr "Siena"
+
+#: chat.php:3949
+msgid "Silver"
+msgstr "Plateado"
+
+#: chat.php:3950
+msgid "Tan"
+msgstr "Bronceado"
+
+#: chat.php:3951
+msgid "Teal"
+msgstr "Cerceta"
+
+#: chat.php:3952
+msgid "Violet"
+msgstr "Violeta"
+
+#: chat.php:3953
+msgid "White"
+msgstr "Blanco"
+
+#: chat.php:3954
+msgid "Yellow"
+msgstr "Amarillo"
+
+#: chat.php:3955
+msgid "Yellow green"
+msgstr "Verde amarillento"
+
+#: chat.php:4077
+msgid "Successfully destroyed chat"
+msgstr "Sala destruida satisfactoriamente"
+
+#: chat.php:4086
+msgid ""
+"Database tables already exist! To continue, you have to delete these tables "
+"manually first."
+msgstr ""
+"¡La base de datos ya existe! Para continuar, primero tenés que borrar esas "
+"tablas manualmente."
+
+#: chat.php:4089
+msgid "A Superadmin already exists!"
+msgstr "¡Ya existe un superadministrador!"
+
+#: chat.php:4182 chat.php:4369
+#, php-format
+msgid "%s - "
+msgstr "%s - "
+
+#: chat.php:4183 chat.php:4369
+#, php-format
+msgid "[M] %s - "
+msgstr "[M] %s - "
+
+#: chat.php:4184 chat.php:4369
+#, php-format
+msgid "[Staff] %s - "
+msgstr "[Staff] %s - "
+
+#: chat.php:4185 chat.php:4369
+#, php-format
+msgid "[Admin] %s - "
+msgstr "[Admin] %s - "
+
+#: chat.php:4186 chat.php:4369
+#, php-format
+msgid "[%1$s to %2$s] - "
+msgstr "[%1$s a %2$s] - "
+
+#: chat.php:4187
+#, php-format
+msgid "%s entered the chat."
+msgstr "%s entró en la sala."
+
+#: chat.php:4188
+#, php-format
+msgid "%s left the chat."
+msgstr "%s se fue de la sala."
+
+#: chat.php:4189
+#, php-format
+msgid "%s is now a registered member."
+msgstr "%s ahora es un miembro registrado."
+
+#: chat.php:4190
+#, php-format
+msgid "%s is now a registered applicant."
+msgstr "%s ahora es un aplicante registrado."
+
+#: chat.php:4191
+#, php-format
+msgid "%s has been kicked."
+msgstr "%s fue expulsado."
+
+#: chat.php:4192
+#, php-format
+msgid "%s have been kicked."
+msgstr "%s fueron expulsados."
+
+#: chat.php:4193
+msgid "All guests have been kicked."
+msgstr "Todas las personas fueron expulsadas."
+
+#: chat.php:4194
+#, php-format
+msgid "%s has been cleaned."
+msgstr "%s fue limpiada."
+
+#: chat.php:4202 chat.php:4396
+msgid "Temporarily disabled"
+msgstr "Desactivado temporalmente"
+
+#: chat.php:4218 chat.php:4594
+msgid "A chat community"
+msgstr ""
+
+#: chat.php:4256
+msgid "Successfully registered!"
+msgstr "¡Registrado con éxito!"
+
+#: chat.php:4522 chat.php:4721 chat.php:4728
+msgid "No connection to database!"
+msgstr "¡Sin conexión a la base de datos!"
+
+#: chat.php:4531
+msgid ""
+"Note: Default CSS is now hardcoded and can be removed from the CSS setting"
+msgstr ""
+"Note: Css predeterminado está ahora hardcoded y puede ser removido de la "
+"configuración CSS"
+
+#: chat.php:4611
+#, php-format
+msgid ""
+"The %s extension of PHP is required for the encryption feature. Please "
+"install it first or set the encrypted setting back to false."
+msgstr ""
+"La extensión %s de PHP es necesaria para la encriptación. Instálela o "
+"configure la encriptación en false."
+
+#: chat.php:4684 chat.php:4689 chat.php:4694
+#, php-format
+msgid ""
+"The %s extension of PHP is required for the selected database driver. Please "
+"install it first."
+msgstr ""
+"La extensión %s de PHP es necesaria para la database driver seleccionada. "
+"Instálelo primero."
+
+#: chat.php:4707 chat.php:4715 chat.php:4719 chat.php:4726
+msgid ""
+"No connection to database, please create a database and edit the script to "
+"use the correct database with given username and password!"
+msgstr ""
+"No connection to database, please create a database and edit the script to "
+"use the correct database with given username and password!"
+
+#: chat.php:4734
+msgid ""
+"The memcached extension of PHP is required for the caching feature. Please "
+"install it first or set the memcached setting back to false."
+msgstr ""
+"La extensión memcached de PHP es requerida para esto. Instalela primero o "
+"configure memcached en false."
