@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-01-18 21:39+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2023-01-26 18:54+0000\n"
+"Last-Translator: Weblate Admin <daniel@danwin1210.de>\n"
+"Language-Team: Portuguese (Portugal) <https://weblate.danwin1210.de/projects/"
+"DanWin/le-chat-php/pt_PT/>\n"
 "Language: pt_PT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Weblate 4.15\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -1298,7 +1299,7 @@ msgstr "Um usuário com este nickname já está logado."
 
 #: chat.php:2652 chat.php:2933 chat.php:3176
 msgid "Wrong Password!"
-msgstr "Senha incorreta!"
+msgstr "Senha errada!"
 
 #: chat.php:2696
 msgid "Dismiss"

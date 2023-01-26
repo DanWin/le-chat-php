@@ -8,16 +8,17 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-01-18 21:39+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2023-01-26 18:54+0000\n"
+"Last-Translator: Weblate Admin <daniel@danwin1210.de>\n"
+"Language-Team: Russian <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/ru/>\n"
 "Language: ru_RU\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
-"X-Generator: Poedit 3.1.1\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.15\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -400,7 +401,7 @@ msgstr "Выйти"
 
 #: chat.php:636
 msgid "Copy:"
-msgstr "Копия:"
+msgstr "Код с картинки:"
 
 #: chat.php:724
 msgid "Chat Setup"
@@ -1288,7 +1289,7 @@ msgstr "Пользователь с текущим именем уже в сет
 
 #: chat.php:2652 chat.php:2933 chat.php:3176
 msgid "Wrong Password!"
-msgstr "Неправильный пароль!"
+msgstr "Неверный пароль!"
 
 #: chat.php:2696
 msgid "Dismiss"
