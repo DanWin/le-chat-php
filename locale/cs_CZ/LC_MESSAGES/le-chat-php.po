@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-01-18 21:36+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2023-01-29 14:17+0000\n"
+"Last-Translator: Zdeněk Grůza <me@zgruza.me>\n"
+"Language-Team: Czech <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/cs/>\n"
 "Language: cs_CZ\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n>=2 && n<=4 ? 1 : 2);\n"
-"X-Generator: Poedit 3.1.1\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+"X-Generator: Weblate 4.15.1\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -98,43 +99,43 @@ msgstr "Ukažte, kdo vyloučí lidi nebo vyčistí všechny zprávy."
 
 #: chat.php:280
 msgid "Hide reload post box button"
-msgstr ""
+msgstr "Skrýt tlačítko \"znovu načíst poštovní schránku\""
 
 #: chat.php:281
 msgid "Hide reload messages button"
-msgstr ""
+msgstr "Skrýt tlačítko \"znovu načíst zprávy\""
 
 #: chat.php:282
 msgid "Hide profile button"
-msgstr ""
+msgstr "Skrýt tlačítko \"Profil\""
 
 #: chat.php:283
 msgid "Hide admin button"
-msgstr ""
+msgstr "Skrýt tlačítko \"admin\""
 
 #: chat.php:284
 msgid "Hide notes button"
-msgstr ""
+msgstr "Skrýt tlačítko \"poznámky\""
 
 #: chat.php:285
 msgid "Hide clone button"
-msgstr ""
+msgstr "Skrýt tlačítko \"klon\""
 
 #: chat.php:286
 msgid "Hide rearrange button"
-msgstr ""
+msgstr "Skrýt tlačítko \"změny uspořádání\""
 
 #: chat.php:287
 msgid "Hide help button"
-msgstr ""
+msgstr "Skrýt tlačítko \"nápověda\""
 
 #: chat.php:288
 msgid "Apply postbox delete button globally"
-msgstr ""
+msgstr "Použít tlačítko pro odstranění poštovní schránky globálně"
 
 #: chat.php:289
 msgid "Allow enhancing functionality with JavaScript"
-msgstr ""
+msgstr "Povolit vylepšení funkcí pomocí JavaScriptu"
 
 #: chat.php:292 chat.php:2170
 msgid "Background colour"
@@ -258,11 +259,11 @@ msgstr "Povolit nahrávání souborů"
 
 #: chat.php:326
 msgid "Lowest refresh rate"
-msgstr ""
+msgstr "Nejnižší obnovovací frekvence"
 
 #: chat.php:327
 msgid "Highest refresh rate"
-msgstr ""
+msgstr "Nejvyšší obnovovací frekvence"
 
 #: chat.php:330
 msgid "Rules (html)"
@@ -320,7 +321,7 @@ msgstr "Link pro externí CSS soubor"
 
 #: chat.php:344
 msgid "Meta description (best 50 - 160 characters for SEO)"
-msgstr ""
+msgstr "Popis metadat (nejlépe 50–160 znaků pro SEO)"
 
 #: chat.php:345
 msgid "Prepend this text to system messages"
@@ -332,7 +333,7 @@ msgstr "Změnit přístup pro hosty"
 
 #: chat.php:349
 msgid "Enable global Password"
-msgstr ""
+msgstr "Povolit globální heslo"
 
 #: chat.php:350 chat.php:758 chat.php:2415 chat.php:2433
 msgid "Global Password:"
@@ -373,6 +374,8 @@ msgid ""
 "Dangerous non-http link requested, copy paste this link if you are really "
 "sure: %s"
 msgstr ""
+"Je požadován nebezpečný odkaz mimo http, zkopírujte a vložte tento odkaz jen "
+"pokud jste si opravdu jisti: %s"
 
 #: chat.php:597
 #, php-format
@@ -399,7 +402,7 @@ msgstr "Odhlásit"
 
 #: chat.php:636
 msgid "Copy:"
-msgstr "Kopírovat:"
+msgstr "Zkopíruj:"
 
 #: chat.php:724
 msgid "Chat Setup"
@@ -459,7 +462,7 @@ msgstr "Jednoduchý"
 
 #: chat.php:852
 msgid "Moderate"
-msgstr ""
+msgstr "Mírný"
 
 #: chat.php:857
 msgid "Extreme"
@@ -560,7 +563,7 @@ msgstr "Přihlásit se"
 
 #: chat.php:1129
 msgid "Forgot login?"
-msgstr ""
+msgstr "Zapomenuté heslo?"
 
 #: chat.php:1142 chat.php:1306
 msgid "Reset password"
@@ -572,6 +575,8 @@ msgid ""
 "Successfully reset password for username %s. Please remove the password "
 "reset define from the script again."
 msgstr ""
+"Heslo pro uživatelské jméno %s bylo úspěšně resetováno. Znovu prosím "
+"odstraňte ze skriptu definici resetování hesla."
 
 #: chat.php:1153
 msgid ""
@@ -579,6 +584,8 @@ msgid ""
 "the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
 "'changeme');"
 msgstr ""
+"Upravte skript a na jeho konec vložte následující (změňte heslo). Poté "
+"obnovte tuto stránku: define('RESET_SUPERADMIN_PASSWORD', 'changeme');"
 
 #: chat.php:1169 chat.php:1193 chat.php:1258 chat.php:1270 chat.php:1294
 #: chat.php:1308 chat.php:1316 chat.php:2145 chat.php:2153
@@ -752,7 +759,7 @@ msgstr "ID filtru:"
 
 #: chat.php:1542 chat.php:1607
 msgid "Match"
-msgstr "Match"
+msgstr "Odpovídající výraz"
 
 #: chat.php:1543 chat.php:1608
 msgid "Replace"
@@ -784,8 +791,8 @@ msgid ""
 "This chat uses <b>frames</b>. Please enable frames in your browser or use a "
 "suitable one!"
 msgstr ""
-"Tento chat používá <b> rámeček </ b>. Povolte rámečky ve vašem prohlížeči "
-"nebo použijte jiný!"
+"Tento chat používá <b>rámečky</b>. Povolte rámečky ve vašem prohlížeči nebo "
+"použijte jiný!"
 
 #: chat.php:1691 chat.php:2370 chat.php:2457
 msgid "Back to the login page."
@@ -970,7 +977,7 @@ msgid ""
 "in case of server/proxy reload errors) you can always use the buttons at the "
 "bottom to refresh manually."
 msgstr ""
-"Pokud tento snímek není znovu načten v% d sekundách, bude muset v prohlížeči "
+"Pokud tento snímek není znovu načten v %d sekundách, bude muset v prohlížeči "
 "povolit automatické přesměrování (meta refresh). Také se ujistěte, že žádný "
 "webový filtr, místní proxy nástroj nebo plugin pro prohlížeč nebrání "
 "automatickému obnovení! Mohlo by to být například \"Polipo\", \"NoScript\" "
@@ -1143,7 +1150,7 @@ msgstr "Profil"
 
 #: chat.php:2311 chat.php:2528
 msgid "Admin"
-msgstr "Administrátorů"
+msgstr "Administrátor"
 
 #: chat.php:2318
 msgid "View public notes"
@@ -1209,12 +1216,12 @@ msgstr "Chyba: %s"
 
 #: chat.php:2467
 msgid "Fatal error"
-msgstr ""
+msgstr "Fatální chyba"
 
 #: chat.php:2470
 #, php-format
 msgid "Fatal error: %s"
-msgstr ""
+msgstr "Závažná chyba: %s"
 
 #: chat.php:2482 chat.php:2693
 msgid "Failed login attempt(s)"
@@ -1345,12 +1352,12 @@ msgstr "Status %s byl úspěšně změněn."
 #: chat.php:3073
 #, php-format
 msgid "Successfully reset password for %s"
-msgstr ""
+msgstr "Heslo pro %s bylo úspěšně resetováno"
 
 #: chat.php:3075
 #, php-format
 msgid "Can't reset password for %s"
-msgstr ""
+msgstr "Nelze resetovat heslo pro %s"
 
 #: chat.php:3190
 msgid "Your profile has successfully been saved."
@@ -1590,7 +1597,7 @@ msgstr "Dočasně zakázáno"
 
 #: chat.php:4218 chat.php:4594
 msgid "A chat community"
-msgstr ""
+msgstr "Chatovací komunita"
 
 #: chat.php:4256
 msgid "Successfully registered!"
