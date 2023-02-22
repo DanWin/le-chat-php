@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-01-29 14:17+0000\n"
+"PO-Revision-Date: 2023-02-22 16:53+0000\n"
 "Last-Translator: Goatli <goatli@porcod.io>\n"
 "Language-Team: Russian <https://weblate.danwin1210.de/projects/DanWin/"
 "le-chat-php/ru/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.15.1\n"
+"X-Generator: Weblate 4.15.2\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -100,15 +100,15 @@ msgstr "Покажите, кто изгоняет людей или очищае
 
 #: chat.php:280
 msgid "Hide reload post box button"
-msgstr ""
+msgstr "Скрыть кнопку перезагрузки почтового ящика"
 
 #: chat.php:281
 msgid "Hide reload messages button"
-msgstr ""
+msgstr "Скрыть кнопку перезагрузки сообщений"
 
 #: chat.php:282
 msgid "Hide profile button"
-msgstr ""
+msgstr "Кнопка скрыть профиль"
 
 #: chat.php:283
 msgid "Hide admin button"
