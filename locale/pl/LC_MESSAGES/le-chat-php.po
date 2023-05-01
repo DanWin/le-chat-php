@@ -8,13 +8,17 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2023-05-01 02:04+0000\n"
+"Last-Translator: big cat <biggiecat@danwin1210.de>\n"
+"Language-Team: Polish <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.17\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -388,11 +392,11 @@ msgstr ""
 
 #: chat.php:611 chat.php:915 chat.php:1211 chat.php:1393
 msgid "Logout"
-msgstr ""
+msgstr "Wyloguj się"
 
 #: chat.php:636
 msgid "Copy:"
-msgstr ""
+msgstr "Kopiuj:"
 
 #: chat.php:724
 msgid "Chat Setup"
@@ -471,7 +475,7 @@ msgstr ""
 
 #: chat.php:1057 chat.php:1066
 msgid "Settings"
-msgstr ""
+msgstr "Ustawienia"
 
 #: chat.php:1058 chat.php:1067 chat.php:1212 chat.php:1538 chat.php:1575
 #: chat.php:1622
@@ -544,11 +548,11 @@ msgstr ""
 
 #: chat.php:1126 chat.php:1327 chat.php:2408
 msgid "Password:"
-msgstr ""
+msgstr "Hasło:"
 
 #: chat.php:1128
 msgid "Login"
-msgstr ""
+msgstr "Zaloguj się"
 
 #: chat.php:1129
 msgid "Forgot login?"
@@ -650,7 +654,7 @@ msgstr ""
 
 #: chat.php:1264 chat.php:1322 chat.php:1328
 msgid "Register"
-msgstr ""
+msgstr "Zarejestruj się"
 
 #: chat.php:1294
 msgid "Delete from database"
@@ -1083,11 +1087,11 @@ msgstr ""
 
 #: chat.php:2273
 msgid "Save changes"
-msgstr ""
+msgstr "Zapisz zmiany"
 
 #: chat.php:2275
 msgid "Delete account"
-msgstr ""
+msgstr "Usuń konto"
 
 #: chat.php:2301
 msgid "Reload Post Box"
@@ -1103,7 +1107,7 @@ msgstr ""
 
 #: chat.php:2311 chat.php:2528
 msgid "Admin"
-msgstr ""
+msgstr "Admin"
 
 #: chat.php:2318
 msgid "View public notes"
@@ -1242,7 +1246,7 @@ msgstr ""
 
 #: chat.php:2652 chat.php:2933 chat.php:3176
 msgid "Wrong Password!"
-msgstr ""
+msgstr "Nieprawidłowe hasło!"
 
 #: chat.php:2696
 msgid "Dismiss"

@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-01-18 21:40+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2023-05-01 02:04+0000\n"
+"Last-Translator: Haydar Erdogan <bygenc19@gmail.com>\n"
+"Language-Team: Turkish <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/tr/>\n"
 "Language: tr_TR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.17\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -397,7 +398,7 @@ msgstr "%s olarak giriş yaptınız ve bu bölüme erişiminiz yok."
 
 #: chat.php:611 chat.php:915 chat.php:1211 chat.php:1393
 msgid "Logout"
-msgstr "Çıkış yap"
+msgstr "Çıkış Yap"
 
 #: chat.php:636
 msgid "Copy:"
