@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-05-01 02:04+0000\n"
-"Last-Translator: Haydar Erdogan <bygenc19@gmail.com>\n"
+"PO-Revision-Date: 2023-05-04 00:25+0000\n"
+"Last-Translator: Haydar Erdoğan <bygenc19@gmail.com>\n"
 "Language-Team: Turkish <https://weblate.danwin1210.de/projects/DanWin/"
 "le-chat-php/tr/>\n"
 "Language: tr_TR\n"
@@ -21,7 +21,7 @@ msgstr ""
 
 #: chat.php:261
 msgid "Enable applicants"
-msgstr "Başvuru sahiplerini etkinleştir"
+msgstr "Başvuranları etkinleştir"
 
 #: chat.php:262
 msgid "Embed images"
@@ -99,43 +99,43 @@ msgstr ""
 
 #: chat.php:280
 msgid "Hide reload post box button"
-msgstr ""
+msgstr "Posta kutusunu yeniden yükle düğmesini gizle"
 
 #: chat.php:281
 msgid "Hide reload messages button"
-msgstr ""
+msgstr "Mesajları yeniden yükle düğmesini gizle"
 
 #: chat.php:282
 msgid "Hide profile button"
-msgstr ""
+msgstr "Profili gizle düğmesi"
 
 #: chat.php:283
 msgid "Hide admin button"
-msgstr ""
+msgstr "Yönetici düğmesini gizle"
 
 #: chat.php:284
 msgid "Hide notes button"
-msgstr ""
+msgstr "Notları gizle düğmesi"
 
 #: chat.php:285
 msgid "Hide clone button"
-msgstr ""
+msgstr "Klon düğmesini gizle"
 
 #: chat.php:286
 msgid "Hide rearrange button"
-msgstr ""
+msgstr "Yeniden düzenleme düğmesini gizle"
 
 #: chat.php:287
 msgid "Hide help button"
-msgstr ""
+msgstr "Yardım düğmesini gizle"
 
 #: chat.php:288
 msgid "Apply postbox delete button globally"
-msgstr ""
+msgstr "Posta kutusu silme düğmesini genel olarak uygula"
 
 #: chat.php:289
 msgid "Allow enhancing functionality with JavaScript"
-msgstr ""
+msgstr "JavaScript ile işlevselliği geliştirmeye izin ver"
 
 #: chat.php:292 chat.php:2170
 msgid "Background colour"
@@ -247,7 +247,7 @@ msgstr "Varsayılan mesaj yenileme süresi (saniye)"
 
 #: chat.php:323
 msgid "Number of notes revisions to keep"
-msgstr ""
+msgstr "Saklanacak not revizyonlarının sayısı"
 
 #: chat.php:324
 msgid "Maximum upload size in KB"
@@ -259,11 +259,11 @@ msgstr "Dosya yüklemelerine izin ver"
 
 #: chat.php:326
 msgid "Lowest refresh rate"
-msgstr ""
+msgstr "En düşük yenileme hızı"
 
 #: chat.php:327
 msgid "Highest refresh rate"
-msgstr ""
+msgstr "En yüksek yenileme hızı"
 
 #: chat.php:330
 msgid "Rules (html)"
@@ -321,7 +321,7 @@ msgstr "Dış CSS dosyasının bağlantısı"
 
 #: chat.php:344
 msgid "Meta description (best 50 - 160 characters for SEO)"
-msgstr ""
+msgstr "Meta açıklama (SEO için en iyi 50 - 160 karakter)"
 
 #: chat.php:345
 msgid "Prepend this text to system messages"
@@ -333,7 +333,7 @@ msgstr "Konuk erişimini değiştir"
 
 #: chat.php:349
 msgid "Enable global Password"
-msgstr ""
+msgstr "Genel Parolayı etkinleştir"
 
 #: chat.php:350 chat.php:758 chat.php:2415 chat.php:2433
 msgid "Global Password:"
@@ -562,7 +562,7 @@ msgstr "Giriş"
 
 #: chat.php:1129
 msgid "Forgot login?"
-msgstr ""
+msgstr "Oturum açmayı mı unuttunuz?"
 
 #: chat.php:1142 chat.php:1306
 msgid "Reset password"
@@ -574,6 +574,8 @@ msgid ""
 "Successfully reset password for username %s. Please remove the password "
 "reset define from the script again."
 msgstr ""
+"%s kullanıcı adının şifresi başarıyla sıfırlandı. Lütfen şifre sıfırlama "
+"tanımını komut dosyasından tekrar kaldırın."
 
 #: chat.php:1153
 msgid ""
@@ -581,6 +583,9 @@ msgid ""
 "the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
 "'changeme');"
 msgstr ""
+"Lütfen betiği değiştirin ve altına aşağıdakini koyun (şifreyi değiştirin). "
+"Ardından bu sayfayı yenileyin: define('RESET SUPERADMIN PASSWORD', "
+"'changeme');"
 
 #: chat.php:1169 chat.php:1193 chat.php:1258 chat.php:1270 chat.php:1294
 #: chat.php:1308 chat.php:1316 chat.php:2145 chat.php:2153
@@ -643,7 +648,7 @@ msgstr "Aktif oturumlara bak"
 
 #: chat.php:1212 chat.php:1603
 msgid "Linkfilter"
-msgstr ""
+msgstr "Bağlantı filtresi"
 
 #: chat.php:1217
 msgid "View"
@@ -672,7 +677,7 @@ msgstr "Erişimi reddet (!)"
 
 #: chat.php:1296
 msgid "Set to applicant (SG)"
-msgstr ""
+msgstr "Başvuru sahibine ayarla (SG)"
 
 #: chat.php:1298
 msgid "Set to regular member"
@@ -761,12 +766,12 @@ msgstr "Değiştir"
 
 #: chat.php:1544 chat.php:1578 chat.php:1589
 msgid "Allow in PM"
-msgstr ""
+msgstr "PM'ye izin ver"
 
 #: chat.php:1545 chat.php:1579 chat.php:1590 chat.php:1609 chat.php:1625
 #: chat.php:1633
 msgid "Regex"
-msgstr "Regex"
+msgstr "Normal ifade"
 
 #: chat.php:1547 chat.php:1581 chat.php:1592
 msgid "Case sensitive"
@@ -835,7 +840,7 @@ msgstr "Notları kaydet"
 
 #: chat.php:1850
 msgid "Revisions:"
-msgstr ""
+msgstr "Revizyonlar:"
 
 #: chat.php:1853
 msgid "Older"
@@ -1346,12 +1351,12 @@ msgstr "%s'ın statüsü başarıyla değiştirildi."
 #: chat.php:3073
 #, php-format
 msgid "Successfully reset password for %s"
-msgstr ""
+msgstr "%s için parola başarıyla sıfırlandı"
 
 #: chat.php:3075
 #, php-format
 msgid "Can't reset password for %s"
-msgstr ""
+msgstr "%s için şifre sıfırlanamıyor"
 
 #: chat.php:3190
 msgid "Your profile has successfully been saved."
@@ -1475,7 +1480,7 @@ msgstr "Deniz yeşili"
 
 #: chat.php:3948
 msgid "Sienna"
-msgstr "Sienna"
+msgstr "Koyu kahverengi"
 
 #: chat.php:3949
 msgid "Silver"
@@ -1487,7 +1492,7 @@ msgstr "Tan"
 
 #: chat.php:3951
 msgid "Teal"
-msgstr "Teal"
+msgstr "Deniz mavisi"
 
 #: chat.php:3952
 msgid "Violet"
@@ -1591,7 +1596,7 @@ msgstr "Geçici olarak devre dışı"
 
 #: chat.php:4218 chat.php:4594
 msgid "A chat community"
-msgstr ""
+msgstr "sohbet topluluğu"
 
 #: chat.php:4256
 msgid "Successfully registered!"
