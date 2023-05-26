@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-01-18 21:38+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2023-05-26 22:46+0000\n"
+"Last-Translator: Calvin Honecker <Calvineries@gmail.com>\n"
+"Language-Team: French <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/fr/>\n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.17\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -60,7 +61,7 @@ msgstr ""
 
 #: chat.php:271
 msgid "Disable private messages"
-msgstr ""
+msgstr "Désactiver les messages privés"
 
 #: chat.php:272 chat.php:2223
 msgid "Enable offline inbox"
@@ -76,11 +77,11 @@ msgstr ""
 
 #: chat.php:275 chat.php:2205
 msgid "Hide list of chatters"
-msgstr ""
+msgstr "Masquer la liste des chatteurs"
 
 #: chat.php:276 chat.php:1780 chat.php:1794
 msgid "Personal notes"
-msgstr ""
+msgstr "Notes personnelles"
 
 #: chat.php:277 chat.php:1783 chat.php:1797 chat.php:2110
 msgid "Public notes"
@@ -88,7 +89,7 @@ msgstr "Notes publiques"
 
 #: chat.php:278
 msgid "Apply kick filter on moderators"
-msgstr ""
+msgstr "Appliquer le filtre de kick sur les modérateurs"
 
 #: chat.php:279
 msgid "Show who kicks people or purges all messages."
@@ -132,7 +133,7 @@ msgstr ""
 
 #: chat.php:289
 msgid "Allow enhancing functionality with JavaScript"
-msgstr ""
+msgstr "Autoriser l'amélioration des fonctionnalités avec JavaScript"
 
 #: chat.php:292 chat.php:2170
 msgid "Background colour"
@@ -398,7 +399,7 @@ msgstr "Déconnexion"
 
 #: chat.php:636
 msgid "Copy:"
-msgstr "Copie:"
+msgstr "Copie :"
 
 #: chat.php:724
 msgid "Chat Setup"
@@ -550,7 +551,7 @@ msgstr "Pseudo:"
 
 #: chat.php:1126 chat.php:1327 chat.php:2408
 msgid "Password:"
-msgstr "Mot de passe:"
+msgstr "Mot de passe :"
 
 #: chat.php:1128
 msgid "Login"
@@ -1273,7 +1274,7 @@ msgstr ""
 
 #: chat.php:2652 chat.php:2933 chat.php:3176
 msgid "Wrong Password!"
-msgstr "Mauvais mot de passe!"
+msgstr "Mauvais mot de passe !"
 
 #: chat.php:2696
 msgid "Dismiss"
