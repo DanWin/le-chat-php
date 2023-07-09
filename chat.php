@@ -3775,13 +3775,13 @@ function save_setup(array $C): void
 {
 	global $db;
 	//sanity checks and escaping
-	foreach($C['msg_settings'] as $setting){
+	foreach($C['msg_settings'] as $setting => $title){
 		$_POST[$setting]=htmlspecialchars($_POST[$setting]);
 	}
-	foreach($C['number_settings'] as $setting){
+	foreach($C['number_settings'] as $setting => $title){
 		settype($_POST[$setting], 'int');
 	}
-	foreach($C['colour_settings'] as $setting){
+	foreach($C['colour_settings'] as $setting => $title){
 		if(preg_match('/^#([a-f0-9]{6})$/i', $_POST[$setting], $match)){
 			$_POST[$setting]=$match[1];
 		}else{
