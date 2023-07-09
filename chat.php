@@ -236,6 +236,7 @@ function route_admin() : string {
 	}elseif($_POST['do']==='guestaccess'){
 		if(isset($_POST['guestaccess']) && preg_match('/^[0123]$/', $_POST['guestaccess'])){
 			update_setting('guestaccess', $_POST['guestaccess']);
+			change_guest_access(intval($_POST['guestaccess']));
 		}
 	}elseif($_POST['do']==='filter'){
 		send_filter(manage_filter());
@@ -1222,7 +1223,7 @@ function send_admin(string $arg): void
 	echo '<table><tr><td><input type="text" name="topic" size="20" value="'.get_setting('topic').'"></td><td>';
 	echo submit(_('Change')).'</td></tr></table></form></td></tr></table></td></tr>';
 	thr();
-	echo '"<tr><td><table id="guestaccess"><tr><th>'._('Change Guestaccess').'</th><td>"';
+	echo '<tr><td><table id="guestaccess"><tr><th>'._('Change Guestaccess').'</th><td>';
 	echo form('admin', 'guestaccess');
 	echo '<table>';
 	echo '<tr><td><select name="guestaccess">';
@@ -3791,8 +3792,8 @@ function save_setup(array $C): void
 	settype($_POST['guestaccess'], 'int');
 	if(!preg_match('/^[01234]$/', $_POST['guestaccess'])){
 		unset($_POST['guestaccess']);
-	}elseif($_POST['guestaccess']==4){
-		$db->exec('DELETE FROM ' . PREFIX . 'sessions WHERE status<7;');
+	}else{
+		change_guest_access(intval($_POST['guestaccess']));
 	}
 	settype($_POST['englobalpass'], 'int');
 	settype($_POST['captcha'], 'int');
@@ -3844,6 +3845,15 @@ function save_setup(array $C): void
 		if(isset($_POST[$setting])){
 			update_setting($setting, $_POST[$setting]);
 		}
+	}
+}
+
+function change_guest_access(int $guest_access) : void {
+	global $db;
+	if($guest_access === 4){
+		$db->exec('DELETE FROM ' . PREFIX . 'sessions WHERE status<7;');
+	}elseif($guest_access === 0){
+		$db->exec('DELETE FROM ' . PREFIX . 'sessions WHERE status<3;');
 	}
 }
 
