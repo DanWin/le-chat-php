@@ -8,269 +8,275 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2023-08-27 01:27+0000\n"
+"Last-Translator: Johan Gerards <vpwbpyzaba@rocketestate724.com>\n"
+"Language-Team: Dutch <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: chat.php:261
 msgid "Enable applicants"
-msgstr ""
+msgstr "Schakel aanvragers in"
 
 #: chat.php:262
 msgid "Embed images"
-msgstr ""
+msgstr "Afbeeldingen embedden"
 
 #: chat.php:263 chat.php:2202
 msgid "Show Timestamps"
-msgstr ""
+msgstr "Tijdstempels weergeven"
 
 #: chat.php:264
 msgid "Show session-IP"
-msgstr ""
+msgstr "Sessie-IP weergeven"
 
 #: chat.php:265
 msgid "Members can kick, if no moderator is present"
-msgstr ""
+msgstr "Leden kunnen kicken als er geen moderator aanwezig is"
 
 #: chat.php:266
 msgid "Members can always kick"
-msgstr ""
+msgstr "Leden kunnen altijd kicken"
 
 #: chat.php:267
 msgid "Force redirection"
-msgstr ""
+msgstr "Omleiding forceren"
 
 #: chat.php:268
 msgid "Incognito mode"
-msgstr ""
+msgstr "Icognitomodus"
 
 #: chat.php:269
 msgid "Send mail on new public message"
-msgstr ""
+msgstr "E-mail verzenden bij nieuw openbaar bericht"
 
 #: chat.php:270
 msgid "Fallback to waiting room, if no moderator is present to approve guests"
 msgstr ""
+"Terugvallen naar wachtkamer als er geen moderator aanwezig is om gasten goed "
+"te keuren"
 
 #: chat.php:271
 msgid "Disable private messages"
-msgstr ""
+msgstr "Schakel privéberichten uit"
 
 #: chat.php:272 chat.php:2223
 msgid "Enable offline inbox"
-msgstr ""
+msgstr "Schakel offline inbox in"
 
 #: chat.php:273
 msgid "Show a greeting message before showing the messages"
 msgstr ""
+"Laat een begroetingsbericht zien voordat de berichten worden weergegeven"
 
 #: chat.php:274 chat.php:2204
 msgid "Sort messages from top to bottom"
-msgstr ""
+msgstr "Sorteer berichten van boven naar beneden"
 
 #: chat.php:275 chat.php:2205
 msgid "Hide list of chatters"
-msgstr ""
+msgstr "Lijst met chatters verbergen"
 
 #: chat.php:276 chat.php:1780 chat.php:1794
 msgid "Personal notes"
-msgstr ""
+msgstr "Persoonlijke notities"
 
 #: chat.php:277 chat.php:1783 chat.php:1797 chat.php:2110
 msgid "Public notes"
-msgstr ""
+msgstr "Openbare notities"
 
 #: chat.php:278
 msgid "Apply kick filter on moderators"
-msgstr ""
+msgstr "Kickfilter toepassen op moderators"
 
 #: chat.php:279
 msgid "Show who kicks people or purges all messages."
-msgstr ""
+msgstr "Laat zien wie mensen kickt of alle berichten verwijdert."
 
 #: chat.php:280
 msgid "Hide reload post box button"
-msgstr ""
+msgstr "Knop voor het opnieuw laden van het postvak verbergen"
 
 #: chat.php:281
 msgid "Hide reload messages button"
-msgstr ""
+msgstr "Knop voor het opnieuw laden van berichten verbergen"
 
 #: chat.php:282
 msgid "Hide profile button"
-msgstr ""
+msgstr "Verberg profielknop"
 
 #: chat.php:283
 msgid "Hide admin button"
-msgstr ""
+msgstr "Verberg adminknop"
 
 #: chat.php:284
 msgid "Hide notes button"
-msgstr ""
+msgstr "Verberg notitiesknop"
 
 #: chat.php:285
 msgid "Hide clone button"
-msgstr ""
+msgstr "Verberg kloonknop"
 
 #: chat.php:286
 msgid "Hide rearrange button"
-msgstr ""
+msgstr "Verberg herschikknop"
 
 #: chat.php:287
 msgid "Hide help button"
-msgstr ""
+msgstr "Verberg hulpknop"
 
 #: chat.php:288
 msgid "Apply postbox delete button globally"
-msgstr ""
+msgstr "Pas de knop voor het verwijderen van het postvak globaal toe"
 
 #: chat.php:289
 msgid "Allow enhancing functionality with JavaScript"
-msgstr ""
+msgstr "Laat het verbeteren van de functionaliteit met JavaScript toe"
 
 #: chat.php:292 chat.php:2170
 msgid "Background colour"
-msgstr ""
+msgstr "Achtergrondkleur"
 
 #: chat.php:293 chat.php:2167
 msgid "Font colour"
-msgstr ""
+msgstr "Lettertypekleur"
 
 #: chat.php:296
 msgid "Entrance"
-msgstr ""
+msgstr "Ingang"
 
 #: chat.php:297
 msgid "Leaving"
-msgstr ""
+msgstr "Verlaten"
 
 #: chat.php:298
 msgid "Member registered"
-msgstr ""
+msgstr "Lid geregistreerd"
 
 #: chat.php:299
 msgid "Applicant registered"
-msgstr ""
+msgstr "Aanvrager geregistreerd"
 
 #: chat.php:300
 msgid "Kicked"
-msgstr ""
+msgstr "Gekickt"
 
 #: chat.php:301
 msgid "Multiple kicked"
-msgstr ""
+msgstr "Meerdere gekickt"
 
 #: chat.php:302
 msgid "All kicked"
-msgstr ""
+msgstr "Allen gekickt"
 
 #: chat.php:303
 msgid "Room cleaned"
-msgstr ""
+msgstr "Kamer opgeschoond"
 
 #: chat.php:304
 msgid "Message to all"
-msgstr ""
+msgstr "Bericht aan iedereen"
 
 #: chat.php:305
 msgid "Message to members only"
-msgstr ""
+msgstr "Bericht alleen aan leden"
 
 #: chat.php:306
 msgid "Message to staff only"
-msgstr ""
+msgstr "Bericht alleen aan personeel"
 
 #: chat.php:307
 msgid "Message to admins only"
-msgstr ""
+msgstr "Bericht alleen aan administrators"
 
 #: chat.php:308
 msgid "Private message"
-msgstr ""
+msgstr "Privébericht"
 
 #: chat.php:309
 msgid "Attachement"
-msgstr ""
+msgstr "Bijlage"
 
 #: chat.php:312
 msgid "Member timeout (minutes)"
-msgstr ""
+msgstr "Time-out van lid (minuten)"
 
 #: chat.php:313
 msgid "Guest timeout (minutes)"
-msgstr ""
+msgstr "Time-out van gast (minuten)"
 
 #: chat.php:314
 msgid "Kick penalty (minutes)"
-msgstr ""
+msgstr "Kickstraf (minuten)"
 
 #: chat.php:315
 msgid "Waiting room time (seconds)"
-msgstr ""
+msgstr "Wachtkamertijd (seconden)"
 
 #: chat.php:316
 msgid "Captcha timeout (seconds)"
-msgstr ""
+msgstr "Time-out captcha (seconden)"
 
 #: chat.php:317
 msgid "Message timeout (minutes)"
-msgstr ""
+msgstr "Time-out bericht (minuten)"
 
 #: chat.php:318
 msgid "Message limit (public)"
-msgstr ""
+msgstr "Berichtlimiet (openbaar)"
 
 #: chat.php:319
 msgid "Maximal message length"
-msgstr ""
+msgstr "Maximale berichtlengte"
 
 #: chat.php:320
 msgid "Maximal nickname length"
-msgstr ""
+msgstr "Maximale bijnaamlengte"
 
 #: chat.php:321
 msgid "Minimal password length"
-msgstr ""
+msgstr "Minimum wachtwoordlengte"
 
 #: chat.php:322
 msgid "Default message reload time (seconds)"
-msgstr ""
+msgstr "Standaard herlaadtijd van bericht (seconden)"
 
 #: chat.php:323
 msgid "Number of notes revisions to keep"
-msgstr ""
+msgstr "Aantal te behouden notitierevisies"
 
 #: chat.php:324
 msgid "Maximum upload size in KB"
-msgstr ""
+msgstr "Maximale uploadgrootte in KB"
 
 #: chat.php:325
 msgid "Enable file uploads"
-msgstr ""
+msgstr "Bestandsuploads inschakelen"
 
 #: chat.php:326
 msgid "Lowest refresh rate"
-msgstr ""
+msgstr "Laagste vernieuwingsfrequentie"
 
 #: chat.php:327
 msgid "Highest refresh rate"
-msgstr ""
+msgstr "Hoogste vernieuwingsfrequentie"
 
 #: chat.php:330
 msgid "Rules (html)"
-msgstr ""
+msgstr "Regels (html)"
 
 #: chat.php:331
 msgid "CSS Style"
-msgstr ""
+msgstr "CSS-stijl"
 
 #: chat.php:332
 msgid "Chat disabled message (html)"
-msgstr ""
+msgstr "Bericht voor chat uitgeschakeld (html)"
 
 #: chat.php:335
 msgid ""
@@ -278,87 +284,90 @@ msgid ""
 "php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Date "
 "formating</a>"
 msgstr ""
+"<a target=\"_blank\" href=\"https://php.net/manual/en/function.date."
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\""
+">Datumnotatie</a>"
 
 #: chat.php:336
 msgid "Characters used in Captcha"
-msgstr ""
+msgstr "Tekens gebruikt in captcha"
 
 #: chat.php:337
 msgid "Custom redirection script"
-msgstr ""
+msgstr "Aangepast omleidingsscript"
 
 #: chat.php:338
 msgid "Chat name"
-msgstr ""
+msgstr "Chatnaam"
 
 #: chat.php:339
 msgid "Send mail using this address"
-msgstr ""
+msgstr "Verstuur e-mail via dit adres"
 
 #: chat.php:340
 msgid "Send mail to this address"
-msgstr ""
+msgstr "Stuur e-mail naar dit adres"
 
 #: chat.php:341
 msgid "Nickname regex"
-msgstr ""
+msgstr "Bijnaamregex"
 
 #: chat.php:342
 msgid "Password regex"
-msgstr ""
+msgstr "Wachtwoordregex"
 
 #: chat.php:343
 msgid "Link to external CSS file (on your own server)"
-msgstr ""
+msgstr "Link naar extern CSS-bestand (op jouw eigen server)"
 
 #: chat.php:344
 msgid "Meta description (best 50 - 160 characters for SEO)"
-msgstr ""
+msgstr "Metabeschrijving (beste 50 - 160 tekens voor SEO)"
 
 #: chat.php:345
 msgid "Prepend this text to system messages"
-msgstr ""
+msgstr "Plaats deze tekst vóór systeemberichten"
 
 #: chat.php:348 chat.php:728 chat.php:1225
 msgid "Change Guestaccess"
-msgstr ""
+msgstr "Verander gasttoegang"
 
 #: chat.php:349
 msgid "Enable global Password"
-msgstr ""
+msgstr "Schakel globaal wachtwoord in"
 
 #: chat.php:350 chat.php:758 chat.php:2415 chat.php:2433
 msgid "Global Password:"
-msgstr ""
+msgstr "Globaal wachtwoord:"
 
 #: chat.php:351 chat.php:819
 msgid "Captcha"
-msgstr ""
+msgstr "Captcha"
 
 #: chat.php:352 chat.php:775 chat.php:835
 msgid "Only for guests"
-msgstr ""
+msgstr "Alleen voor gasten"
 
 #: chat.php:353 chat.php:1220
 msgid "Topic"
-msgstr ""
+msgstr "Onderwerp"
 
 #: chat.php:354 chat.php:781
 msgid "Let guests register themselves"
-msgstr ""
+msgstr "Laat gasten zichzelf registreren"
 
 #: chat.php:355 chat.php:862
 msgid "Default time zone"
-msgstr ""
+msgstr "Standaard tijdzone"
 
 #: chat.php:568 chat.php:1100 chat.php:4078 chat.php:4259
 msgid "Initial Setup"
-msgstr ""
+msgstr "Eerste setup"
 
 #: chat.php:588
 #, php-format
 msgid "Redirecting to: %s"
-msgstr ""
+msgstr "Omleiden naar: %s"
 
 #: chat.php:595
 #, php-format
@@ -366,45 +375,47 @@ msgid ""
 "Dangerous non-http link requested, copy paste this link if you are really "
 "sure: %s"
 msgstr ""
+"Gevaarlijke niet-http-link gevraagd, kopieer en plak deze link als je het "
+"echt zeker weet: %s"
 
 #: chat.php:597
 #, php-format
 msgid "Non-http link requested: %s"
-msgstr ""
+msgstr "Niet-http-link aangevraagd: %s"
 
 #: chat.php:599
 #, php-format
 msgid "If it's not working, try this one: %s"
-msgstr ""
+msgstr "Als het niet werkt, probeer dan deze: %s"
 
 #: chat.php:609
 msgid "Access denied"
-msgstr ""
+msgstr "Toegang geweigerd"
 
 #: chat.php:609
 #, php-format
 msgid "You are logged in as %s and don't have access to this section."
-msgstr ""
+msgstr "Je bent ingelogd als %s en hebt geen toegang tot deze sectie."
 
 #: chat.php:611 chat.php:915 chat.php:1211 chat.php:1393
 msgid "Logout"
-msgstr ""
+msgstr "Uitloggen"
 
 #: chat.php:636
 msgid "Copy:"
-msgstr ""
+msgstr "Kopieer:"
 
 #: chat.php:724
 msgid "Chat Setup"
-msgstr ""
+msgstr "Chatsetup"
 
 #: chat.php:734 chat.php:1233
 msgid "Allow"
-msgstr ""
+msgstr "Toestaan"
 
 #: chat.php:739 chat.php:1238
 msgid "Allow with waitingroom"
-msgstr ""
+msgstr "Toestaan met wachtkamer"
 
 #: chat.php:744 chat.php:1243
 msgid "Require moderator approval"
