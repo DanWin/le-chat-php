@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-08-27 01:27+0000\n"
+"PO-Revision-Date: 2023-08-31 16:27+0000\n"
 "Last-Translator: Johan Gerards <vpwbpyzaba@rocketestate724.com>\n"
 "Language-Team: Dutch <https://weblate.danwin1210.de/projects/DanWin/"
 "le-chat-php/nl/>\n"
@@ -49,7 +49,7 @@ msgstr "Omleiding forceren"
 
 #: chat.php:268
 msgid "Incognito mode"
-msgstr "Icognitomodus"
+msgstr "Incognitomodus"
 
 #: chat.php:269
 msgid "Send mail on new public message"
@@ -92,7 +92,7 @@ msgstr "Openbare notities"
 
 #: chat.php:278
 msgid "Apply kick filter on moderators"
-msgstr "Kickfilter toepassen op moderators"
+msgstr "Kickfilter toepassen op moderatoren"
 
 #: chat.php:279
 msgid "Show who kicks people or purges all messages."
@@ -100,11 +100,11 @@ msgstr "Laat zien wie mensen kickt of alle berichten verwijdert."
 
 #: chat.php:280
 msgid "Hide reload post box button"
-msgstr "Knop voor het opnieuw laden van het postvak verbergen"
+msgstr "Knop voor het opnieuw laden van het berichtverzendframe verbergen"
 
 #: chat.php:281
 msgid "Hide reload messages button"
-msgstr "Knop voor het opnieuw laden van berichten verbergen"
+msgstr "Knop voor het opnieuw laden van berichtenframe verbergen"
 
 #: chat.php:282
 msgid "Hide profile button"
@@ -132,7 +132,8 @@ msgstr "Verberg hulpknop"
 
 #: chat.php:288
 msgid "Apply postbox delete button globally"
-msgstr "Pas de knop voor het verwijderen van het postvak globaal toe"
+msgstr ""
+"Pas de knop voor het verwijderen van het berichtverzendframe globaal toe"
 
 #: chat.php:289
 msgid "Allow enhancing functionality with JavaScript"
@@ -419,35 +420,35 @@ msgstr "Toestaan met wachtkamer"
 
 #: chat.php:744 chat.php:1243
 msgid "Require moderator approval"
-msgstr ""
+msgstr "Goedkeuring van de moderator vereist"
 
 #: chat.php:749 chat.php:1248
 msgid "Only members"
-msgstr ""
+msgstr "Alleen leden"
 
 #: chat.php:754 chat.php:1251
 msgid "Disable chat"
-msgstr ""
+msgstr "Schakel chat uit"
 
 #: chat.php:765 chat.php:787 chat.php:842 chat.php:896 chat.php:2229
 msgid "Disabled"
-msgstr ""
+msgstr "Uitgeschakeld"
 
 #: chat.php:770 chat.php:830 chat.php:901 chat.php:2219
 msgid "Enabled"
-msgstr ""
+msgstr "Ingeschakeld"
 
 #: chat.php:792
 msgid "As applicant"
-msgstr ""
+msgstr "Als aanvrager"
 
 #: chat.php:797
 msgid "As member"
-msgstr ""
+msgstr "Als lid"
 
 #: chat.php:800
 msgid "System messages"
-msgstr ""
+msgstr "Systeemberichten"
 
 #: chat.php:822 chat.php:1053
 #, php-format
@@ -455,119 +456,120 @@ msgid ""
 "The %s extension of PHP is required for this feature. Please install it "
 "first."
 msgstr ""
+"The %s-extensie van PHP is vereist voor deze functie. Installeer deze eerst."
 
 #: chat.php:847
 msgid "Simple"
-msgstr ""
+msgstr "Simpel"
 
 #: chat.php:852
 msgid "Moderate"
-msgstr ""
+msgstr "Modereren"
 
 #: chat.php:857
 msgid "Extreme"
-msgstr ""
+msgstr "Extreem"
 
 #: chat.php:906 chat.php:1548 chat.php:1610
 msgid "Apply"
-msgstr ""
+msgstr "Toepassen"
 
 #: chat.php:910 chat.php:1050
 msgid "Backup and restore"
-msgstr ""
+msgstr "Backup en herstellen"
 
 #: chat.php:912
 msgid "Destroy chat"
-msgstr ""
+msgstr "Vernietig chat"
 
 #: chat.php:1057 chat.php:1066
 msgid "Settings"
-msgstr ""
+msgstr "Instellingen"
 
 #: chat.php:1058 chat.php:1067 chat.php:1212 chat.php:1538 chat.php:1575
 #: chat.php:1622
 msgid "Filter"
-msgstr ""
+msgstr "Filter"
 
 #: chat.php:1059 chat.php:1068 chat.php:1268 chat.php:2538
 msgid "Members"
-msgstr ""
+msgstr "Leden"
 
 #: chat.php:1060 chat.php:1069 chat.php:2314 chat.php:2322
 msgid "Notes"
-msgstr ""
+msgstr "Notities"
 
 #: chat.php:1061
 msgid "Backup"
-msgstr ""
+msgstr "Backup"
 
 #: chat.php:1070
 msgid "Restore"
-msgstr ""
+msgstr "Herstellen"
 
 #: chat.php:1074 chat.php:1117 chat.php:1155 chat.php:1185 chat.php:4260
 msgid "Go to the Setup-Page"
-msgstr ""
+msgstr "Ga naar de setuppagina"
 
 #: chat.php:1082 chat.php:1091 chat.php:1949
 msgid "Are you sure?"
-msgstr ""
+msgstr "Weet je het zeker?"
 
 #: chat.php:1083 chat.php:1092 chat.php:1956
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
 #: chat.php:1084 chat.php:1093 chat.php:1963
 msgid "No"
-msgstr ""
+msgstr "Nee"
 
 #: chat.php:1101 chat.php:4259
 msgid "Superadmin Login"
-msgstr ""
+msgstr "Superadminlogin"
 
 #: chat.php:1102
 msgid "Superadmin Nickname:"
-msgstr ""
+msgstr "Superadminbijnaam:"
 
 #: chat.php:1103
 msgid "Superadmin Password:"
-msgstr ""
+msgstr "Superadminwachtwoord:"
 
 #: chat.php:1104
 msgid "Confirm Password:"
-msgstr ""
+msgstr "Bevestig wachtwoord:"
 
 #: chat.php:1105
 msgid "Initialise Chat"
-msgstr ""
+msgstr "Begin chat"
 
 #: chat.php:1106 chat.php:1130 chat.php:1156 chat.php:2277 chat.php:2439
 msgid "Change language:"
-msgstr ""
+msgstr "Kies taal:"
 
 #: chat.php:1117
 msgid "Database successfully updated!"
-msgstr ""
+msgstr "Database succesvol bijgewerkt!"
 
 #: chat.php:1125 chat.php:1326 chat.php:2407
 msgid "Nickname:"
-msgstr ""
+msgstr "Bijnaam:"
 
 #: chat.php:1126 chat.php:1327 chat.php:2408
 msgid "Password:"
-msgstr ""
+msgstr "Wachtwoord:"
 
 #: chat.php:1128
 msgid "Login"
-msgstr ""
+msgstr "Login"
 
 #: chat.php:1129
 msgid "Forgot login?"
-msgstr ""
+msgstr "Login vergeten?"
 
 #: chat.php:1142 chat.php:1306
 msgid "Reset password"
-msgstr ""
+msgstr "Wachtwoord opnieuw instellen"
 
 #: chat.php:1150
 #, php-format
@@ -575,6 +577,9 @@ msgid ""
 "Successfully reset password for username %s. Please remove the password "
 "reset define from the script again."
 msgstr ""
+"Wachtwoord voor gebruikersnaam %s succesvol opnieuw ingesteld. Verwijder de "
+"definitie voor het opnieuw instellen van het wachtwoord opnieuw uit het "
+"script."
 
 #: chat.php:1153
 msgid ""
@@ -582,298 +587,305 @@ msgid ""
 "the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
 "'changeme');"
 msgstr ""
+"Pas het script aan en plaats het volgende onderaan (verander het wachtwoord)"
+". Vernieuw vervolgens deze pagina: define('RESET_SUPERADMIN_PASSWORD', "
+"'changeme');"
 
 #: chat.php:1169 chat.php:1193 chat.php:1258 chat.php:1270 chat.php:1294
 #: chat.php:1308 chat.php:1316 chat.php:2145 chat.php:2153
 msgid "(choose)"
-msgstr ""
+msgstr "(kies)"
 
 #: chat.php:1170
 msgid "All guests"
-msgstr ""
+msgstr "Alle gasten"
 
 #: chat.php:1182
 msgid "Administrative functions"
-msgstr ""
+msgstr "Administratieve functies"
 
 #: chat.php:1188
 msgid "Clean messages"
-msgstr ""
+msgstr "Wis berichten"
 
 #: chat.php:1191
 msgid "Whole room"
-msgstr ""
+msgstr "Hele kamer"
 
 #: chat.php:1192
 msgid "Selection"
-msgstr ""
+msgstr "Selectie"
 
 #: chat.php:1193
 msgid "Following nickname:"
-msgstr ""
+msgstr "Volgende bijnaam:"
 
 #: chat.php:1200
 msgid "Clean"
-msgstr ""
+msgstr "Wis"
 
 #: chat.php:1202
 #, php-format
 msgid "Kick Chatter (%d minutes)"
-msgstr ""
+msgstr "Kick chatter (%d minuten)"
 
 #: chat.php:1204
 msgid "Kickmessage:"
-msgstr ""
+msgstr "Kickbericht:"
 
 #: chat.php:1205
 msgid "Purge messages"
-msgstr ""
+msgstr "Verwijder berichten"
 
 #: chat.php:1206 chat.php:1388 chat.php:1546 chat.php:1580 chat.php:1591
 #: chat.php:2042
 msgid "Kick"
-msgstr ""
+msgstr "Kick"
 
 #: chat.php:1208
 msgid "Logout inactive Chatter"
-msgstr ""
+msgstr "Log inactieve chatter uit"
 
 #: chat.php:1212
 msgid "View active sessions"
-msgstr ""
+msgstr "Bekijk actieve sessies"
 
 #: chat.php:1212 chat.php:1603
 msgid "Linkfilter"
-msgstr ""
+msgstr "Linkfilter"
 
 #: chat.php:1217
 msgid "View"
-msgstr ""
+msgstr "Bekijk"
 
 #: chat.php:1223 chat.php:1253 chat.php:1304 chat.php:1312 chat.php:1582
 #: chat.php:1626
 msgid "Change"
-msgstr ""
+msgstr "Verander"
 
 #: chat.php:1256
 msgid "Register applicant"
-msgstr ""
+msgstr "Registreer aanvrager"
 
 #: chat.php:1264 chat.php:1322 chat.php:1328
 msgid "Register"
-msgstr ""
+msgstr "Registreer"
 
 #: chat.php:1294
 msgid "Delete from database"
-msgstr ""
+msgstr "Verwijder uit database"
 
 #: chat.php:1294
 msgid "Deny access (!)"
-msgstr ""
+msgstr "Weiger toegang (!)"
 
 #: chat.php:1296
 msgid "Set to applicant (SG)"
-msgstr ""
+msgstr "Stel in op aanvrager (SG)"
 
 #: chat.php:1298
 msgid "Set to regular member"
-msgstr ""
+msgstr "Stel in op gewoon lid"
 
 #: chat.php:1299
 msgid "Set to moderator (M)"
-msgstr ""
+msgstr "Stel in op moderator (M)"
 
 #: chat.php:1300
 msgid "Set to supermod (SM)"
-msgstr ""
+msgstr "Stel in op supermoderator (SM)"
 
 #: chat.php:1302
 msgid "Set to admin (A)"
-msgstr ""
+msgstr "Stel in op admin (A)"
 
 #: chat.php:1314
 msgid "Register Guest"
-msgstr ""
+msgstr "Registreer gast"
 
 #: chat.php:1324
 msgid "Register new Member"
-msgstr ""
+msgstr "Registreer nieuw lid"
 
 #: chat.php:1332 chat.php:1408 chat.php:1595 chat.php:1636 chat.php:1710
 #: chat.php:1924
 msgid "Reload"
-msgstr ""
+msgstr "Herlaad"
 
 #: chat.php:1345
 msgid "Active Sessions"
-msgstr ""
+msgstr "Actieve sessies"
 
 #: chat.php:1346 chat.php:1873
 msgid "Nickname"
-msgstr ""
+msgstr "Bijnaam"
 
 #: chat.php:1346
 msgid "Timeout in"
-msgstr ""
+msgstr "Time-out in"
 
 #: chat.php:1346 chat.php:1873
 msgid "User-Agent"
-msgstr ""
+msgstr "User-Agent"
 
 #: chat.php:1350
 msgid "IP-Address"
-msgstr ""
+msgstr "IP-adres"
 
 #: chat.php:1351
 msgid "Actions"
-msgstr ""
+msgstr "Acties"
 
 #: chat.php:1393
 msgid "Unban"
-msgstr ""
+msgstr "Verbanning ongedaan maken"
 
 #: chat.php:1416
 msgid "Incorrect regular expression!"
-msgstr ""
+msgstr "Onjuiste reguliere expressie!"
 
 #: chat.php:1416 chat.php:1424
 #, php-format
 msgid "Your match was as follows: %s"
-msgstr ""
+msgstr "Jouw match was als volgt: %s"
 
 #: chat.php:1424
 msgid ""
 "Your match was too long. You can use max. 255 characters. Try splitting it "
 "up."
 msgstr ""
+"Je match was te lang. Je kunt maximaal 255 tekens gebruiken. Probeer het op "
+"te splitsen."
 
 #: chat.php:1541 chat.php:1606
 msgid "Filter ID:"
-msgstr ""
+msgstr "Filter-ID:"
 
 #: chat.php:1542 chat.php:1607
 msgid "Match"
-msgstr ""
+msgstr "Match"
 
 #: chat.php:1543 chat.php:1608
 msgid "Replace"
-msgstr ""
+msgstr "Vervangen"
 
 #: chat.php:1544 chat.php:1578 chat.php:1589
 msgid "Allow in PM"
-msgstr ""
+msgstr "Toestaan in PM"
 
 #: chat.php:1545 chat.php:1579 chat.php:1590 chat.php:1609 chat.php:1625
 #: chat.php:1633
 msgid "Regex"
-msgstr ""
+msgstr "Regex"
 
 #: chat.php:1547 chat.php:1581 chat.php:1592
 msgid "Case sensitive"
-msgstr ""
+msgstr "Hoofdlettergevoelig"
 
 #: chat.php:1586 chat.php:1630
 msgid "New filter:"
-msgstr ""
+msgstr "Nieuwe filter:"
 
 #: chat.php:1593 chat.php:1634
 msgid "Add"
-msgstr ""
+msgstr "Voeg toe"
 
 #: chat.php:1691
 msgid ""
 "This chat uses <b>frames</b>. Please enable frames in your browser or use a "
 "suitable one!"
 msgstr ""
+"Deze chat gebruikt <b>frames</b>. Schakel frames in je browser in of gebruik "
+"een andere geschikte browser!"
 
 #: chat.php:1691 chat.php:2370 chat.php:2457
 msgid "Back to the login page."
-msgstr ""
+msgstr "Terug naar de loginpagina."
 
 #: chat.php:1709
 msgid "Bottom"
-msgstr ""
+msgstr "Beneden"
 
 #: chat.php:1710
 msgid "Manual refresh required"
-msgstr ""
+msgstr "Handmatig vernieuwen vereist"
 
 #: chat.php:1726
 msgid "Top"
-msgstr ""
+msgstr "Boven"
 
 #: chat.php:1734 chat.php:1940 chat.php:1942
 msgid "Delete selected messages"
-msgstr ""
+msgstr "Verwijder geselecteerde berichten"
 
 #: chat.php:1761 chat.php:1888 chat.php:2101 chat.php:2281
 msgid "Back to the chat."
-msgstr ""
+msgstr "Terug naar de chat."
 
 #: chat.php:1774 chat.php:1791
 msgid "Admin notes"
-msgstr ""
+msgstr "Adminnotities"
 
 #: chat.php:1777 chat.php:1788
 msgid "Staff notes"
-msgstr ""
+msgstr "Personeelnotities"
 
 #: chat.php:1811
 msgid "Notes saved!"
-msgstr ""
+msgstr "Notities opgeslagen!"
 
 #: chat.php:1835 chat.php:2122
 #, php-format
 msgid "Last edited by %1$s at %2$s"
-msgstr ""
+msgstr "Laatst aangepast door %1$s op %2$s"
 
 #: chat.php:1848
 msgid "Save notes"
-msgstr ""
+msgstr "Bewaar notities"
 
 #: chat.php:1850
 msgid "Revisions:"
-msgstr ""
+msgstr "Revisies:"
 
 #: chat.php:1853
 msgid "Older"
-msgstr ""
+msgstr "Ouder"
 
 #: chat.php:1857
 msgid "Newer"
-msgstr ""
+msgstr "Nieuwer"
 
 #: chat.php:1868 chat.php:1914
 msgid "Waiting room"
-msgstr ""
+msgstr "Wachtkamer"
 
 #: chat.php:1880
 msgid "Allow checked"
-msgstr ""
+msgstr "Sta aangevinkte toe"
 
 #: chat.php:1881
 msgid "Allow all"
-msgstr ""
+msgstr "Sta alles toe"
 
 #: chat.php:1882
 msgid "Deny checked"
-msgstr ""
+msgstr "Weiger aangevinkte"
 
 #: chat.php:1883
 msgid "Deny all"
-msgstr ""
+msgstr "Weiger alles"
 
 #: chat.php:1883
 msgid "Send message to denied:"
-msgstr ""
+msgstr "Stuur bericht naar geweigerde:"
 
 #: chat.php:1884
 msgid "Submit"
-msgstr ""
+msgstr "Verzenden"
 
 #: chat.php:1886
 msgid "No more entry requests to approve."
-msgstr ""
+msgstr "Geen toegangsverzoeken meer om goed te keuren."
 
 #: chat.php:1916
 #, php-format
@@ -881,6 +893,8 @@ msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat in %2$d "
 "seconds."
 msgstr ""
+"Welkom %1$s, je login is vertraagd, je hebt binnen %2$d seconden toegang tot "
+"de chat."
 
 #: chat.php:1918
 #, php-format
@@ -888,6 +902,8 @@ msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat as soon, "
 "as a moderator lets you in."
 msgstr ""
+"Welkom %1$s, je login is uitgesteld. Je krijgt zo snel mogelijk toegang tot "
+"de chat, als een moderator je binnenlaat."
 
 #: chat.php:1921
 #, php-format
@@ -895,63 +911,65 @@ msgid ""
 "If this page doesn't refresh every %d seconds, use the button below to "
 "reload it manually!"
 msgstr ""
+"Als deze pagina niet elke %d seconden wordt vernieuwd, gebruik dan de "
+"onderstaande knop om deze handmatig te herladen!"
 
 #: chat.php:1926 chat.php:2339
 msgid "Exit Chat"
-msgstr ""
+msgstr "Verlaat chat"
 
 #: chat.php:1929 chat.php:2074 chat.php:2085 chat.php:2430
 msgid "Rules"
-msgstr ""
+msgstr "Regels"
 
 #: chat.php:1985
 msgid "Send to"
-msgstr ""
+msgstr "Verstuur naar"
 
 #: chat.php:1990
 msgid "All chatters"
-msgstr ""
+msgstr "Alle chatters"
 
 #: chat.php:1996
 msgid "Members only"
-msgstr ""
+msgstr "Alleen leden"
 
 #: chat.php:2003
 msgid "Staff only"
-msgstr ""
+msgstr "Alleen personeel"
 
 #: chat.php:2010
 msgid "Admin only"
-msgstr ""
+msgstr "Alleen admin"
 
 #: chat.php:2019
 msgid "(offline)"
-msgstr ""
+msgstr "(offline)"
 
 #: chat.php:2043
 msgid "Also purge messages"
-msgstr ""
+msgstr "Wis ook berichten"
 
 #: chat.php:2050
 msgid "Delete last message"
-msgstr ""
+msgstr "Verwijder laatste bericht"
 
 #: chat.php:2055
 msgid "Delete all messages"
-msgstr ""
+msgstr "Verwijder alle berichten"
 
 #: chat.php:2057
 msgid "Switch to single-line"
-msgstr ""
+msgstr "Schakel over naar enkellijns"
 
 #: chat.php:2059
 msgid "Switch to multi-line"
-msgstr ""
+msgstr "Schakel over naar meerdere lijnen"
 
 #: chat.php:2070
 #, php-format
 msgid "Welcome %s!"
-msgstr ""
+msgstr "Welkom %s!"
 
 #: chat.php:2071
 #, php-format
@@ -963,10 +981,17 @@ msgid ""
 "in case of server/proxy reload errors) you can always use the buttons at the "
 "bottom to refresh manually."
 msgstr ""
+"Als dit frame niet binnen %d seconden opnieuw wordt geladen, moet je "
+"automatische omleiding (meta refresh) in je browser inschakelen. Zorg er ook "
+"voor dat geen enkel webfilter, lokale proxytool of browserplug-in het "
+"automatisch vernieuwen verhindert! Dit kan bijvoorbeeld \"Polipo\", "
+"\"NoScript\", enz. zijn.<br>Als tijdelijke oplossing (of in het geval van "
+"herlaadfouten van de server/proxy) kun je altijd de knoppen onderaan "
+"gebruiken om handmatig te vernieuwen."
 
 #: chat.php:2087
 msgid "Help"
-msgstr ""
+msgstr "Hulp"
 
 #: chat.php:2088
 msgid ""
@@ -975,6 +1000,11 @@ msgid ""
 "ignore users.<br><u>Note:</u> This is a chat, so if you don't keep talking, "
 "you will be automatically logged out after a while."
 msgstr ""
+"Alle functies zouden vrijwel voor zichzelf moeten spreken, gebruik gewoon de "
+"knoppen. In je profiel kun je de vernieuwingsfrequentie en de kleur van het "
+"lettertype aanpassen en gebruikers negeren.<br><u>Opmerking:</u> Dit is een "
+"chat, dus als je niet blijft praten, word je automatisch na een tijdje "
+"uitgelogd."
 
 #: chat.php:2090
 msgid ""
@@ -982,6 +1012,10 @@ msgid ""
 "your image URL. Example: [img]http://example.com/images/file.jpg will embed "
 "the image in your post."
 msgstr ""
+"Als je een afbeelding in je bericht wilt insluiten, plaats je eenvoudigweg "
+"[img] voor je afbeeldings-URL. Voorbeeld: [img]http://example.com/images/"
+"file.jpg zal de afbeelding in je bericht insluiten als de admin dit heeft "
+"ingeschakeld."
 
 #: chat.php:2093
 msgid ""
@@ -989,6 +1023,9 @@ msgid ""
 "font face, change your password anytime and of course you can delete your "
 "account."
 msgstr ""
+"Leden: Je hebt nog meer opties in je profiel. Je kunt je lettertype "
+"aanpassen, je wachtwoord op elk gewenst moment wijzigen en uiteraard kun je "
+"je account verwijderen."
 
 #: chat.php:2095
 msgid ""
@@ -996,230 +1033,235 @@ msgid ""
 "where you can clean the room, kick chatters, view all active sessions and "
 "disable guest access completely if needed."
 msgstr ""
+"Moderatoren: Let op de Admin-knop onderaan. Er verschijnt een pagina waar je "
+"de kamer kunt opschonen, chatters kunt kicken, alle actieve sessies kunt "
+"bekijken en indien nodig de gasttoegang volledig kunt uitschakelen."
 
 #: chat.php:2097
 msgid ""
 "Admins: You'll be furthermore able to register guests, edit members and "
 "register new nicknames."
 msgstr ""
+"Admins: Bovendien kun je gasten registreren, leden bewerken en nieuwe "
+"bijnamen registreren."
 
 #: chat.php:2135
 msgid "Your Profile"
-msgstr ""
+msgstr "Jouw profiel"
 
 #: chat.php:2144
 msgid "Don't ignore anymore"
-msgstr ""
+msgstr "Niet meer negeren"
 
 #: chat.php:2152
 msgid "Ignore"
-msgstr ""
+msgstr "Negeren"
 
 #: chat.php:2163
 #, php-format
 msgid "Refresh rate (%1$d-%2$d seconds)"
-msgstr ""
+msgstr "Vernieuwingssnelheid (%1$d-%2$d seconden)"
 
 #: chat.php:2167 chat.php:2170
 msgid "View examples"
-msgstr ""
+msgstr "Bekijk voorbeelden"
 
 #: chat.php:2174
 msgid "Fontface"
-msgstr ""
+msgstr "Lettertype"
 
 #: chat.php:2175
 msgid "Room Default"
-msgstr ""
+msgstr "Standaard kamer"
 
 #: chat.php:2188
 msgid "Bold"
-msgstr ""
+msgstr "Vet"
 
 #: chat.php:2192
 msgid "Italic"
-msgstr ""
+msgstr "Cursief"
 
 #: chat.php:2196
 msgid "Small"
-msgstr ""
+msgstr "Klein"
 
 #: chat.php:2199
 msgid "Example for your chosen font"
-msgstr ""
+msgstr "Voorbeeld van het door jou gekozen lettertype"
 
 #: chat.php:2203
 msgid "Autoscroll (for old browsers or top-to-bottom sort)."
-msgstr ""
+msgstr "Autoscrollen (voor oude browsers of van boven naar beneden sorteren)."
 
 #: chat.php:2234
 msgid "For everyone"
-msgstr ""
+msgstr "Voor iedereen"
 
 #: chat.php:2239
 msgid "For members only"
-msgstr ""
+msgstr "Alleen voor leden"
 
 #: chat.php:2244
 msgid "For staff only"
-msgstr ""
+msgstr "Alleen voor personeel"
 
 #: chat.php:2248
 msgid "Time zone"
-msgstr ""
+msgstr "Tijdzone"
 
 #: chat.php:2261
 msgid "Change Password"
-msgstr ""
+msgstr "Verander wachtwoord"
 
 #: chat.php:2263
 msgid "Old password:"
-msgstr ""
+msgstr "Oud wachtwoord:"
 
 #: chat.php:2264
 msgid "New password:"
-msgstr ""
+msgstr "Nieuw wachtwoord:"
 
 #: chat.php:2265
 msgid "Confirm new password:"
-msgstr ""
+msgstr "Bevestig nieuw wachtwoord:"
 
 #: chat.php:2268
 msgid "Change Nickname"
-msgstr ""
+msgstr "Verander bijnaam"
 
 #: chat.php:2269
 msgid "New nickname:"
-msgstr ""
+msgstr "Nieuwe bijnaam:"
 
 #: chat.php:2273
 msgid "Save changes"
-msgstr ""
+msgstr "Sla wijzigingen op"
 
 #: chat.php:2275
 msgid "Delete account"
-msgstr ""
+msgstr "Verwijder account"
 
 #: chat.php:2301
 msgid "Reload Post Box"
-msgstr ""
+msgstr "Herlaad berichtverzendframe"
 
 #: chat.php:2304
 msgid "Reload Messages"
-msgstr ""
+msgstr "Herlaad berichtenframe"
 
 #: chat.php:2307
 msgid "Profile"
-msgstr ""
+msgstr "Profiel"
 
 #: chat.php:2311 chat.php:2528
 msgid "Admin"
-msgstr ""
+msgstr "Admin"
 
 #: chat.php:2318
 msgid "View public notes"
-msgstr ""
+msgstr "Bekijk openbare notities"
 
 #: chat.php:2325
 msgid "Clone"
-msgstr ""
+msgstr "Kloon"
 
 #: chat.php:2334
 msgid "Rearrange"
-msgstr ""
+msgstr "Herschikken"
 
 #: chat.php:2337
 msgid "Rules & Help"
-msgstr ""
+msgstr "Regels & hulp"
 
 #: chat.php:2358 chat.php:2362
 msgid "File not found!"
-msgstr ""
+msgstr "Bestand niet gevonden!"
 
 #: chat.php:2370
 #, php-format
 msgid "Bye %s, visit again soon!"
-msgstr ""
+msgstr "Dag %s, bezoek binnenkort opnieuw!"
 
 #: chat.php:2377
 msgid "Colourtable"
-msgstr ""
+msgstr "Kleurentabel"
 
 #: chat.php:2388
 msgid "Back to your Profile"
-msgstr ""
+msgstr "Terug naar je profiel"
 
 #: chat.php:2412
 msgid "Repeat password<br>to register"
-msgstr ""
+msgstr "Herhaal wachtwoord<br>om te registreren"
 
 #: chat.php:2412
 msgid "(optional)"
-msgstr ""
+msgstr "(optioneel)"
 
 #: chat.php:2417
 msgid "Guests, choose a colour:"
-msgstr ""
+msgstr "Gasten, kies een kleur:"
 
 #: chat.php:2417
 msgid "Random Colour"
-msgstr ""
+msgstr "Willekeurige kleur"
 
 #: chat.php:2421 chat.php:2435 chat.php:2569
 msgid "Sorry, currently members only!"
-msgstr ""
+msgstr "Sorry, alleen leden op dit moment!"
 
 #: chat.php:2423 chat.php:2437
 msgid "Enter Chat"
-msgstr ""
+msgstr "Ga naar de chat"
 
 #: chat.php:2457
 #, php-format
 msgid "Error: %s"
-msgstr ""
+msgstr "Fout: %s"
 
 #: chat.php:2467
 msgid "Fatal error"
-msgstr ""
+msgstr "Fatale fout"
 
 #: chat.php:2470
 #, php-format
 msgid "Fatal error: %s"
-msgstr ""
+msgstr "Fatale fout: %s"
 
 #: chat.php:2482 chat.php:2693
 msgid "Failed login attempt(s)"
-msgstr ""
+msgstr "Mislukte inlogpoging(en)"
 
 #: chat.php:2489
 #, php-format
 msgid "Read %d messages in your inbox"
-msgstr ""
+msgstr "Lees %d berichten in je inbox"
 
 #: chat.php:2498
 #, php-format
 msgid "%d new guests to approve"
-msgstr ""
+msgstr "%d nieuwe gasten om goed te keuren"
 
 #: chat.php:2530
 msgid "Admin:"
-msgstr ""
+msgstr "Admin:"
 
 #: chat.php:2533
 msgid "Staff"
-msgstr ""
+msgstr "Personeel"
 
 #: chat.php:2535
 msgid "Staff:"
-msgstr ""
+msgstr "Personeel:"
 
 #: chat.php:2540
 msgid "Members:"
-msgstr ""
+msgstr "Leden:"
 
 #: chat.php:2542
 msgid "Guests"
-msgstr ""
+msgstr "Gasten"
 
 #: chat.php:2563 chat.php:2993 chat.php:3197 chat.php:4092
 #, php-format
@@ -1227,6 +1269,8 @@ msgid ""
 "Invalid nickname (%1$d characters maximum and has to match the regular "
 "expression \"%2$s\")"
 msgstr ""
+"Ongeldige bijnaam (maximaal %1$d tekens en moet overeenkomen met de "
+"reguliere expressie \"%2$s\")"
 
 #: chat.php:2566 chat.php:2996 chat.php:3162 chat.php:4094
 #, php-format
@@ -1234,342 +1278,348 @@ msgid ""
 "Invalid password (At least %1$d characters and has to match the regular "
 "expression \"%2$s\")"
 msgstr ""
+"Ongeldig wachtwoord (minstens %1$d tekens en moet overeenkomen met de "
+"reguliere expressie \"%2$s\")"
 
 #: chat.php:2574 chat.php:2739
 msgid "Wrong global Password!"
-msgstr ""
+msgstr "Verkeerd globaal wachtwoord!"
 
 #: chat.php:2591 chat.php:2612
 msgid "Wrong Captcha"
-msgstr ""
+msgstr "Verkeerde captcha"
 
 #: chat.php:2596 chat.php:2604
 msgid "Captcha already used or timed out."
-msgstr ""
+msgstr "Captcha al gebruikt of verlopen."
 
 #: chat.php:2652
 msgid "A user with this nickname is already logged in."
-msgstr ""
+msgstr "Een gebruiker met deze bijnaam is al ingelogd."
 
 #: chat.php:2652 chat.php:2933 chat.php:3176
 msgid "Wrong Password!"
-msgstr ""
+msgstr "Verkeerd wachtwoord!"
 
 #: chat.php:2696
 msgid "Dismiss"
-msgstr ""
+msgstr "Afwijzen"
 
 #: chat.php:2747 chat.php:3171 chat.php:4096
 msgid "Password confirmation does not match!"
-msgstr ""
+msgstr "Wachtwoordbevestiging komt niet overeen!"
 
 #: chat.php:2859
 msgid "Invalid/expired session"
-msgstr ""
+msgstr "Ongeldige/verlopen sessie"
 
 #: chat.php:2875 chat.php:3412
 msgid "You have been kicked!"
-msgstr ""
+msgstr "Je bent gekickt!"
 
 #: chat.php:2885
 #, php-format
 msgid "Currently %d chatter(s) in room:"
-msgstr ""
+msgstr "Momenteel %d chatter(s) in de kamer:"
 
 #: chat.php:2933
 msgid "This nickname is a registered member."
-msgstr ""
+msgstr "Deze bijnaam is een geregistreerd lid."
 
 #: chat.php:2960 chat.php:3001
 #, php-format
 msgid "%s is already registered."
-msgstr ""
+msgstr "%s is al geregistreerd."
 
 #: chat.php:2969 chat.php:2990
 #, php-format
 msgid "Can't register %s"
-msgstr ""
+msgstr "Kan %s niet registreren"
 
 #: chat.php:2978 chat.php:3023
 #, php-format
 msgid "%s successfully registered."
-msgstr ""
+msgstr "%s succesvol geregistreerd."
 
 #: chat.php:3031 chat.php:3036
 #, php-format
 msgid "Can't change status of %s"
-msgstr ""
+msgstr "Kan de status van %s niet wijzigen"
 
 #: chat.php:3047
 #, php-format
 msgid "%s successfully deleted from database."
-msgstr ""
+msgstr "%s succesvol verwijderd uit de database."
 
 #: chat.php:3056
 #, php-format
 msgid "Status of %s successfully changed."
-msgstr ""
+msgstr "Status van %s succesvol gewijzigd."
 
 #: chat.php:3073
 #, php-format
 msgid "Successfully reset password for %s"
-msgstr ""
+msgstr "Wachtwoord voor %s succesvol opnieuw ingesteld"
 
 #: chat.php:3075
 #, php-format
 msgid "Can't reset password for %s"
-msgstr ""
+msgstr "Kan wachtwoord voor %s niet opnieuw instellen"
 
 #: chat.php:3190
 msgid "Your profile has successfully been saved."
-msgstr ""
+msgstr "Je profiel is succesvol opgeslagen."
 
 #: chat.php:3202
 msgid "Nickname is already taken"
-msgstr ""
+msgstr "Bijnaam is al in gebruik"
 
 #: chat.php:3714
 msgid "system message"
-msgstr ""
+msgstr "systeembericht"
 
 #: chat.php:3921
 msgid "Beige"
-msgstr ""
+msgstr "Beige"
 
 #: chat.php:3922
 msgid "Black"
-msgstr ""
+msgstr "Zwart"
 
 #: chat.php:3923
 msgid "Blue"
-msgstr ""
+msgstr "Blauw"
 
 #: chat.php:3924
 msgid "Blue violet"
-msgstr ""
+msgstr "Blauwviolet"
 
 #: chat.php:3925
 msgid "Brown"
-msgstr ""
+msgstr "Bruin"
 
 #: chat.php:3926
 msgid "Cyan"
-msgstr ""
+msgstr "Cyaan"
 
 #: chat.php:3927
 msgid "Dark blue"
-msgstr ""
+msgstr "Donkerblauw"
 
 #: chat.php:3928
 msgid "Dark green"
-msgstr ""
+msgstr "Donkergroen"
 
 #: chat.php:3929
 msgid "Dark red"
-msgstr ""
+msgstr "Donkerrood"
 
 #: chat.php:3930
 msgid "Dark violet"
-msgstr ""
+msgstr "Donkerviolet"
 
 #: chat.php:3931
 msgid "Sky blue"
-msgstr ""
+msgstr "Luchtblauw"
 
 #: chat.php:3932
 msgid "Gold"
-msgstr ""
+msgstr "Goud"
 
 #: chat.php:3933
 msgid "Grey"
-msgstr ""
+msgstr "Grijs"
 
 #: chat.php:3934
 msgid "Green"
-msgstr ""
+msgstr "Groen"
 
 #: chat.php:3935
 msgid "Hot pink"
-msgstr ""
+msgstr "Felroze"
 
 #: chat.php:3936
 msgid "Indigo"
-msgstr ""
+msgstr "Indigo"
 
 #: chat.php:3937
 msgid "Light blue"
-msgstr ""
+msgstr "Lichtblauw"
 
 #: chat.php:3938
 msgid "Light green"
-msgstr ""
+msgstr "Lichtgroen"
 
 #: chat.php:3939
 msgid "Lime green"
-msgstr ""
+msgstr "Limoengroen"
 
 #: chat.php:3940
 msgid "Magenta"
-msgstr ""
+msgstr "Magenta"
 
 #: chat.php:3941
 msgid "Olive"
-msgstr ""
+msgstr "Olijf"
 
 #: chat.php:3942
 msgid "Orange"
-msgstr ""
+msgstr "Oranje"
 
 #: chat.php:3943
 msgid "Orange red"
-msgstr ""
+msgstr "Oranjerood"
 
 #: chat.php:3944
 msgid "Purple"
-msgstr ""
+msgstr "Paars"
 
 #: chat.php:3945
 msgid "Red"
-msgstr ""
+msgstr "Rood"
 
 #: chat.php:3946
 msgid "Royal blue"
-msgstr ""
+msgstr "Royaalblauw"
 
 #: chat.php:3947
 msgid "Sea green"
-msgstr ""
+msgstr "Zeegroen"
 
 #: chat.php:3948
 msgid "Sienna"
-msgstr ""
+msgstr "Sienna"
 
 #: chat.php:3949
 msgid "Silver"
-msgstr ""
+msgstr "Zilver"
 
 #: chat.php:3950
 msgid "Tan"
-msgstr ""
+msgstr "Huidskleur"
 
 #: chat.php:3951
 msgid "Teal"
-msgstr ""
+msgstr "Blauwgroen"
 
 #: chat.php:3952
 msgid "Violet"
-msgstr ""
+msgstr "Violet"
 
 #: chat.php:3953
 msgid "White"
-msgstr ""
+msgstr "Wit"
 
 #: chat.php:3954
 msgid "Yellow"
-msgstr ""
+msgstr "Geel"
 
 #: chat.php:3955
 msgid "Yellow green"
-msgstr ""
+msgstr "Geelgroen"
 
 #: chat.php:4077
 msgid "Successfully destroyed chat"
-msgstr ""
+msgstr "Chat succesvol vernietigd"
 
 #: chat.php:4086
 msgid ""
 "Database tables already exist! To continue, you have to delete these tables "
 "manually first."
 msgstr ""
+"Databasetabellen bestaan al! Om door te gaan, moet je deze tabellen eerst "
+"handmatig verwijderen."
 
 #: chat.php:4089
 msgid "A Superadmin already exists!"
-msgstr ""
+msgstr "Er bestaat al een superadmin!"
 
 #: chat.php:4182 chat.php:4369
 #, php-format
 msgid "%s - "
-msgstr ""
+msgstr "%s - "
 
 #: chat.php:4183 chat.php:4369
 #, php-format
 msgid "[M] %s - "
-msgstr ""
+msgstr "[M] %s - "
 
 #: chat.php:4184 chat.php:4369
 #, php-format
 msgid "[Staff] %s - "
-msgstr ""
+msgstr "[Personeel] %s - "
 
 #: chat.php:4185 chat.php:4369
 #, php-format
 msgid "[Admin] %s - "
-msgstr ""
+msgstr "[Admin] %s - "
 
 #: chat.php:4186 chat.php:4369
 #, php-format
 msgid "[%1$s to %2$s] - "
-msgstr ""
+msgstr "[%1$s naar %2$s] - "
 
 #: chat.php:4187
 #, php-format
 msgid "%s entered the chat."
-msgstr ""
+msgstr "%s is de chat binnengekomen."
 
 #: chat.php:4188
 #, php-format
 msgid "%s left the chat."
-msgstr ""
+msgstr "%s heeft de chat verlaten."
 
 #: chat.php:4189
 #, php-format
 msgid "%s is now a registered member."
-msgstr ""
+msgstr "%s is nu een geregistreerd lid."
 
 #: chat.php:4190
 #, php-format
 msgid "%s is now a registered applicant."
-msgstr ""
+msgstr "%s is nu een geregistreerde aanvrager."
 
 #: chat.php:4191
 #, php-format
 msgid "%s has been kicked."
-msgstr ""
+msgstr "%s is gekickt."
 
 #: chat.php:4192
 #, php-format
 msgid "%s have been kicked."
-msgstr ""
+msgstr "%s zijn gekickt."
 
 #: chat.php:4193
 msgid "All guests have been kicked."
-msgstr ""
+msgstr "Alle gasten zijn gekickt."
 
 #: chat.php:4194
 #, php-format
 msgid "%s has been cleaned."
-msgstr ""
+msgstr "%s is opgeschoond."
 
 #: chat.php:4202 chat.php:4396
 msgid "Temporarily disabled"
-msgstr ""
+msgstr "Tijdelijk uitgeschakeld"
 
 #: chat.php:4218 chat.php:4594
 msgid "A chat community"
-msgstr ""
+msgstr "Een chatgemeenschap"
 
 #: chat.php:4256
 msgid "Successfully registered!"
-msgstr ""
+msgstr "Succesvol geregistreerd!"
 
 #: chat.php:4522 chat.php:4721 chat.php:4728
 msgid "No connection to database!"
-msgstr ""
+msgstr "Geen verbinding met de database!"
 
 #: chat.php:4531
 msgid ""
 "Note: Default CSS is now hardcoded and can be removed from the CSS setting"
 msgstr ""
+"Opmerking: Standaard CSS is nu hardgecodeerd en kan uit de CSS-instelling "
+"worden verwijderd"
 
 #: chat.php:4611
 #, php-format
@@ -1577,6 +1627,8 @@ msgid ""
 "The %s extension of PHP is required for the encryption feature. Please "
 "install it first or set the encrypted setting back to false."
 msgstr ""
+"De %s-extensie van PHP is vereist voor de encryptiefunctie. Installeer het "
+"eerst of stel de encryptieinstelling weer in op false."
 
 #: chat.php:4684 chat.php:4689 chat.php:4694
 #, php-format
@@ -1584,15 +1636,22 @@ msgid ""
 "The %s extension of PHP is required for the selected database driver. Please "
 "install it first."
 msgstr ""
+"De %s-extensie van PHP is vereist voor het geselecteerde "
+"databasestuurprogramma. Installeer deze eerst."
 
 #: chat.php:4707 chat.php:4715 chat.php:4719 chat.php:4726
 msgid ""
 "No connection to database, please create a database and edit the script to "
 "use the correct database with given username and password!"
 msgstr ""
+"Geen verbinding met de database. Maak een database aan en bewerk het script "
+"om de juiste database met de opgegeven gebruikersnaam en wachtwoord te "
+"gebruiken!"
 
 #: chat.php:4734
 msgid ""
 "The memcached extension of PHP is required for the caching feature. Please "
 "install it first or set the memcached setting back to false."
 msgstr ""
+"De memcached-extensie van PHP is vereist voor de caching-functie. Installeer "
+"deze eerst of stel de memcached-instelling weer in op false."
