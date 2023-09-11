@@ -38,7 +38,7 @@ Features:
 Installation Instructions:
 --------------------------
 
-You'll need to have php with pdo, pcre, mbstring and date extension, and a web-server installed.
+You'll need to have php with intl, gettext, pdo, pcre, mbstring and date extension, and a web-server installed.
 You will also need the pdo_sqlite, pdo_mysql or pdo_pgsql extension, depending on which database you choose.
 Optionally, you can install:
 - the gd extension for the captcha feature
@@ -57,14 +57,10 @@ Note: If you updated the script, please visit http://(server)/(script-name).php?
 Translating:
 ------------
 
-Copy `lang_en.php` and rename it to `lang_YOUR_LANGCODE.php`
-Then edit the file and translate the messages into your language and change `$I` to `$T` at the top.
-If you ever use a `'` character, you have to escape it by using `\'` instead or the script will fail.
-When you are done, you have to edit the chat script, to include your translation. Simply add a line with
-`'lang_code'	=>'Language name',`
-to the `$L` array in the load_lang() function at the bottom, similar to what I did for the German translation.
-Please share your translation with me, so I can add it to the official version.
-To update your translation, you can copy each new string to your translation file or edit the automated `lang_update.php` script to reflect you language and run it.
+Translations are managed in [Weblate](https://weblate.danwin1210.de/projects/DanWin/le-chat-php).
+If you prefer manually submitting translations, the script `update-translations.sh` can be used to update the language template and translation files from source.
+It will generate the file `locale/le-chat-php.pot` which you can then use as basis to create a new language file in `YOUR_LANG_CODE/LC_MESSAGES/le-chat-php.po` and edit it with a translation program, such as [Poedit](https://poedit.net/).
+Once you are done, you can open a pull request, or [email me](mailto:daniel@danwin1210.de), to include the translation.
 
 Regex:
 ------
@@ -79,9 +75,3 @@ The following should be escaped by putting `\` in front of it, if you are trying
 I used `/` as delimiter, so you will have to escape that, too. The only options I used is `i` to make the regex case insensitive.
 If you want to test your regex, before applying you can use [this site](http://www.phpliveregex.com/) and enter your Regex and Replacement there and click on preg_replace.
 If you never used regex before, check out [this starting guide](http://docs.activestate.com/komodo/4.4/regex-intro.html) to begin with regular expressions.
-
-Live demo:
-----------
-
-If you want to see the script in action, you can visit my [Tor hidden service](http://danschat356lctri3zavzh6fbxg2a7lo6z3etgkctzzpspewu7zdsaqd.onion/chat.php) or via [my clearnet proxy](https://chat.danwin1210.de/chat.php) if you don't have Tor installed.
-Considering this is a hidden service, you should be prepared for the worst case, as people tend to do illegal activities in the Tor network.
