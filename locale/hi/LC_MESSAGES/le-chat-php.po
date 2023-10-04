@@ -8,13 +8,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2023-10-04 18:20+0000\n"
+"Last-Translator: Weblate Admin <daniel@danwin1210.de>\n"
+"Language-Team: Hindi <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.0\n"
 
 #: chat.php:261
 msgid "Enable applicants"
@@ -34,11 +37,11 @@ msgstr "सेशन-आईपी दिखाएँ"
 
 #: chat.php:265
 msgid "Members can kick, if no moderator is present"
-msgstr "यदि कोई मॉडरेटर मौजूद नहीं है, तो सदस्य बाहर निकाल  सकते हैं"
+msgstr "यदि कोई मॉडरेटर मौजूद नहीं है, तो सदस्य बाहर निकाल सकते हैं"
 
 #: chat.php:266
 msgid "Members can always kick"
-msgstr "सदस्य हमेशा  बाहर निकाल सकते हैं"
+msgstr "सदस्य हमेशा बाहर निकाल सकते हैं"
 
 #: chat.php:267
 msgid "Force redirection"
@@ -74,7 +77,7 @@ msgstr "संदेशों को ऊपर से नीचे तक क्
 
 #: chat.php:275 chat.php:2205
 msgid "Hide list of chatters"
-msgstr "ज्यादा बाते  करने वालों की सूची छुपाएं"
+msgstr "ज्यादा बाते करने वालों की सूची छुपाएं"
 
 #: chat.php:276 chat.php:1780 chat.php:1794
 msgid "Personal notes"
@@ -711,7 +714,9 @@ msgstr "आपका मिलान इस प्रकार था: %s"
 
 #: chat.php:1424
 msgid "Your match was too long. You can use max. 255 characters. Try splitting it up."
-msgstr " आपका मैच बहुत लंबा था. आप अधिकतम 255 अक्षर उपयोग कर सकते हैं. इसे विभाजित करने का प्रयास करें."
+msgstr ""
+"आपका मैच बहुत लंबा था. आप अधिकतम 255 अक्षर उपयोग कर सकते हैं. इसे विभाजित "
+"करने का प्रयास करें।"
 
 #: chat.php:1541 chat.php:1606
 msgid "Filter ID:"
@@ -916,7 +921,11 @@ msgstr "मदद"
 
 #: chat.php:2088
 msgid "All functions should be pretty much self-explaining, just use the buttons. In your profile you can adjust the refresh rate and font colour, as well as ignore users.<br><u>Note:</u> This is a chat, so if you don't keep talking, you will be automatically logged out after a while."
-msgstr "सभी फ़ंक्शन काफी हद तक स्व-व्याख्यात्मक होने चाहिए, बस बटनों का उपयोग करें। अपनी प्रोफ़ाइल में आप रिफ्रेश दर और फ़ॉन्ट रंग समायोजित कर सकते हैं, साथ ही उपयोगकर्ताओं को अनदेखा कर सकते हैं।<br><u>नोट:</u> यह एक चैट है, इसलिए यदि आप बात नहीं करते हैं, तो आप  थोड़ी देर बाद अपनेआप लॉग आउट हो जाएंगे."
+msgstr ""
+"सभी फ़ंक्शन काफी हद तक स्व-व्याख्यात्मक होने चाहिए, बस बटनों का उपयोग करें। "
+"अपनी प्रोफ़ाइल में आप रिफ्रेश दर और फ़ॉन्ट रंग समायोजित कर सकते हैं, साथ ही "
+"उपयोगकर्ताओं को अनदेखा कर सकते हैं।<br><u>नोट:</u> यह एक चैट है, इसलिए यदि "
+"आप बात नहीं करते हैं, तो आप थोड़ी देर बाद अपनेआप लॉग आउट हो जाएंगे।"
 
 #: chat.php:2090
 msgid "If you want to embed an image in your post, simply put [img] in front of your image URL. Example: [img]http://example.com/images/file.jpg will embed the image in your post."
