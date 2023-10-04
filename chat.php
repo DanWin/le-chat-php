@@ -42,6 +42,7 @@ const LANGUAGES = [
 	'es' => ['name' => 'Español', 'locale' => 'es_ES', 'dir' => 'ltr'],
 	'fi' => ['name' => 'Suomi', 'locale' => 'fi_FI', 'dir' => 'ltr'],
 	'fr' => ['name' => 'Français', 'locale' => 'fr_FR', 'dir' => 'ltr'],
+	'hi' => ['name' => 'हिन्दी', 'locale' => 'hi', 'dir' => 'ltr'],
 	'id' => ['name' => 'Bahasa Indonesia', 'locale' => 'id_ID', 'dir' => 'ltr'],
 	'it' => ['name' => 'Italiano', 'locale' => 'it_IT', 'dir' => 'ltr'],
 	'pt' => ['name' => 'Português', 'locale' => 'pt_PT', 'dir' => 'ltr'],
