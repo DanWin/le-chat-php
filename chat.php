@@ -88,7 +88,7 @@ function route(): void
 		send_waiting_room();
 	}elseif($_REQUEST['action']==='post'){
 		check_session();
-		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s _'){
+		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s *'){
 			if($U['status']>=5 || ($U['status']>=3 && (get_setting('memkickalways') || (get_count_mods()==0 && get_setting('memkick'))))){
 				if(isset($_POST['what']) && $_POST['what']==='purge'){
 					kick_chatter([$_POST['sendto']], $_POST['message'], true);
@@ -2789,7 +2789,7 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 	$check=$db->prepare('SELECT style, entry FROM ' . PREFIX . 'sessions WHERE nickname=? AND status!=0 AND (status<? OR nickname=?);');
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=?;');
 	$all=false;
-	if($names[0]==='s _'){
+	if($names[0]==='s *'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
 		while($name=$tmp->fetch(PDO::FETCH_NUM)){
@@ -2829,7 +2829,7 @@ function logout_chatter(array $names): void
 {
 	global $U, $db;
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<?;');
-	if($names[0]==='s _'){
+	if($names[0]==='s *'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
 		while($name=$tmp->fetch(PDO::FETCH_NUM)){
