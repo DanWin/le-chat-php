@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-01-18 21:32+0100\n"
-"PO-Revision-Date: 2023-10-12 21:51+0000\n"
+"PO-Revision-Date: 2023-10-14 17:51+0000\n"
 "Last-Translator: Анонім <g2014test@yandex.com>\n"
 "Language-Team: Ukrainian <https://weblate.danwin1210.de/projects/DanWin/"
 "le-chat-php/uk/>\n"
@@ -100,15 +100,15 @@ msgstr "Покажіть, хто виганяє людей або очищає �
 
 #: chat.php:280
 msgid "Hide reload post box button"
-msgstr ""
+msgstr "Приховати кнопку перезавантаження поштової скриньки"
 
 #: chat.php:281
 msgid "Hide reload messages button"
-msgstr ""
+msgstr "Приховати кнопку перезавантаження повідомлень"
 
 #: chat.php:282
 msgid "Hide profile button"
-msgstr ""
+msgstr "Кнопка приховання профілю"
 
 #: chat.php:283
 msgid "Hide admin button"
