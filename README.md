@@ -1,13 +1,13 @@
 General Information:
 --------------------
 
-This is a PHP Chat based on LE CHAT v.1.14. An up-to-date copy of this script can be downloaded at https://github.com/DanWin/le-chat-php
-The original perl LE CHAT script by Lucky Eddie can be downloaded at [this github fork](https://github.com/virtualghetto/lechat).
-If you add your own cool features or have a feature request, please tell me and I will add them, if I like them.
-Please also let me know about any bugs you find in the code, so I can fix them.
-Now a piece of information about the origin of the name "LE CHAT" copied from the original script:
-The "LE" in the name you can take as  "Lucky Eddie", or since the script was meant to be lean and easy on server resources, as "Light Edition".
-It may even be the French word for "the" if you prefer. Translated from French to English, "le chat" means: "the cat".
+1. This is a php chat based on le chat v.1.14. an up-to-date copy of this script can be downloaded at **https://github.com/danwin/le-chat-php**
+2. the original perl le chat script by lucky eddie can be downloaded at [this github fork]***(https://github.com/virtualghetto/lechat).***
+3. if you add your own cool features or have a feature request, please tell me and i will add them, if i like them.
+4. please also let me know about any bugs you find in the code, so i can fix them.
+5. now a piece of** information** about the origin of the name "le chat" copied from the original script:
+6. the "le" in the name you can take as  "lucky eddie", or since the script was meant to be lean and easy on server resources, as "light edition".
+7. it may even be the french word for "the" if you prefer. translated from french to english, "**le chat**" means: "**the cat**".
 
 Features:
 ---------
