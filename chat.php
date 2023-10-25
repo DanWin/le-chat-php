@@ -42,8 +42,11 @@ const LANGUAGES = [
 	'es' => ['name' => 'Español', 'locale' => 'es_ES', 'dir' => 'ltr'],
 	'fi' => ['name' => 'Suomi', 'locale' => 'fi_FI', 'dir' => 'ltr'],
 	'fr' => ['name' => 'Français', 'locale' => 'fr_FR', 'dir' => 'ltr'],
+	'hi' => ['name' => 'हिन्दी', 'locale' => 'hi', 'dir' => 'ltr'],
 	'id' => ['name' => 'Bahasa Indonesia', 'locale' => 'id_ID', 'dir' => 'ltr'],
 	'it' => ['name' => 'Italiano', 'locale' => 'it_IT', 'dir' => 'ltr'],
+	'nl' => ['name' => 'Nederlands', 'locale' => 'nl_NL', 'dir' => 'ltr'],
+	'pl' => ['name' => 'Polski', 'locale' => 'pl_PL', 'dir' => 'ltr'],
 	'pt' => ['name' => 'Português', 'locale' => 'pt_PT', 'dir' => 'ltr'],
 	'ru' => ['name' => 'Русский', 'locale' => 'ru_RU', 'dir' => 'ltr'],
 	'tr' => ['name' => 'Türkçe', 'locale' => 'tr_TR', 'dir' => 'ltr'],
@@ -87,7 +90,7 @@ function route(): void
 		send_waiting_room();
 	}elseif($_REQUEST['action']==='post'){
 		check_session();
-		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s _'){
+		if(isset($_POST['kick']) && isset($_POST['sendto']) && $_POST['sendto']!=='s *'){
 			if($U['status']>=5 || ($U['status']>=3 && (get_setting('memkickalways') || (get_count_mods()==0 && get_setting('memkick'))))){
 				if(isset($_POST['what']) && $_POST['what']==='purge'){
 					kick_chatter([$_POST['sendto']], $_POST['message'], true);
@@ -2788,7 +2791,7 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 	$check=$db->prepare('SELECT style, entry FROM ' . PREFIX . 'sessions WHERE nickname=? AND status!=0 AND (status<? OR nickname=?);');
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=?;');
 	$all=false;
-	if($names[0]==='s _'){
+	if($names[0]==='s *'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
 		while($name=$tmp->fetch(PDO::FETCH_NUM)){
@@ -2828,7 +2831,7 @@ function logout_chatter(array $names): void
 {
 	global $U, $db;
 	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=? AND status<?;');
-	if($names[0]==='s _'){
+	if($names[0]==='s *'){
 		$tmp=$db->query('SELECT nickname FROM ' . PREFIX . 'sessions WHERE status=1;');
 		$names=[];
 		while($name=$tmp->fetch(PDO::FETCH_NUM)){
