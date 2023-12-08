@@ -1625,7 +1625,7 @@ function send_linkfilter(string $arg=''): void
 		echo form('admin', 'linkfilter').hidden('id', $filter['id']);
 		echo '<table><tr><td>'._('Filter')." $filter[id]:</td>";
 		echo '<td><input type="text" name="match" value="'.$filter['match'].'" size="20" style="'.$U['style'].'"></td>';
-		echo '<td><input type="text" name="replace" value="'.htmlspecialchars($filter['replace']).'" size="20" style="'-$U['style'].'"></td>';
+		echo '<td><input type="text" name="replace" value="'.htmlspecialchars($filter['replace']).'" size="20" style="'.$U['style'].'"></td>';
 		echo '<td><label><input type="checkbox" name="regex" value="1"'.$checked.'>'._('Regex').'</label></td>';
 		echo '<td class="filtersubmit">'.submit(_('Change')).'</td></tr></table></form></td></tr>';
 	}
