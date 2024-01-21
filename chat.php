@@ -77,7 +77,7 @@ route();
 //  main program: decide what to do based on queries
 function route(): void
 {
-	global $U;
+	global $U, $db;
 	if(!isset($_REQUEST['action'])){
 		send_login();
 	}elseif($_REQUEST['action']==='view'){
@@ -140,7 +140,14 @@ function route(): void
 		}
 		send_profile($arg);
 	}elseif($_REQUEST['action']==='logout' && $_SERVER['REQUEST_METHOD'] === 'POST'){
-		kill_session();
+		check_session();
+		if($U['status']<3 && get_setting('exitwait')){
+			$U['exiting']=1;
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET exiting=1 WHERE session=? LIMIT 1;');
+			$stmt->execute([$U['session']]);
+		} else {
+			kill_session();
+		}
 		send_logout();
 	}elseif($_REQUEST['action']==='colours'){
 		check_session();
@@ -317,6 +324,7 @@ function route_setup(): void
 		'guestexpire' => _('Guest timeout (minutes)'),
 		'kickpenalty' => _('Kick penalty (minutes)'),
 		'entrywait' => _('Waiting room time (seconds)'),
+		'exitwait' => _('Logout delay (seconds)'),
 		'captchatime' => _('Captcha timeout (seconds)'),
 		'messageexpire' => _('Message timeout (minutes)'),
 		'messagelimit' => _('Message limit (public)'),
@@ -346,6 +354,7 @@ function route_setup(): void
 		'passregex' => _('Password regex'),
 		'externalcss' => _('Link to external CSS file (on your own server)'),
 		'metadescription' => _('Meta description (best 50 - 160 characters for SEO)'),
+		'exitingtxt' => _('Show this text when a user\'s logout is delayed'),
 		'sysmessagetxt' => _('Prepend this text to system messages'),
 	];
 	$extra_settings=[
@@ -2554,7 +2563,7 @@ function print_chatters(): void
 	global $U, $db, $language;
 	if(!$U['hidechatters']){
 		echo '<div id="chatters"><table><tr>';
-		$stmt=$db->prepare('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
+		$stmt=$db->prepare('SELECT nickname, style, status, exiting FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 AND nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY status DESC, lastpost DESC;');
 		$stmt->execute([$U['nickname'], $U['nickname']]);
 		$nc=substr(time(), -6);
 		$G=$M=$S=$A=[];
@@ -2562,6 +2571,9 @@ function print_chatters(): void
 		$nicklink="<a class=\"nicklink\" href=\"$_SERVER[SCRIPT_NAME]?action=post&amp;session=$U[session]&amp;lang=$language&amp;nc=$nc&amp;sendto=";
 		while($user=$stmt->fetch(PDO::FETCH_NUM)){
 			$link=$nicklink.urlencode($user[0]).'" target="post">'.style_this(htmlspecialchars($user[0]), $user[1]).'</a>';
+			if ($user[3]>0) {
+				$link .= '<span class="sysmsg" title="'._('logging out').'">'.get_setting('exitingtxt').'</span>';
+			}
 			if($user[2]<3){ // guest or superguest
 				$G[]=$link;
 			} elseif($user[2]>=7){ // admin or superadmin
@@ -2622,6 +2634,7 @@ function create_session(bool $setup, string $nickname, string $password): void
 			send_error(_('Wrong global Password!'));
 		}
 	}
+	$U['exiting']=0;
 	try {
 		$U[ 'postid' ] = bin2hex( random_bytes( 3 ) );
 	} catch(Exception $e) {
@@ -2720,8 +2733,8 @@ function write_new_session(string $password): void
 		}else{
 			$ip='';
 		}
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, useragent, bgcolour, entry, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old, postid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
-		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $useragent, $U['bgcolour'], $U['entry'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old'], $U['postid']]);
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'sessions (session, nickname, status, refresh, style, lastpost, passhash, useragent, bgcolour, entry, exiting, timestamps, embed, incognito, ip, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old, postid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
+		$stmt->execute([$U['session'], $U['nickname'], $U['status'], $U['refresh'], $U['style'], $U['lastpost'], $U['passhash'], $useragent, $U['bgcolour'], $U['entry'], $U['exiting'], $U['timestamps'], $U['embed'], $U['incognito'], $ip, $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nocache_old'], $U['postid']]);
 		$session = $U['session'];
 		set_secure_cookie(COOKIENAME, $U['session']);
 		if($U['status']>=3 && !$U['incognito']){
@@ -3307,6 +3320,7 @@ function add_user_defaults(string $password): void
 	$U['hidechatters']=get_setting('hidechatters');
 	$U['passhash']=password_hash($password, PASSWORD_DEFAULT);
 	$U['entry']=$U['lastpost']=time();
+	$U['exiting']=0;
 }
 
 // message handling
@@ -4047,8 +4061,8 @@ function cron(): void
 	}
 	update_setting('nextcron', $time+10);
 	// delete old sessions
-	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='guestexpire'))) OR (status>2 AND lastpost<(?-60*(SELECT value FROM " . PREFIX . "settings WHERE setting='memberexpire')));");
-	$stmt->execute([$time, $time]);
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE (status<=2 AND lastpost<(?-60*(SELECT value FROM ' . PREFIX . "settings WHERE setting='guestexpire'))) OR (status>2 AND lastpost<(?-60*(SELECT value FROM " . PREFIX . "settings WHERE setting='memberexpire'))) OR (status<3 AND exiting>0 AND lastpost<(?-(SELECT value FROM " . PREFIX . "settings WHERE setting='exitwait')));");
+	$stmt->execute([$time, $time, $time]);
 	// delete old messages
 	$limit=get_setting('messagelimit');
 	$stmt=$db->query('SELECT id FROM ' . PREFIX . "messages WHERE poststatus=1 OR poststatus=4 ORDER BY id DESC LIMIT 1 OFFSET $limit;");
@@ -4193,7 +4207,7 @@ function init_chat(): void
 		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_editedby ON ' . PREFIX . 'notes(editedby);');
-		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash varchar(255) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, entry integer NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$memengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash varchar(255) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, entry integer NOT NULL, exiting smallint NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$memengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'status ON ' . PREFIX . 'sessions(status);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'lastpost ON ' . PREFIX . 'sessions(lastpost);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'incognito ON ' . PREFIX . 'sessions(incognito);');
@@ -4213,6 +4227,7 @@ function init_chat(): void
 			['guestexpire', '15'],
 			['kickpenalty', '10'],
 			['entrywait', '120'],
+			['exitwait', '180'],
 			['messageexpire', '14400'],
 			['messagelimit', '150'],
 			['maxmessage', 2000],
@@ -4273,6 +4288,7 @@ function init_chat(): void
 			['publicnotes', '1'],
 			['filtermodkick', '0'],
 			['metadescription', _('A chat community')],
+			['exitingtxt', '&#128682;'], // door emoji
 			['sysmessagetxt', 'ℹ️ &nbsp;'],
 			['hide_reload_post_box', '0'],
 			['hide_reload_messages', '0'],
@@ -4662,6 +4678,10 @@ function update_db(): void
 	if($dbversion<47){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('hide_reload_post_box', '0'), ('hide_reload_messages', '0'),('hide_profile', '0'),('hide_admin', '0'),('hide_notes', '0'),('hide_clone', '0'),('hide_rearrange', '0'),('hide_help', '0'),('max_refresh_rate', '150'),('min_refresh_rate', '5'),('postbox_delete_globally', '0'),('allow_js', '1');");
 	}
+	if($dbversion<48){
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('exitwait', '180'), ('exitingtxt', ' &#128682;"); // door emoji
+		$db->exec('ALTER TABLE ' . PREFIX . 'sessions ADD COLUMN exiting smallint NOT NULL DEFAULT 0;');
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -4863,7 +4883,7 @@ function load_config(): void
 {
 	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 47); // Database layout version
+	define('DBVERSION', 48); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
