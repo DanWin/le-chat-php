@@ -2069,11 +2069,13 @@ function send_post(string $rejected=''): void
 	$disablepm=(bool) get_setting('disablepm');
 	if(!$disablepm){
 		$users=[];
-		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY LOWER(nickname);');
+		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, exiting, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 0, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY LOWER(nickname);');
 		$stmt->execute([$U['status'], $U['nickname'], $U['nickname']]);
 		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 			if($tmp['offline']){
 				$users[]=["$tmp[nickname] "._('(offline)'), $tmp['style'], $tmp['nickname']];
+			}elseif($tmp['exiting']){
+				$users[]=["$tmp[nickname] "._('(logging out)'), $tmp['style'], $tmp['nickname']];
 			}else{
 				$users[]=[$tmp['nickname'], $tmp['style'], $tmp['nickname']];
 			}
