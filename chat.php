@@ -2264,10 +2264,10 @@ function send_profile(string $arg=''): void
 		'hidechatters' => _('Hide list of chatters'),
 	];
 	if(get_setting('imgembed')){
-		$bool_settings[]='embed';
+		$bool_settings['embed'] = _('Embed images');
 	}
 	if($U['status']>=5 && get_setting('incognito')){
-		$bool_settings[]='incognito';
+		$bool_settings['incognito'] = _('Incognito mode');
 	}
 	foreach($bool_settings as $setting => $title){
 		echo "<tr><td><table id=\"$setting\"><tr><th>".$title.'</th><td>';
