@@ -2793,10 +2793,14 @@ function approve_session(): void
 
 function check_login(): void
 {
-	global $U;
+	global $U, $db;
 	$ga=(int) get_setting('guestaccess');
 	parse_sessions();
 	if(isset($U['session'])){
+		if($U['exiting']==1){
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET exiting=0 WHERE session=? LIMIT 1;');
+			$stmt->execute([$U['session']]);
+		}
 		check_kicked();
 	}elseif(get_setting('englobalpass')==1 && (!isset($_POST['globalpass']) || $_POST['globalpass']!=get_setting('globalpass'))){
 		send_error(_('Wrong global Password!'));
