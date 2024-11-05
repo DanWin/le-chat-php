@@ -8,269 +8,272 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-12-10 09:58+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2024-11-05 01:24+0000\n"
+"Last-Translator: Akira <kawaiisenpai@waifu.club>\n"
+"Language-Team: Japanese <https://weblate.danwin1210.de/projects/DanWin/"
+"le-chat-php/ja/>\n"
 "Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.8.2\n"
 
 #: chat.php:265
 msgid "Enable applicants"
-msgstr ""
+msgstr "応募者を有効にする"
 
 #: chat.php:266
 msgid "Embed images"
-msgstr ""
+msgstr "画像を埋め込む"
 
 #: chat.php:267 chat.php:2250
 msgid "Show Timestamps"
-msgstr ""
+msgstr "タイムスタンプを表示する"
 
 #: chat.php:268
 msgid "Show session-IP"
-msgstr ""
+msgstr "セッションIPを表示する"
 
 #: chat.php:269
 msgid "Members can kick, if no moderator is present"
-msgstr ""
+msgstr "モデレーターがいない場合、メンバーはキックできます"
 
 #: chat.php:270
 msgid "Members can always kick"
-msgstr ""
+msgstr "メンバーは常にキックできます"
 
 #: chat.php:271
 msgid "Force redirection"
-msgstr ""
+msgstr "リダイレクトを強制する"
 
 #: chat.php:272
 msgid "Incognito mode"
-msgstr ""
+msgstr "シークレットモード"
 
 #: chat.php:273
 msgid "Send mail on new public message"
-msgstr ""
+msgstr "新しい公開メッセージがあるときにメールを送信する"
 
 #: chat.php:274
 msgid "Fallback to waiting room, if no moderator is present to approve guests"
-msgstr ""
+msgstr "モデレーターがいない場合、ゲストを承認するために待機室に戻る"
 
 #: chat.php:275
 msgid "Disable private messages"
-msgstr ""
+msgstr "プライベートメッセージを無効にする"
 
 #: chat.php:276 chat.php:2271
 msgid "Enable offline inbox"
-msgstr ""
+msgstr "オフライン受信箱を有効にする"
 
 #: chat.php:277
 msgid "Show a greeting message before showing the messages"
-msgstr ""
+msgstr "メッセージを表示する前に挨拶メッセージを表示する"
 
 #: chat.php:278 chat.php:2252
 msgid "Sort messages from top to bottom"
-msgstr ""
+msgstr "メッセージを上から下に並べ替える"
 
 #: chat.php:279 chat.php:2253
 msgid "Hide list of chatters"
-msgstr ""
+msgstr "チャッターのリストを非表示にする"
 
 #: chat.php:280 chat.php:1828 chat.php:1842
 msgid "Personal notes"
-msgstr ""
+msgstr "個人的なメモ"
 
 #: chat.php:281 chat.php:1831 chat.php:1845 chat.php:2158
 msgid "Public notes"
-msgstr ""
+msgstr "公開ノート"
 
 #: chat.php:282
 msgid "Apply kick filter on moderators"
-msgstr ""
+msgstr "モデレーターにキックフィルターを適用する"
 
 #: chat.php:283
 msgid "Show who kicks people or purges all messages."
-msgstr ""
+msgstr "誰が人をキックしたか、またはすべてのメッセージを削除したかを表示する"
 
 #: chat.php:284
 msgid "Hide reload post box button"
-msgstr ""
+msgstr "投稿ボックスの再読み込みボタンを隠す"
 
 #: chat.php:285
 msgid "Hide reload messages button"
-msgstr ""
+msgstr "メッセージの再読み込みボタンを隠す"
 
 #: chat.php:286
 msgid "Hide profile button"
-msgstr ""
+msgstr "プロフィールボタンを隠す"
 
 #: chat.php:287
 msgid "Hide admin button"
-msgstr ""
+msgstr "管理者ボタンを隠す"
 
 #: chat.php:288
 msgid "Hide notes button"
-msgstr ""
+msgstr "ノートボタンを隠す"
 
 #: chat.php:289
 msgid "Hide clone button"
-msgstr ""
+msgstr "クローンボタンを隠す"
 
 #: chat.php:290
 msgid "Hide rearrange button"
-msgstr ""
+msgstr "並べ替えボタンを隠す"
 
 #: chat.php:291
 msgid "Hide help button"
-msgstr ""
+msgstr "ヘルプボタンを隠す"
 
 #: chat.php:292
 msgid "Apply postbox delete button globally"
-msgstr ""
+msgstr "投稿ボックスの削除ボタンを全体に適用する"
 
 #: chat.php:293
 msgid "Allow enhancing functionality with JavaScript"
-msgstr ""
+msgstr "JavaScriptで機能を拡張することを許可する"
 
 #: chat.php:296 chat.php:2218
 msgid "Background colour"
-msgstr ""
+msgstr "背景色"
 
 #: chat.php:297 chat.php:2215
 msgid "Font colour"
-msgstr ""
+msgstr "フォント色"
 
 #: chat.php:300
 msgid "Entrance"
-msgstr ""
+msgstr "入場"
 
 #: chat.php:301
 msgid "Leaving"
-msgstr ""
+msgstr "退出"
 
 #: chat.php:302
 msgid "Member registered"
-msgstr ""
+msgstr "メンバーが登録されました"
 
 #: chat.php:303
 msgid "Applicant registered"
-msgstr ""
+msgstr "応募者が登録されました"
 
 #: chat.php:304
 msgid "Kicked"
-msgstr ""
+msgstr "キックされました"
 
 #: chat.php:305
 msgid "Multiple kicked"
-msgstr ""
+msgstr "複数がキックされました"
 
 #: chat.php:306
 msgid "All kicked"
-msgstr ""
+msgstr "全員がキックされました"
 
 #: chat.php:307
 msgid "Room cleaned"
-msgstr ""
+msgstr "部屋が清掃されました"
 
 #: chat.php:308
 msgid "Message to all"
-msgstr ""
+msgstr "全員へのメッセージ"
 
 #: chat.php:309
 msgid "Message to members only"
-msgstr ""
+msgstr "メンバーのみへのメッセージ"
 
 #: chat.php:310
 msgid "Message to staff only"
-msgstr ""
+msgstr "スタッフのみへのメッセージ"
 
 #: chat.php:311
 msgid "Message to admins only"
-msgstr ""
+msgstr "管理者のみへのメッセージ"
 
 #: chat.php:312
 msgid "Private message"
-msgstr ""
+msgstr "プライベートメッセージ"
 
 #: chat.php:313
 msgid "Attachement"
-msgstr ""
+msgstr "添付ファイル"
 
 #: chat.php:316
 msgid "Member timeout (minutes)"
-msgstr ""
+msgstr "メンバータイムアウト（分）"
 
 #: chat.php:317
 msgid "Guest timeout (minutes)"
-msgstr ""
+msgstr "ゲストタイムアウト（分）"
 
 #: chat.php:318
 msgid "Kick penalty (minutes)"
-msgstr ""
+msgstr "キックペナルティ（分）"
 
 #: chat.php:319
 msgid "Waiting room time (seconds)"
-msgstr ""
+msgstr "待機室の時間（秒）"
 
 #: chat.php:320
 msgid "Captcha timeout (seconds)"
-msgstr ""
+msgstr "キャプチャタイムアウト（秒）"
 
 #: chat.php:321
 msgid "Message timeout (minutes)"
-msgstr ""
+msgstr "メッセージタイムアウト（分）"
 
 #: chat.php:322
 msgid "Message limit (public)"
-msgstr ""
+msgstr "メッセージ制限（公開）"
 
 #: chat.php:323
 msgid "Maximal message length"
-msgstr ""
+msgstr "最大メッセージ長"
 
 #: chat.php:324
 msgid "Maximal nickname length"
-msgstr ""
+msgstr "最大ニックネーム長"
 
 #: chat.php:325
 msgid "Minimal password length"
-msgstr ""
+msgstr "最小パスワード長"
 
 #: chat.php:326
 msgid "Default message reload time (seconds)"
-msgstr ""
+msgstr "デフォルトのメッセージ再読み込み時間（秒）"
 
 #: chat.php:327
 msgid "Number of notes revisions to keep"
-msgstr ""
+msgstr "保持するノートのバージョン数"
 
 #: chat.php:328
 msgid "Maximum upload size in KB"
-msgstr ""
+msgstr "最大アップロードサイズ（KB）"
 
 #: chat.php:329
 msgid "Enable file uploads"
-msgstr ""
+msgstr "ファイルアップロードを有効にする"
 
 #: chat.php:330
 msgid "Lowest refresh rate"
-msgstr ""
+msgstr "最低更新レート"
 
 #: chat.php:331
 msgid "Highest refresh rate"
-msgstr ""
+msgstr "最高更新レート"
 
 #: chat.php:334
 msgid "Rules (html)"
-msgstr ""
+msgstr "ルール（html）"
 
 #: chat.php:335
 msgid "CSS Style"
-msgstr ""
+msgstr "CSSスタイル"
 
 #: chat.php:336
 msgid "Chat disabled message (html)"
-msgstr ""
+msgstr "チャット無効メッセージ（html）"
 
 #: chat.php:339
 msgid ""
@@ -278,296 +281,301 @@ msgid ""
 "php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Date "
 "formating</a>"
 msgstr ""
+"<a target=\"_blank\" href=\"https://php.net/manual/ja/function.date."
+"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\""
+">日付フォーマット</a>"
 
 #: chat.php:340
 msgid "Characters used in Captcha"
-msgstr ""
+msgstr "キャプチャに使用される文字"
 
 #: chat.php:341
 msgid "Custom redirection script"
-msgstr ""
+msgstr "カスタムリダイレクトスクリプト"
 
 #: chat.php:342
 msgid "Chat name"
-msgstr ""
+msgstr "チャット名"
 
 #: chat.php:343
 msgid "Send mail using this address"
-msgstr ""
+msgstr "このアドレスを使用してメールを送信"
 
 #: chat.php:344
 msgid "Send mail to this address"
-msgstr ""
+msgstr "このアドレスにメールを送信"
 
 #: chat.php:345
 msgid "Nickname regex"
-msgstr ""
+msgstr "ニックネーム正規表現"
 
 #: chat.php:346
 msgid "Password regex"
-msgstr ""
+msgstr "パスワードの正規表現"
 
 #: chat.php:347
 msgid "Link to external CSS file (on your own server)"
-msgstr ""
+msgstr "外部CSSファイルへのリンク（自サーバー上）"
 
 #: chat.php:348
 msgid "Meta description (best 50 - 160 characters for SEO)"
-msgstr ""
+msgstr "メタディスクリプション（SEOに最適な50〜160文字）"
 
 #: chat.php:349
 msgid "Prepend this text to system messages"
-msgstr ""
+msgstr "このテキストをシステムメッセージの前に追加"
 
 #: chat.php:352 chat.php:771 chat.php:1273
 msgid "Change Guestaccess"
-msgstr ""
+msgstr "ゲストアクセスを変更"
 
 #: chat.php:353
 msgid "Enable global Password"
-msgstr ""
+msgstr "グローバルパスワードを有効にする"
 
 #: chat.php:354 chat.php:801 chat.php:2463 chat.php:2481
 msgid "Global Password:"
-msgstr ""
+msgstr "グローバルパスワード："
 
 #: chat.php:355 chat.php:862
 msgid "Captcha"
-msgstr ""
+msgstr "キャプチャ"
 
 #: chat.php:356 chat.php:818 chat.php:878
 msgid "Only for guests"
-msgstr ""
+msgstr "ゲストのみ"
 
 #: chat.php:357 chat.php:1268
 msgid "Topic"
-msgstr ""
+msgstr "トピック"
 
 #: chat.php:358 chat.php:824
 msgid "Let guests register themselves"
-msgstr ""
+msgstr "ゲストが自分で登録できるようにする"
 
 #: chat.php:359 chat.php:910
 msgid "Default time zone"
-msgstr ""
+msgstr "デフォルトのタイムゾーン"
 
 #: chat.php:572 chat.php:1148 chat.php:4135 chat.php:4316
 msgid "Initial Setup"
-msgstr ""
+msgstr "初期設定"
 
 #: chat.php:592
 #, php-format
 msgid "Redirecting to: %s"
-msgstr ""
+msgstr "リダイレクト中: %s"
 
 #: chat.php:599
 #, php-format
 msgid ""
 "Dangerous non-http link requested, copy paste this link if you are really "
 "sure: %s"
-msgstr ""
+msgstr "危険な非HTTPリンクが要求されました。本当に確信がある場合は、このリンクをコピ"
+"ーして貼り付けてください: %s"
 
 #: chat.php:601
 #, php-format
 msgid "Non-http link requested: %s"
-msgstr ""
+msgstr "非HTTPリンクが要求されました: %s"
 
 #: chat.php:603
 #, php-format
 msgid "If it's not working, try this one: %s"
-msgstr ""
+msgstr "動作しない場合は、こちらを試してみてください: %s"
 
 #: chat.php:613
 msgid "Access denied"
-msgstr ""
+msgstr "アクセス拒否"
 
 #: chat.php:613
 #, php-format
 msgid "You are logged in as %s and don't have access to this section."
-msgstr ""
+msgstr "あなたは%sとしてログインしており、このセクションにアクセスできません。"
 
 #: chat.php:615 chat.php:963 chat.php:1259 chat.php:1441
 msgid "Logout"
-msgstr ""
+msgstr "ログアウト"
 
 #: chat.php:640
 msgid "Copy:"
-msgstr ""
+msgstr "コピー:"
 
 #: chat.php:767
 msgid "Chat Setup"
-msgstr ""
+msgstr "チャット設定"
 
 #: chat.php:777 chat.php:1281
 msgid "Allow"
-msgstr ""
+msgstr "許可"
 
 #: chat.php:782 chat.php:1286
 msgid "Allow with waitingroom"
-msgstr ""
+msgstr "待機室を使用して許可"
 
 #: chat.php:787 chat.php:1291
 msgid "Require moderator approval"
-msgstr ""
+msgstr "モデレーターの承認が必要"
 
 #: chat.php:792 chat.php:1296
 msgid "Only members"
-msgstr ""
+msgstr "メンバーのみ"
 
 #: chat.php:797 chat.php:1299
 msgid "Disable chat"
-msgstr ""
+msgstr "チャットを無効にする"
 
 #: chat.php:808 chat.php:830 chat.php:885 chat.php:944 chat.php:2277
 msgid "Disabled"
-msgstr ""
+msgstr "無効"
 
 #: chat.php:813 chat.php:873 chat.php:949 chat.php:2267
 msgid "Enabled"
-msgstr ""
+msgstr "有効"
 
 #: chat.php:835
 msgid "As applicant"
-msgstr ""
+msgstr "応募者として"
 
 #: chat.php:840
 msgid "As member"
-msgstr ""
+msgstr "メンバーとして"
 
 #: chat.php:843
 msgid "System messages"
-msgstr ""
+msgstr "システムメッセージ"
 
 #: chat.php:865 chat.php:1101
 #, php-format
 msgid ""
 "The %s extension of PHP is required for this feature. Please install it "
 "first."
-msgstr ""
+msgstr "この機能には%sのPHP拡張が必要です。まずそれをインストールしてください。"
 
 #: chat.php:890
 msgid "Simple"
-msgstr ""
+msgstr "シンプル"
 
 #: chat.php:895
 msgid "Moderate"
-msgstr ""
+msgstr "中程度"
 
 #: chat.php:900
 msgid "Hard"
-msgstr ""
+msgstr "ハード"
 
 #: chat.php:905
 msgid "Extreme"
-msgstr ""
+msgstr "エクストリーム"
 
 #: chat.php:954 chat.php:1596 chat.php:1658
 msgid "Apply"
-msgstr ""
+msgstr "適用"
 
 #: chat.php:958 chat.php:1098
 msgid "Backup and restore"
-msgstr ""
+msgstr "バックアップと復元"
 
 #: chat.php:960
 msgid "Destroy chat"
-msgstr ""
+msgstr "チャットを破壊"
 
 #: chat.php:1105 chat.php:1114
 msgid "Settings"
-msgstr ""
+msgstr "設定"
 
 #: chat.php:1106 chat.php:1115 chat.php:1260 chat.php:1586 chat.php:1623
 #: chat.php:1670
 msgid "Filter"
-msgstr ""
+msgstr "フィルター"
 
 #: chat.php:1107 chat.php:1116 chat.php:1316 chat.php:2586
 msgid "Members"
-msgstr ""
+msgstr "メンバー"
 
 #: chat.php:1108 chat.php:1117 chat.php:2362 chat.php:2370
 msgid "Notes"
-msgstr ""
+msgstr "ノート"
 
 #: chat.php:1109
 msgid "Backup"
-msgstr ""
+msgstr "バックアップ"
 
 #: chat.php:1118
 msgid "Restore"
-msgstr ""
+msgstr "復元"
 
 #: chat.php:1122 chat.php:1165 chat.php:1203 chat.php:1233 chat.php:4317
 msgid "Go to the Setup-Page"
-msgstr ""
+msgstr "設定ページに移動"
 
 #: chat.php:1130 chat.php:1139 chat.php:1997
 msgid "Are you sure?"
-msgstr ""
+msgstr "本当によろしいですか？"
 
 #: chat.php:1131 chat.php:1140 chat.php:2004
 msgid "Yes"
-msgstr ""
+msgstr "はい"
 
 #: chat.php:1132 chat.php:1141 chat.php:2011
 msgid "No"
-msgstr ""
+msgstr "いいえ"
 
 #: chat.php:1149 chat.php:4316
 msgid "Superadmin Login"
-msgstr ""
+msgstr "スーパ管理者ログイン"
 
 #: chat.php:1150
 msgid "Superadmin Nickname:"
-msgstr ""
+msgstr "スーパ管理者のニックネーム："
 
 #: chat.php:1151
 msgid "Superadmin Password:"
-msgstr ""
+msgstr "スーパ管理者のパスワード："
 
 #: chat.php:1152
 msgid "Confirm Password:"
-msgstr ""
+msgstr "パスワードを確認："
 
 #: chat.php:1153
 msgid "Initialise Chat"
-msgstr ""
+msgstr "チャットを初期化"
 
 #: chat.php:1154 chat.php:1178 chat.php:1204 chat.php:2325 chat.php:2487
 msgid "Change language:"
-msgstr ""
+msgstr "言語を変更："
 
 #: chat.php:1165
 msgid "Database successfully updated!"
-msgstr ""
+msgstr "データベースが正常に更新されました！"
 
 #: chat.php:1173 chat.php:1374 chat.php:2455
 msgid "Nickname:"
-msgstr ""
+msgstr "ニックネーム："
 
 #: chat.php:1174 chat.php:1375 chat.php:2456
 msgid "Password:"
-msgstr ""
+msgstr "パスワード："
 
 #: chat.php:1176
 msgid "Login"
-msgstr ""
+msgstr "ログイン"
 
 #: chat.php:1177
 msgid "Forgot login?"
-msgstr ""
+msgstr "ログイン情報を忘れましたか？"
 
 #: chat.php:1190 chat.php:1354
 msgid "Reset password"
-msgstr ""
+msgstr "パスワードをリセット"
 
 #: chat.php:1198
 #, php-format
 msgid ""
 "Successfully reset password for username %s. Please remove the password "
 "reset define from the script again."
-msgstr ""
+msgstr "ユーザー名%sのパスワードを正常にリセットしました。スクリプトからパスワードリ"
+"セットの定義を再度削除してください。"
 
 #: chat.php:1201
 msgid ""
@@ -575,376 +583,385 @@ msgid ""
 "the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
 "'changeme');"
 msgstr ""
+"スクリプトを修正し、以下の内容をファイルの最後に追加してください（パスワード"
+"を変更）。その後、このページを更新してください：define("
+"'RESET_SUPERADMIN_PASSWORD', 'changeme');"
 
 #: chat.php:1217 chat.php:1241 chat.php:1306 chat.php:1318 chat.php:1342
 #: chat.php:1356 chat.php:1364 chat.php:2193 chat.php:2201
 msgid "(choose)"
-msgstr ""
+msgstr "(選択)"
 
 #: chat.php:1218
 msgid "All guests"
-msgstr ""
+msgstr "すべてのゲスト"
 
 #: chat.php:1230
 msgid "Administrative functions"
-msgstr ""
+msgstr "管理機能"
 
 #: chat.php:1236
 msgid "Clean messages"
-msgstr ""
+msgstr "メッセージをクリア"
 
 #: chat.php:1239
 msgid "Whole room"
-msgstr ""
+msgstr "全体の部屋"
 
 #: chat.php:1240
 msgid "Selection"
-msgstr ""
+msgstr "選択"
 
 #: chat.php:1241
 msgid "Following nickname:"
-msgstr ""
+msgstr "以下のニックネーム："
 
 #: chat.php:1248
 msgid "Clean"
-msgstr ""
+msgstr "クリーン"
 
 #: chat.php:1250
 #, php-format
 msgid "Kick Chatter (%d minutes)"
-msgstr ""
+msgstr "チャッターをキック (%d 分)"
 
 #: chat.php:1252
 msgid "Kickmessage:"
-msgstr ""
+msgstr "キックメッセージ："
 
 #: chat.php:1253
 msgid "Purge messages"
-msgstr ""
+msgstr "メッセージを削除"
 
 #: chat.php:1254 chat.php:1436 chat.php:1594 chat.php:1628 chat.php:1639
 #: chat.php:2090
 msgid "Kick"
-msgstr ""
+msgstr "キック"
 
 #: chat.php:1256
 msgid "Logout inactive Chatter"
-msgstr ""
+msgstr "非アクティブなチャッターをログアウト"
 
 #: chat.php:1260
 msgid "View active sessions"
-msgstr ""
+msgstr "アクティブなセッションを表示"
 
 #: chat.php:1260 chat.php:1651
 msgid "Linkfilter"
-msgstr ""
+msgstr "リンクフィルター"
 
 #: chat.php:1265
 msgid "View"
-msgstr ""
+msgstr "表示"
 
 #: chat.php:1271 chat.php:1301 chat.php:1352 chat.php:1360 chat.php:1630
 #: chat.php:1674
 msgid "Change"
-msgstr ""
+msgstr "変更"
 
 #: chat.php:1304
 msgid "Register applicant"
-msgstr ""
+msgstr "申請者を登録"
 
 #: chat.php:1312 chat.php:1370 chat.php:1376
 msgid "Register"
-msgstr ""
+msgstr "登録"
 
 #: chat.php:1342
 msgid "Delete from database"
-msgstr ""
+msgstr "データベースから削除"
 
 #: chat.php:1342
 msgid "Deny access (!)"
-msgstr ""
+msgstr "アクセスを拒否 (!)"
 
 #: chat.php:1344
 msgid "Set to applicant (SG)"
-msgstr ""
+msgstr "申請者に設定 (SG)"
 
 #: chat.php:1346
 msgid "Set to regular member"
-msgstr ""
+msgstr "一般会員に設定"
 
 #: chat.php:1347
 msgid "Set to moderator (M)"
-msgstr ""
+msgstr "モデレーターに設定 (M)"
 
 #: chat.php:1348
 msgid "Set to supermod (SM)"
-msgstr ""
+msgstr "スーパーモデレーターに設定 (SM)"
 
 #: chat.php:1350
 msgid "Set to admin (A)"
-msgstr ""
+msgstr "管理者に設定 (A)"
 
 #: chat.php:1362
 msgid "Register Guest"
-msgstr ""
+msgstr "ゲストを登録"
 
 #: chat.php:1372
 msgid "Register new Member"
-msgstr ""
+msgstr "新しいメンバーを登録"
 
 #: chat.php:1380 chat.php:1456 chat.php:1643 chat.php:1684 chat.php:1758
 #: chat.php:1972
 msgid "Reload"
-msgstr ""
+msgstr "リロード"
 
 #: chat.php:1393
 msgid "Active Sessions"
-msgstr ""
+msgstr "アクティブセッション"
 
 #: chat.php:1394 chat.php:1921
 msgid "Nickname"
-msgstr ""
+msgstr "ニックネーム"
 
 #: chat.php:1394
 msgid "Timeout in"
-msgstr ""
+msgstr "タイムアウトまで"
 
 #: chat.php:1394 chat.php:1921
 msgid "User-Agent"
-msgstr ""
+msgstr "ユーザーエージェント"
 
 #: chat.php:1398
 msgid "IP-Address"
-msgstr ""
+msgstr "IPアドレス"
 
 #: chat.php:1399
 msgid "Actions"
-msgstr ""
+msgstr "アクション"
 
 #: chat.php:1441
 msgid "Unban"
-msgstr ""
+msgstr "禁止解除"
 
 #: chat.php:1464
 msgid "Incorrect regular expression!"
-msgstr ""
+msgstr "無効な正規表現です！"
 
 #: chat.php:1464 chat.php:1472
 #, php-format
 msgid "Your match was as follows: %s"
-msgstr ""
+msgstr "あなたの一致は次のとおりです: %s"
 
 #: chat.php:1472
 msgid ""
 "Your match was too long. You can use max. 255 characters. Try splitting it "
 "up."
-msgstr ""
+msgstr "あなたの一致が長すぎました。最大255文字まで使用できます。分割して試してくださ"
+"い。"
 
 #: chat.php:1589 chat.php:1654
 msgid "Filter ID:"
-msgstr ""
+msgstr "フィルターID:"
 
 #: chat.php:1590 chat.php:1655
 msgid "Match"
-msgstr ""
+msgstr "一致"
 
 #: chat.php:1591 chat.php:1656
 msgid "Replace"
-msgstr ""
+msgstr "置き換え"
 
 #: chat.php:1592 chat.php:1626 chat.php:1637
 msgid "Allow in PM"
-msgstr ""
+msgstr "PMで許可"
 
 #: chat.php:1593 chat.php:1627 chat.php:1638 chat.php:1657 chat.php:1673
 #: chat.php:1681
 msgid "Regex"
-msgstr ""
+msgstr "正規表現"
 
 #: chat.php:1595 chat.php:1629 chat.php:1640
 msgid "Case sensitive"
-msgstr ""
+msgstr "大文字と小文字を区別"
 
 #: chat.php:1634 chat.php:1678
 msgid "New filter:"
-msgstr ""
+msgstr "新しいフィルター:"
 
 #: chat.php:1641 chat.php:1682
 msgid "Add"
-msgstr ""
+msgstr "追加"
 
 #: chat.php:1739
 msgid ""
 "This chat uses <b>frames</b>. Please enable frames in your browser or use a "
 "suitable one!"
 msgstr ""
+"このチャットは <b>frames</b> を使用しています。ブラウザで <b>frames</b> "
+"を有効にするか、適切なものを使用してください！"
 
 #: chat.php:1739 chat.php:2418 chat.php:2505
 msgid "Back to the login page."
-msgstr ""
+msgstr "ログインページに戻る。"
 
 #: chat.php:1757
 msgid "Bottom"
-msgstr ""
+msgstr "下部"
 
 #: chat.php:1758
 msgid "Manual refresh required"
-msgstr ""
+msgstr "手動でのリフレッシュが必要"
 
 #: chat.php:1774
 msgid "Top"
-msgstr ""
+msgstr "上部"
 
 #: chat.php:1782 chat.php:1988 chat.php:1990
 msgid "Delete selected messages"
-msgstr ""
+msgstr "選択したメッセージを削除"
 
 #: chat.php:1809 chat.php:1936 chat.php:2149 chat.php:2329
 msgid "Back to the chat."
-msgstr ""
+msgstr "チャットに戻る。"
 
 #: chat.php:1822 chat.php:1839
 msgid "Admin notes"
-msgstr ""
+msgstr "管理者ノート"
 
 #: chat.php:1825 chat.php:1836
 msgid "Staff notes"
-msgstr ""
+msgstr "スタッフノート"
 
 #: chat.php:1859
 msgid "Notes saved!"
-msgstr ""
+msgstr "ノートが保存されました！"
 
 #: chat.php:1883 chat.php:2170
 #, php-format
 msgid "Last edited by %1$s at %2$s"
-msgstr ""
+msgstr "%1$s によって %2$s に最終編集されました"
 
 #: chat.php:1896
 msgid "Save notes"
-msgstr ""
+msgstr "ノートを保存"
 
 #: chat.php:1898
 msgid "Revisions:"
-msgstr ""
+msgstr "リビジョン:"
 
 #: chat.php:1901
 msgid "Older"
-msgstr ""
+msgstr "古い"
 
 #: chat.php:1905
 msgid "Newer"
-msgstr ""
+msgstr "新しい"
 
 #: chat.php:1916 chat.php:1962
 msgid "Waiting room"
-msgstr ""
+msgstr "待機室"
 
 #: chat.php:1928
 msgid "Allow checked"
-msgstr ""
+msgstr "選択したものを許可"
 
 #: chat.php:1929
 msgid "Allow all"
-msgstr ""
+msgstr "すべてを許可"
 
 #: chat.php:1930
 msgid "Deny checked"
-msgstr ""
+msgstr "選択したものを拒否"
 
 #: chat.php:1931
 msgid "Deny all"
-msgstr ""
+msgstr "すべてを拒否"
 
 #: chat.php:1931
 msgid "Send message to denied:"
-msgstr ""
+msgstr "拒否されたユーザーにメッセージを送信:"
 
 #: chat.php:1932
 msgid "Submit"
-msgstr ""
+msgstr "送信"
 
 #: chat.php:1934
 msgid "No more entry requests to approve."
-msgstr ""
+msgstr "承認する入場リクエストはありません。"
 
 #: chat.php:1964
 #, php-format
 msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat in %2$d "
 "seconds."
-msgstr ""
+msgstr "ようこそ %1$s、ログインが遅れています。%2$d "
+"秒後にチャットにアクセスできます。"
 
 #: chat.php:1966
 #, php-format
 msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat as soon, "
 "as a moderator lets you in."
-msgstr ""
+msgstr "ようこそ %1$s、ログインが遅れています。モデレーターがあなたを入れたら、すぐに"
+"チャットにアクセスできます。"
 
 #: chat.php:1969
 #, php-format
 msgid ""
 "If this page doesn't refresh every %d seconds, use the button below to "
 "reload it manually!"
-msgstr ""
+msgstr "このページが%d秒ごとに更新されない場合は、下のボタンを使って手動で再読み込み"
+"してください！"
 
 #: chat.php:1974 chat.php:2387
 msgid "Exit Chat"
-msgstr ""
+msgstr "チャットを退出"
 
 #: chat.php:1977 chat.php:2122 chat.php:2133 chat.php:2478
 msgid "Rules"
-msgstr ""
+msgstr "ルール"
 
 #: chat.php:2033
 msgid "Send to"
-msgstr ""
+msgstr "送信先"
 
 #: chat.php:2038
 msgid "All chatters"
-msgstr ""
+msgstr "すべての参加者"
 
 #: chat.php:2044
 msgid "Members only"
-msgstr ""
+msgstr "メンバーのみ"
 
 #: chat.php:2051
 msgid "Staff only"
-msgstr ""
+msgstr "スタッフ専用"
 
 #: chat.php:2058
 msgid "Admin only"
-msgstr ""
+msgstr "管理者専用"
 
 #: chat.php:2067
 msgid "(offline)"
-msgstr ""
+msgstr "(オフライン)"
 
 #: chat.php:2091
 msgid "Also purge messages"
-msgstr ""
+msgstr "メッセージも削除する"
 
 #: chat.php:2098
 msgid "Delete last message"
-msgstr ""
+msgstr "最後のメッセージを削除"
 
 #: chat.php:2103
 msgid "Delete all messages"
-msgstr ""
+msgstr "すべてのメッセージを削除"
 
 #: chat.php:2105
 msgid "Switch to single-line"
-msgstr ""
+msgstr "シングルラインに切り替え"
 
 #: chat.php:2107
 msgid "Switch to multi-line"
-msgstr ""
+msgstr "複数行に切り替え"
 
 #: chat.php:2118
 #, php-format
 msgid "Welcome %s!"
-msgstr ""
+msgstr "ようこそ %s!"
 
 #: chat.php:2119
 #, php-format
@@ -956,10 +973,17 @@ msgid ""
 "in case of server/proxy reload errors) you can always use the buttons at the "
 "bottom to refresh manually."
 msgstr ""
+"このフレームが %d 秒以内にリロードされない場合は、"
+"ブラウザで自動リダイレクション "
+"(メタリフレッシュ)を有効にする必要があります。また、ウェブフィルター、"
+"ローカルプロキシ ツール、またはブラウザプラグインが自動リフレッシュを妨げてい"
+"ないことを確認してください！ 例えば \"Polipo\" や \"NoScript\" などです。"
+"<br>代替手段として (またはサーバー/ "
+"プロキシリロードエラーの場合)、下のボタンを使って手動でリフレッシュできます。"
 
 #: chat.php:2135
 msgid "Help"
-msgstr ""
+msgstr "ヘルプ"
 
 #: chat.php:2136
 msgid ""
@@ -968,6 +992,10 @@ msgid ""
 "ignore users.<br><u>Note:</u> This is a chat, so if you don't keep talking, "
 "you will be automatically logged out after a while."
 msgstr ""
+"すべての機能はほとんど自己説明的ですので、ボタンを使ってください。 "
+"プロフィールでは、リフレッシュレートやフォントの色を調整したり、"
+"ユーザーを無視したり できます。<br><u>注意：</u> これはチャットですので、"
+"話し続けないとしばらく後に自動的に ログアウトされます。"
 
 #: chat.php:2138
 msgid ""
@@ -975,6 +1003,9 @@ msgid ""
 "your image URL. Example: [img]http://example.com/images/file.jpg will embed "
 "the image in your post."
 msgstr ""
+"投稿に画像を埋め込みたい場合は、画像のURLの前に [img] を追加するだけです。 "
+"例：[img]http://example.com/images/file.jpg "
+"とすると、画像が投稿に埋め込まれます。"
 
 #: chat.php:2141
 msgid ""
@@ -982,6 +1013,9 @@ msgid ""
 "font face, change your password anytime and of course you can delete your "
 "account."
 msgstr ""
+"メンバー：プロフィールにはさらにいくつかのオプションがあります。 "
+"フォントの種類を調整したり、パスワードをいつでも変更したり、"
+"もちろんアカウントを 削除することもできます。"
 
 #: chat.php:2143
 msgid ""
@@ -989,495 +1023,503 @@ msgid ""
 "where you can clean the room, kick chatters, view all active sessions and "
 "disable guest access completely if needed."
 msgstr ""
+"モデレーター：下部の管理ボタンに注意してください。それを押すと、部屋を掃除し"
+"たり、 チャッターを追い出したり、すべてのアクティブセッションを表示したり、"
+"必要に応じて "
+"ゲストアクセスを完全に無効にすることができるページが表示されます。"
 
 #: chat.php:2145
 msgid ""
 "Admins: You'll be furthermore able to register guests, edit members and "
 "register new nicknames."
-msgstr ""
+msgstr "管理者：さらに、ゲストを登録したり、メンバーを編集したり、"
+"新しいニックネームを 登録することができるようになります。"
 
 #: chat.php:2183
 msgid "Your Profile"
-msgstr ""
+msgstr "あなたのプロフィール"
 
 #: chat.php:2192
 msgid "Don't ignore anymore"
-msgstr ""
+msgstr "無視しない"
 
 #: chat.php:2200
 msgid "Ignore"
-msgstr ""
+msgstr "無視する"
 
 #: chat.php:2211
 #, php-format
 msgid "Refresh rate (%1$d-%2$d seconds)"
-msgstr ""
+msgstr "リフレッシュレート (%1$d-%2$d 秒)"
 
 #: chat.php:2215 chat.php:2218
 msgid "View examples"
-msgstr ""
+msgstr "例を表示"
 
 #: chat.php:2222
 msgid "Fontface"
-msgstr ""
+msgstr "フォント"
 
 #: chat.php:2223
 msgid "Room Default"
-msgstr ""
+msgstr "部屋のデフォルト"
 
 #: chat.php:2236
 msgid "Bold"
-msgstr ""
+msgstr "太字"
 
 #: chat.php:2240
 msgid "Italic"
-msgstr ""
+msgstr "斜体"
 
 #: chat.php:2244
 msgid "Small"
-msgstr ""
+msgstr "小さい"
 
 #: chat.php:2247
 msgid "Example for your chosen font"
-msgstr ""
+msgstr "選択したフォントの例"
 
 #: chat.php:2251
 msgid "Autoscroll (for old browsers or top-to-bottom sort)."
-msgstr ""
+msgstr "自動スクロール（古いブラウザや上から下へのソート用）"
 
 #: chat.php:2282
 msgid "For everyone"
-msgstr ""
+msgstr "誰でも"
 
 #: chat.php:2287
 msgid "For members only"
-msgstr ""
+msgstr "メンバーのみ"
 
 #: chat.php:2292
 msgid "For staff only"
-msgstr ""
+msgstr "スタッフのみ"
 
 #: chat.php:2296
 msgid "Time zone"
-msgstr ""
+msgstr "タイムゾーン"
 
 #: chat.php:2309
 msgid "Change Password"
-msgstr ""
+msgstr "パスワードを変更"
 
 #: chat.php:2311
 msgid "Old password:"
-msgstr ""
+msgstr "古いパスワード："
 
 #: chat.php:2312
 msgid "New password:"
-msgstr ""
+msgstr "新しいパスワード："
 
 #: chat.php:2313
 msgid "Confirm new password:"
-msgstr ""
+msgstr "新しいパスワードを確認："
 
 #: chat.php:2316
 msgid "Change Nickname"
-msgstr ""
+msgstr "ニックネームを変更"
 
 #: chat.php:2317
 msgid "New nickname:"
-msgstr ""
+msgstr "新しいニックネーム："
 
 #: chat.php:2321
 msgid "Save changes"
-msgstr ""
+msgstr "変更を保存"
 
 #: chat.php:2323
 msgid "Delete account"
-msgstr ""
+msgstr "アカウントを削除"
 
 #: chat.php:2349
 msgid "Reload Post Box"
-msgstr ""
+msgstr "投稿ボックスを再読み込み"
 
 #: chat.php:2352
 msgid "Reload Messages"
-msgstr ""
+msgstr "メッセージを再読み込み"
 
 #: chat.php:2355
 msgid "Profile"
-msgstr ""
+msgstr "プロフィール"
 
 #: chat.php:2359 chat.php:2576
 msgid "Admin"
-msgstr ""
+msgstr "管理者"
 
 #: chat.php:2366
 msgid "View public notes"
-msgstr ""
+msgstr "公開ノートを表示"
 
 #: chat.php:2373
 msgid "Clone"
-msgstr ""
+msgstr "クローン"
 
 #: chat.php:2382
 msgid "Rearrange"
-msgstr ""
+msgstr "並べ替え"
 
 #: chat.php:2385
 msgid "Rules & Help"
-msgstr ""
+msgstr "ルールとヘルプ"
 
 #: chat.php:2406 chat.php:2410
 msgid "File not found!"
-msgstr ""
+msgstr "ファイルが見つかりません！"
 
 #: chat.php:2418
 #, php-format
 msgid "Bye %s, visit again soon!"
-msgstr ""
+msgstr "%sさん、さようなら。またすぐにお越しください！"
 
 #: chat.php:2425
 msgid "Colourtable"
-msgstr ""
+msgstr "カラーテーブル"
 
 #: chat.php:2436
 msgid "Back to your Profile"
-msgstr ""
+msgstr "プロフィールに戻る"
 
 #: chat.php:2460
 msgid "Repeat password<br>to register"
-msgstr ""
+msgstr "パスワードを再入力<br>して登録"
 
 #: chat.php:2460
 msgid "(optional)"
-msgstr ""
+msgstr "(任意)"
 
 #: chat.php:2465
 msgid "Guests, choose a colour:"
-msgstr ""
+msgstr "ゲストの方、色を選んでください："
 
 #: chat.php:2465
 msgid "Random Colour"
-msgstr ""
+msgstr "ランダムカラー"
 
 #: chat.php:2469 chat.php:2483 chat.php:2617
 msgid "Sorry, currently members only!"
-msgstr ""
+msgstr "申し訳ありませんが、現在はメンバーのみです！"
 
 #: chat.php:2471 chat.php:2485
 msgid "Enter Chat"
-msgstr ""
+msgstr "チャットに入る"
 
 #: chat.php:2505
 #, php-format
 msgid "Error: %s"
-msgstr ""
+msgstr "エラー: %s"
 
 #: chat.php:2515
 msgid "Fatal error"
-msgstr ""
+msgstr "致命的なエラー"
 
 #: chat.php:2518
 #, php-format
 msgid "Fatal error: %s"
-msgstr ""
+msgstr "致命的なエラー: %s"
 
 #: chat.php:2530 chat.php:2741
 msgid "Failed login attempt(s)"
-msgstr ""
+msgstr "ログイン試行が失敗しました"
 
 #: chat.php:2537
 #, php-format
 msgid "Read %d messages in your inbox"
-msgstr ""
+msgstr "受信トレイの%d件のメッセージを読む"
 
 #: chat.php:2546
 #, php-format
 msgid "%d new guests to approve"
-msgstr ""
+msgstr "%d件の新しいゲストの承認が必要です"
 
 #: chat.php:2578
 msgid "Admin:"
-msgstr ""
+msgstr "管理者:"
 
 #: chat.php:2581
 msgid "Staff"
-msgstr ""
+msgstr "スタッフ"
 
 #: chat.php:2583
 msgid "Staff:"
-msgstr ""
+msgstr "スタッフ:"
 
 #: chat.php:2588
 msgid "Members:"
-msgstr ""
+msgstr "メンバー:"
 
 #: chat.php:2590
 msgid "Guests"
-msgstr ""
+msgstr "ゲスト"
 
 #: chat.php:2611 chat.php:3041 chat.php:3245 chat.php:4149
 #, php-format
 msgid ""
 "Invalid nickname (%1$d characters maximum and has to match the regular "
 "expression \"%2$s\")"
-msgstr ""
+msgstr "無効なニックネーム（最大%1$d文字で、正規表現\"%2$s\"に一致する必要があります"
+"）"
 
 #: chat.php:2614 chat.php:3044 chat.php:3210 chat.php:4151
 #, php-format
 msgid ""
 "Invalid password (At least %1$d characters and has to match the regular "
 "expression \"%2$s\")"
-msgstr ""
+msgstr "無効なパスワード（少なくとも%1$d文字で、正規表現\"%2$"
+"s\"に一致する必要があります）"
 
 #: chat.php:2622 chat.php:2787
 msgid "Wrong global Password!"
-msgstr ""
+msgstr "グローバルパスワードが間違っています！"
 
 #: chat.php:2639 chat.php:2660
 msgid "Wrong Captcha"
-msgstr ""
+msgstr "キャプチャが間違っています"
 
 #: chat.php:2644 chat.php:2652
 msgid "Captcha already used or timed out."
-msgstr ""
+msgstr "キャプチャは既に使用されているか、期限切れです。"
 
 #: chat.php:2700
 msgid "A user with this nickname is already logged in."
-msgstr ""
+msgstr "このニックネームのユーザーはすでにログインしています。"
 
 #: chat.php:2700 chat.php:2981 chat.php:3224
 msgid "Wrong Password!"
-msgstr ""
+msgstr "パスワードが間違っています！"
 
 #: chat.php:2744
 msgid "Dismiss"
-msgstr ""
+msgstr "閉じる"
 
 #: chat.php:2795 chat.php:3219 chat.php:4153
 msgid "Password confirmation does not match!"
-msgstr ""
+msgstr "パスワード確認が一致しません！"
 
 #: chat.php:2907
 msgid "Invalid/expired session"
-msgstr ""
+msgstr "無効または期限切れのセッション"
 
 #: chat.php:2923 chat.php:3460
 msgid "You have been kicked!"
-msgstr ""
+msgstr "あなたは追い出されました！"
 
 #: chat.php:2933
 #, php-format
 msgid "Currently %d chatter(s) in room:"
-msgstr ""
+msgstr "現在、部屋には%d人がチャットしています："
 
 #: chat.php:2981
 msgid "This nickname is a registered member."
-msgstr ""
+msgstr "このニックネームは既に登録されたメンバーです。"
 
 #: chat.php:3008 chat.php:3049
 #, php-format
 msgid "%s is already registered."
-msgstr ""
+msgstr "%sは既に登録されています。"
 
 #: chat.php:3017 chat.php:3038
 #, php-format
 msgid "Can't register %s"
-msgstr ""
+msgstr "%sは登録できません"
 
 #: chat.php:3026 chat.php:3071
 #, php-format
 msgid "%s successfully registered."
-msgstr ""
+msgstr "%sは正常に登録されました。"
 
 #: chat.php:3079 chat.php:3084
 #, php-format
 msgid "Can't change status of %s"
-msgstr ""
+msgstr "%sのステータスを変更できません"
 
 #: chat.php:3095
 #, php-format
 msgid "%s successfully deleted from database."
-msgstr ""
+msgstr "%sはデータベースから正常に削除されました。"
 
 #: chat.php:3104
 #, php-format
 msgid "Status of %s successfully changed."
-msgstr ""
+msgstr "%sのステータスは正常に変更されました。"
 
 #: chat.php:3121
 #, php-format
 msgid "Successfully reset password for %s"
-msgstr ""
+msgstr "%sのパスワードが正常にリセットされました。"
 
 #: chat.php:3123
 #, php-format
 msgid "Can't reset password for %s"
-msgstr ""
+msgstr "%sのパスワードをリセットできません"
 
 #: chat.php:3238
 msgid "Your profile has successfully been saved."
-msgstr ""
+msgstr "あなたのプロフィールは正常に保存されました。"
 
 #: chat.php:3250
 msgid "Nickname is already taken"
-msgstr ""
+msgstr "そのニックネームは既に使われています"
 
 #: chat.php:3762
 msgid "system message"
-msgstr ""
+msgstr "システムメッセージ"
 
 #: chat.php:3978
 msgid "Beige"
-msgstr ""
+msgstr "ベージュ"
 
 #: chat.php:3979
 msgid "Black"
-msgstr ""
+msgstr "ブラック"
 
 #: chat.php:3980
 msgid "Blue"
-msgstr ""
+msgstr "ブルー"
 
 #: chat.php:3981
 msgid "Blue violet"
-msgstr ""
+msgstr "ブルーバイオレット"
 
 #: chat.php:3982
 msgid "Brown"
-msgstr ""
+msgstr "ブラウン"
 
 #: chat.php:3983
 msgid "Cyan"
-msgstr ""
+msgstr "シアン"
 
 #: chat.php:3984
 msgid "Dark blue"
-msgstr ""
+msgstr "ダークブルー"
 
 #: chat.php:3985
 msgid "Dark green"
-msgstr ""
+msgstr "ダークグリーン"
 
 #: chat.php:3986
 msgid "Dark red"
-msgstr ""
+msgstr "ダークレッド"
 
 #: chat.php:3987
 msgid "Dark violet"
-msgstr ""
+msgstr "ダークバイオレット"
 
 #: chat.php:3988
 msgid "Sky blue"
-msgstr ""
+msgstr "スカイブルー"
 
 #: chat.php:3989
 msgid "Gold"
-msgstr ""
+msgstr "ゴールド"
 
 #: chat.php:3990
 msgid "Grey"
-msgstr ""
+msgstr "グレー"
 
 #: chat.php:3991
 msgid "Green"
-msgstr ""
+msgstr "グリーン"
 
 #: chat.php:3992
 msgid "Hot pink"
-msgstr ""
+msgstr "ホットピンク"
 
 #: chat.php:3993
 msgid "Indigo"
-msgstr ""
+msgstr "インディゴ"
 
 #: chat.php:3994
 msgid "Light blue"
-msgstr ""
+msgstr "ライトブルー"
 
 #: chat.php:3995
 msgid "Light green"
-msgstr ""
+msgstr "ライトグリーン"
 
 #: chat.php:3996
 msgid "Lime green"
-msgstr ""
+msgstr "ライムグリーン"
 
 #: chat.php:3997
 msgid "Magenta"
-msgstr ""
+msgstr "マゼンタ"
 
 #: chat.php:3998
 msgid "Olive"
-msgstr ""
+msgstr "オリーブ"
 
 #: chat.php:3999
 msgid "Orange"
-msgstr ""
+msgstr "オレンジ"
 
 #: chat.php:4000
 msgid "Orange red"
-msgstr ""
+msgstr "オレンジレッド"
 
 #: chat.php:4001
 msgid "Purple"
-msgstr ""
+msgstr "パープル"
 
 #: chat.php:4002
 msgid "Red"
-msgstr ""
+msgstr "レッド"
 
 #: chat.php:4003
 msgid "Royal blue"
-msgstr ""
+msgstr "ロイヤルブルー"
 
 #: chat.php:4004
 msgid "Sea green"
-msgstr ""
+msgstr "シーグリーン"
 
 #: chat.php:4005
 msgid "Sienna"
-msgstr ""
+msgstr "シエナ"
 
 #: chat.php:4006
 msgid "Silver"
-msgstr ""
+msgstr "シルバー"
 
 #: chat.php:4007
 msgid "Tan"
-msgstr ""
+msgstr "タン"
 
 #: chat.php:4008
 msgid "Teal"
-msgstr ""
+msgstr "ティール"
 
 #: chat.php:4009
 msgid "Violet"
-msgstr ""
+msgstr "バイオレット"
 
 #: chat.php:4010
 msgid "White"
-msgstr ""
+msgstr "ホワイト"
 
 #: chat.php:4011
 msgid "Yellow"
-msgstr ""
+msgstr "イエロー"
 
 #: chat.php:4012
 msgid "Yellow green"
-msgstr ""
+msgstr "イエローグリーン"
 
 #: chat.php:4134
 msgid "Successfully destroyed chat"
-msgstr ""
+msgstr "チャットは正常に破棄されました"
 
 #: chat.php:4143
 msgid ""
 "Database tables already exist! To continue, you have to delete these tables "
 "manually first."
-msgstr ""
+msgstr "データベーステーブルは既に存在します！続行するには、これらのテーブルを先に手"
+"動で削除する必要があります。"
 
 #: chat.php:4146
 msgid "A Superadmin already exists!"
-msgstr ""
+msgstr "スーパー管理者は既に存在します！"
 
 #: chat.php:4239 chat.php:4426
 #, php-format
@@ -1492,100 +1534,106 @@ msgstr ""
 #: chat.php:4241 chat.php:4426
 #, php-format
 msgid "[Staff] %s - "
-msgstr ""
+msgstr "[スタッフ] %s - "
 
 #: chat.php:4242 chat.php:4426
 #, php-format
 msgid "[Admin] %s - "
-msgstr ""
+msgstr "[管理者] %s - "
 
 #: chat.php:4243 chat.php:4426
 #, php-format
 msgid "[%1$s to %2$s] - "
-msgstr ""
+msgstr "[%1$s から %2$s へ] - "
 
 #: chat.php:4244
 #, php-format
 msgid "%s entered the chat."
-msgstr ""
+msgstr "%s がチャットに参加しました。"
 
 #: chat.php:4245
 #, php-format
 msgid "%s left the chat."
-msgstr ""
+msgstr "%s がチャットから退出しました。"
 
 #: chat.php:4246
 #, php-format
 msgid "%s is now a registered member."
-msgstr ""
+msgstr "%s は現在、登録されたメンバーです。"
 
 #: chat.php:4247
 #, php-format
 msgid "%s is now a registered applicant."
-msgstr ""
+msgstr "%s は現在、登録申請者です。"
 
 #: chat.php:4248
 #, php-format
 msgid "%s has been kicked."
-msgstr ""
+msgstr "%s はキックされました。"
 
 #: chat.php:4249
 #, php-format
 msgid "%s have been kicked."
-msgstr ""
+msgstr "%s はキックされました。"
 
 #: chat.php:4250
 msgid "All guests have been kicked."
-msgstr ""
+msgstr "すべてのゲストがキックされました。"
 
 #: chat.php:4251
 #, php-format
 msgid "%s has been cleaned."
-msgstr ""
+msgstr "%s はクリーンアップされました。"
 
 #: chat.php:4259 chat.php:4453
 msgid "Temporarily disabled"
-msgstr ""
+msgstr "一時的に無効化されました"
 
 #: chat.php:4275 chat.php:4651
 msgid "A chat community"
-msgstr ""
+msgstr "チャットコミュニティ"
 
 #: chat.php:4313
 msgid "Successfully registered!"
-msgstr ""
+msgstr "登録に成功しました！"
 
 #: chat.php:4579 chat.php:4778 chat.php:4785
 msgid "No connection to database!"
-msgstr ""
+msgstr "データベースに接続できません！"
 
 #: chat.php:4588
 msgid ""
 "Note: Default CSS is now hardcoded and can be removed from the CSS setting"
-msgstr ""
+msgstr "注意: "
+"デフォルトのCSSは現在ハードコーディングされており、CSS設定から削除できます。"
 
 #: chat.php:4668
 #, php-format
 msgid ""
 "The %s extension of PHP is required for the encryption feature. Please "
 "install it first or set the encrypted setting back to false."
-msgstr ""
+msgstr "暗号化機能にはPHPの%s拡張が必要です。まずインストールするか、暗号化設定をfals"
+"eに戻してください。"
 
 #: chat.php:4741 chat.php:4746 chat.php:4751
 #, php-format
 msgid ""
 "The %s extension of PHP is required for the selected database driver. Please "
 "install it first."
-msgstr ""
+msgstr "選択したデータベースドライバにはPHPの%s拡張が必要です。まずインストールしてく"
+"ださい。"
 
 #: chat.php:4764 chat.php:4772 chat.php:4776 chat.php:4783
 msgid ""
 "No connection to database, please create a database and edit the script to "
 "use the correct database with given username and password!"
 msgstr ""
+"データベースへの接続がありません。データベースを作成し、スクリプトを編集して"
+"、指定されたユーザー名とパスワードで正しいデータベースを使用してください！"
 
 #: chat.php:4791
 msgid ""
 "The memcached extension of PHP is required for the caching feature. Please "
 "install it first or set the memcached setting back to false."
-msgstr ""
+msgstr "キャッシュ機能にはPHPのmemcached拡張が必要です。まずインストールするか、memca"
+"ched設定をfalseに戻してください。"
