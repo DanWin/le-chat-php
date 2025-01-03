@@ -1,0 +1,5 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {"ghcr.io/nikiforovall/devcontainer-features/dotnet-aspire:1": {}
+  }"ghcr.io/elanhasson/devcontainer-features/dotnet-aspire-daily:1": {}
+}"ghcr.io/devcontainers-extra/features/cxf-sdkman:2": {}
