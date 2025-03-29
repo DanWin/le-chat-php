@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-10 09:58+0100\n"
+"POT-Creation-Date: 2025-03-29 17:02+0100\n"
 "PO-Revision-Date: 2023-01-18 21:40+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -18,263 +18,269 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.1.1\n"
 
-#: chat.php:265
+#: index.php:272 chat.php:272
 msgid "Enable applicants"
 msgstr "启用申请人"
 
-#: chat.php:266
+#: index.php:273 index.php:2267 chat.php:273 chat.php:2267
 msgid "Embed images"
 msgstr "嵌入图像"
 
-#: chat.php:267 chat.php:2250
+#: index.php:274 index.php:2261 chat.php:274 chat.php:2261
 msgid "Show Timestamps"
 msgstr "显示时间戳"
 
-#: chat.php:268
+#: index.php:275 chat.php:275
 msgid "Show session-IP"
 msgstr "显示会话-IP"
 
-#: chat.php:269
+#: index.php:276 chat.php:276
 msgid "Members can kick, if no moderator is present"
 msgstr "如果没有主持人，会员可以踢"
 
-#: chat.php:270
+#: index.php:277 chat.php:277
 msgid "Members can always kick"
 msgstr "会员总是可以驱逐客人"
 
-#: chat.php:271
+#: index.php:278 chat.php:278
 msgid "Force redirection"
 msgstr "强制重定向"
 
-#: chat.php:272
+#: index.php:279 index.php:2270 chat.php:279 chat.php:2270
 msgid "Incognito mode"
 msgstr "隐身模式"
 
-#: chat.php:273
+#: index.php:280 chat.php:280
 msgid "Send mail on new public message"
 msgstr "发送新公共邮件的邮件"
 
-#: chat.php:274
+#: index.php:281 chat.php:281
 msgid "Fallback to waiting room, if no moderator is present to approve guests"
 msgstr "如果没有主持人来批准客人，请回到候诊室"
 
-#: chat.php:275
+#: index.php:282 chat.php:282
 msgid "Disable private messages"
 msgstr "禁用私人消息"
 
-#: chat.php:276 chat.php:2271
+#: index.php:283 index.php:2282 chat.php:283 chat.php:2282
 msgid "Enable offline inbox"
 msgstr "启用离线收件箱"
 
-#: chat.php:277
+#: index.php:284 chat.php:284
 msgid "Show a greeting message before showing the messages"
 msgstr "在显示消息之前显示问候消息"
 
-#: chat.php:278 chat.php:2252
+#: index.php:285 index.php:2263 chat.php:285 chat.php:2263
 msgid "Sort messages from top to bottom"
 msgstr "从上到下对消息进行排序"
 
-#: chat.php:279 chat.php:2253
+#: index.php:286 index.php:2264 chat.php:286 chat.php:2264
 msgid "Hide list of chatters"
 msgstr "隐藏聊天列表"
 
-#: chat.php:280 chat.php:1828 chat.php:1842
+#: index.php:287 index.php:1837 index.php:1851 chat.php:287 chat.php:1837
+#: chat.php:1851
 msgid "Personal notes"
 msgstr ""
 
-#: chat.php:281 chat.php:1831 chat.php:1845 chat.php:2158
+#: index.php:288 index.php:1840 index.php:1854 index.php:2169 chat.php:288
+#: chat.php:1840 chat.php:1854 chat.php:2169
 msgid "Public notes"
 msgstr "用户配置文件"
 
-#: chat.php:282
+#: index.php:289 chat.php:289
 msgid "Apply kick filter on moderators"
 msgstr ""
 
-#: chat.php:283
+#: index.php:290 chat.php:290
 msgid "Show who kicks people or purges all messages."
 msgstr "显示谁驱逐人或清除所有消息。"
 
-#: chat.php:284
+#: index.php:291 chat.php:291
 msgid "Hide reload post box button"
 msgstr ""
 
-#: chat.php:285
+#: index.php:292 chat.php:292
 msgid "Hide reload messages button"
 msgstr ""
 
-#: chat.php:286
+#: index.php:293 chat.php:293
 msgid "Hide profile button"
 msgstr ""
 
-#: chat.php:287
+#: index.php:294 chat.php:294
 msgid "Hide admin button"
 msgstr ""
 
-#: chat.php:288
+#: index.php:295 chat.php:295
 msgid "Hide notes button"
 msgstr ""
 
-#: chat.php:289
+#: index.php:296 chat.php:296
 msgid "Hide clone button"
 msgstr ""
 
-#: chat.php:290
+#: index.php:297 chat.php:297
 msgid "Hide rearrange button"
 msgstr ""
 
-#: chat.php:291
+#: index.php:298 chat.php:298
 msgid "Hide help button"
 msgstr ""
 
-#: chat.php:292
+#: index.php:299 chat.php:299
 msgid "Apply postbox delete button globally"
 msgstr ""
 
-#: chat.php:293
+#: index.php:300 chat.php:300
 msgid "Allow enhancing functionality with JavaScript"
 msgstr ""
 
-#: chat.php:296 chat.php:2218
+#: index.php:303 index.php:2229 chat.php:303 chat.php:2229
 msgid "Background colour"
 msgstr "背景色"
 
-#: chat.php:297 chat.php:2215
+#: index.php:304 index.php:2226 chat.php:304 chat.php:2226
 msgid "Font colour"
 msgstr "字体颜色"
 
-#: chat.php:300
+#: index.php:307 chat.php:307
 msgid "Entrance"
 msgstr "入口"
 
-#: chat.php:301
+#: index.php:308 chat.php:308
 msgid "Leaving"
 msgstr "离开"
 
-#: chat.php:302
+#: index.php:309 chat.php:309
 msgid "Member registered"
 msgstr "成员注册"
 
-#: chat.php:303
+#: index.php:310 chat.php:310
 msgid "Applicant registered"
 msgstr "邀请人注册"
 
-#: chat.php:304
+#: index.php:311 chat.php:311
 msgid "Kicked"
 msgstr "踢出"
 
-#: chat.php:305
+#: index.php:312 chat.php:312
 msgid "Multiple kicked"
 msgstr "批量踢出"
 
-#: chat.php:306
+#: index.php:313 chat.php:313
 msgid "All kicked"
 msgstr "全部踢出"
 
-#: chat.php:307
+#: index.php:314 chat.php:314
 msgid "Room cleaned"
 msgstr "房间清理"
 
-#: chat.php:308
+#: index.php:315 chat.php:315
 msgid "Message to all"
 msgstr "给所有人的信息"
 
-#: chat.php:309
+#: index.php:316 chat.php:316
 msgid "Message to members only"
 msgstr "仅向会员发送消息"
 
-#: chat.php:310
+#: index.php:317 chat.php:317
 msgid "Message to staff only"
 msgstr "仅向员工发送消息"
 
-#: chat.php:311
+#: index.php:318 chat.php:318
 msgid "Message to admins only"
 msgstr "仅向管理员发送消息"
 
-#: chat.php:312
+#: index.php:319 chat.php:319
 msgid "Private message"
 msgstr "私人信息"
 
-#: chat.php:313
+#: index.php:320 chat.php:320
 msgid "Attachement"
 msgstr "附件"
 
-#: chat.php:316
+#: index.php:323 chat.php:323
 msgid "Member timeout (minutes)"
 msgstr "会员超时（分钟）"
 
-#: chat.php:317
+#: index.php:324 chat.php:324
 msgid "Guest timeout (minutes)"
 msgstr "访客超时（分钟）"
 
-#: chat.php:318
+#: index.php:325 chat.php:325
 msgid "Kick penalty (minutes)"
 msgstr "踢罚（分钟）"
 
-#: chat.php:319
+#: index.php:326 chat.php:326
 msgid "Waiting room time (seconds)"
 msgstr "等候室时间（秒）"
 
-#: chat.php:320
+#: index.php:327 chat.php:327
+msgid "Logout delay (seconds)"
+msgstr ""
+
+#: index.php:328 chat.php:328
 msgid "Captcha timeout (seconds)"
 msgstr "验证码超时（秒）"
 
-#: chat.php:321
+#: index.php:329 chat.php:329
 msgid "Message timeout (minutes)"
 msgstr "消息超时（分钟）"
 
-#: chat.php:322
+#: index.php:330 chat.php:330
 msgid "Message limit (public)"
 msgstr "消息限制（公开）"
 
-#: chat.php:323
+#: index.php:331 chat.php:331
 msgid "Maximal message length"
 msgstr "最大消息长度"
 
-#: chat.php:324
+#: index.php:332 chat.php:332
 msgid "Maximal nickname length"
 msgstr "最大昵称长度"
 
-#: chat.php:325
+#: index.php:333 chat.php:333
 msgid "Minimal password length"
 msgstr "最小密码长度"
 
-#: chat.php:326
+#: index.php:334 chat.php:334
 msgid "Default message reload time (seconds)"
 msgstr "默认消息重新加载时间（秒）"
 
-#: chat.php:327
+#: index.php:335 chat.php:335
 msgid "Number of notes revisions to keep"
 msgstr "要保留的备注数量"
 
-#: chat.php:328
+#: index.php:336 chat.php:336
 msgid "Maximum upload size in KB"
 msgstr "最大上载大小（KB）"
 
-#: chat.php:329
+#: index.php:337 chat.php:337
 msgid "Enable file uploads"
 msgstr "启用文件上载"
 
-#: chat.php:330
+#: index.php:338 chat.php:338
 msgid "Lowest refresh rate"
 msgstr ""
 
-#: chat.php:331
+#: index.php:339 chat.php:339
 msgid "Highest refresh rate"
 msgstr ""
 
-#: chat.php:334
+#: index.php:342 chat.php:342
 msgid "Rules (html)"
 msgstr "规则（html）"
 
-#: chat.php:335
+#: index.php:343 chat.php:343
 msgid "CSS Style"
 msgstr "CSS风格"
 
-#: chat.php:336
+#: index.php:344 chat.php:344
 msgid "Chat disabled message (html)"
 msgstr "聊天禁用消息（html）"
 
-#: chat.php:339
+#: index.php:347 chat.php:347
 msgid ""
 "<a target=\"_blank\" href=\"https://php.net/manual/en/function.date."
 "php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Date "
@@ -284,501 +290,532 @@ msgstr ""
 "php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">日期格式"
 "</a>"
 
-#: chat.php:340
+#: index.php:348 chat.php:348
 msgid "Characters used in Captcha"
 msgstr "验证码中使用的字符"
 
-#: chat.php:341
+#: index.php:349 chat.php:349
 msgid "Custom redirection script"
 msgstr "自定义重定向脚本"
 
-#: chat.php:342
+#: index.php:350 chat.php:350
 msgid "Chat name"
 msgstr "聊天名称"
 
-#: chat.php:343
+#: index.php:351 chat.php:351
 msgid "Send mail using this address"
 msgstr "使用此地址发送邮件"
 
-#: chat.php:344
+#: index.php:352 chat.php:352
 msgid "Send mail to this address"
 msgstr "发送邮件到这个地址"
 
-#: chat.php:345
+#: index.php:353 chat.php:353
 msgid "Nickname regex"
 msgstr "昵称正则表达式"
 
-#: chat.php:346
+#: index.php:354 chat.php:354
 msgid "Password regex"
 msgstr "密码正则表达式"
 
-#: chat.php:347
+#: index.php:355 chat.php:355
 msgid "Link to external CSS file (on your own server)"
 msgstr "链接到外部CSS文件"
 
-#: chat.php:348
+#: index.php:356 chat.php:356
 msgid "Meta description (best 50 - 160 characters for SEO)"
 msgstr ""
 
-#: chat.php:349
+#: index.php:357 chat.php:357
+msgid "Show this text when a user's logout is delayed"
+msgstr ""
+
+#: index.php:358 chat.php:358
 msgid "Prepend this text to system messages"
 msgstr "此文本先于来自系统的消息"
 
-#: chat.php:352 chat.php:771 chat.php:1273
+#: index.php:361 index.php:780 index.php:1282 chat.php:361 chat.php:780
+#: chat.php:1282
 msgid "Change Guestaccess"
 msgstr "修改游客访问"
 
-#: chat.php:353
+#: index.php:362 chat.php:362
 msgid "Enable global Password"
 msgstr ""
 
-#: chat.php:354 chat.php:801 chat.php:2463 chat.php:2481
+#: index.php:363 index.php:810 index.php:2474 index.php:2492 chat.php:363
+#: chat.php:810 chat.php:2474 chat.php:2492
 msgid "Global Password:"
 msgstr "全局密码:"
 
-#: chat.php:355 chat.php:862
+#: index.php:364 index.php:871 chat.php:364 chat.php:871
 msgid "Captcha"
 msgstr "验证码"
 
-#: chat.php:356 chat.php:818 chat.php:878
+#: index.php:365 index.php:827 index.php:887 chat.php:365 chat.php:827
+#: chat.php:887
 msgid "Only for guests"
 msgstr "只仅游客"
 
-#: chat.php:357 chat.php:1268
+#: index.php:366 index.php:1277 chat.php:366 chat.php:1277
 msgid "Topic"
 msgstr "话题"
 
-#: chat.php:358 chat.php:824
+#: index.php:367 index.php:833 chat.php:367 chat.php:833
 msgid "Let guests register themselves"
 msgstr "让客人自己注册"
 
-#: chat.php:359 chat.php:910
+#: index.php:368 index.php:919 chat.php:368 chat.php:919
 msgid "Default time zone"
 msgstr "默认时区"
 
-#: chat.php:572 chat.php:1148 chat.php:4135 chat.php:4316
+#: index.php:581 index.php:1157 index.php:4158 index.php:4341 chat.php:581
+#: chat.php:1157 chat.php:4158 chat.php:4341
 msgid "Initial Setup"
 msgstr "初始化设置"
 
-#: chat.php:592
+#: index.php:601 chat.php:601
 #, php-format
 msgid "Redirecting to: %s"
 msgstr "重定向到: %s"
 
-#: chat.php:599
+#: index.php:608 chat.php:608
 #, php-format
 msgid ""
 "Dangerous non-http link requested, copy paste this link if you are really "
 "sure: %s"
 msgstr ""
 
-#: chat.php:601
+#: index.php:610 chat.php:610
 #, php-format
 msgid "Non-http link requested: %s"
 msgstr "请求非http链接: %s"
 
-#: chat.php:603
+#: index.php:612 chat.php:612
 #, php-format
 msgid "If it's not working, try this one: %s"
 msgstr "如果它不起作用，试试这个: %s"
 
-#: chat.php:613
+#: index.php:622 chat.php:622
 msgid "Access denied"
 msgstr "拒绝访问"
 
-#: chat.php:613
+#: index.php:622 chat.php:622
 #, php-format
 msgid "You are logged in as %s and don't have access to this section."
 msgstr "您以%s身份登录，无法访问此部分。"
 
-#: chat.php:615 chat.php:963 chat.php:1259 chat.php:1441
+#: index.php:624 index.php:972 index.php:1268 index.php:1450 chat.php:624
+#: chat.php:972 chat.php:1268 chat.php:1450
 msgid "Logout"
 msgstr "登出"
 
-#: chat.php:640
+#: index.php:649 chat.php:649
 msgid "Copy:"
 msgstr "验证码:"
 
-#: chat.php:767
+#: index.php:776 chat.php:776
 msgid "Chat Setup"
 msgstr "安装程序"
 
-#: chat.php:777 chat.php:1281
+#: index.php:786 index.php:1290 chat.php:786 chat.php:1290
 msgid "Allow"
 msgstr "允许"
 
-#: chat.php:782 chat.php:1286
+#: index.php:791 index.php:1295 chat.php:791 chat.php:1295
 msgid "Allow with waitingroom"
 msgstr "等候室允许"
 
-#: chat.php:787 chat.php:1291
+#: index.php:796 index.php:1300 chat.php:796 chat.php:1300
 msgid "Require moderator approval"
 msgstr "请求审核人批准"
 
-#: chat.php:792 chat.php:1296
+#: index.php:801 index.php:1305 chat.php:801 chat.php:1305
 msgid "Only members"
 msgstr "只仅正式成员"
 
-#: chat.php:797 chat.php:1299
+#: index.php:806 index.php:1308 chat.php:806 chat.php:1308
 msgid "Disable chat"
 msgstr "禁用聊天"
 
-#: chat.php:808 chat.php:830 chat.php:885 chat.php:944 chat.php:2277
+#: index.php:817 index.php:839 index.php:894 index.php:953 index.php:2288
+#: chat.php:817 chat.php:839 chat.php:894 chat.php:953 chat.php:2288
 msgid "Disabled"
 msgstr "禁用"
 
-#: chat.php:813 chat.php:873 chat.php:949 chat.php:2267
+#: index.php:822 index.php:882 index.php:958 index.php:2278 chat.php:822
+#: chat.php:882 chat.php:958 chat.php:2278
 msgid "Enabled"
 msgstr "启用"
 
-#: chat.php:835
+#: index.php:844 chat.php:844
 msgid "As applicant"
 msgstr "作为申请人"
 
-#: chat.php:840
+#: index.php:849 chat.php:849
 msgid "As member"
 msgstr "作为会员"
 
-#: chat.php:843
+#: index.php:852 chat.php:852
 msgid "System messages"
 msgstr "系统信息"
 
-#: chat.php:865 chat.php:1101
+#: index.php:874 index.php:1110 chat.php:874 chat.php:1110
 #, php-format
 msgid ""
 "The %s extension of PHP is required for this feature. Please install it "
 "first."
 msgstr "此功能需要PHP的%s扩展名。 请先安装它。"
 
-#: chat.php:890
+#: index.php:899 chat.php:899
 msgid "Simple"
 msgstr "简单"
 
-#: chat.php:895
+#: index.php:904 chat.php:904
 msgid "Moderate"
 msgstr "中等"
 
-#: chat.php:900
+#: index.php:909 chat.php:909
 msgid "Hard"
 msgstr ""
 
-#: chat.php:905
+#: index.php:914 chat.php:914
 msgid "Extreme"
 msgstr "超级"
 
-#: chat.php:954 chat.php:1596 chat.php:1658
+#: index.php:963 index.php:1605 index.php:1667 chat.php:963 chat.php:1605
+#: chat.php:1667
 msgid "Apply"
 msgstr "应用"
 
-#: chat.php:958 chat.php:1098
+#: index.php:967 index.php:1107 chat.php:967 chat.php:1107
 msgid "Backup and restore"
 msgstr "备份还原"
 
-#: chat.php:960
+#: index.php:969 chat.php:969
 msgid "Destroy chat"
 msgstr "摧毁聊天"
 
-#: chat.php:1105 chat.php:1114
+#: index.php:1114 index.php:1123 chat.php:1114 chat.php:1123
 msgid "Settings"
 msgstr "设置"
 
-#: chat.php:1106 chat.php:1115 chat.php:1260 chat.php:1586 chat.php:1623
-#: chat.php:1670
+#: index.php:1115 index.php:1124 index.php:1269 index.php:1595 index.php:1632
+#: index.php:1679 chat.php:1115 chat.php:1124 chat.php:1269 chat.php:1595
+#: chat.php:1632 chat.php:1679
 msgid "Filter"
 msgstr "过滤"
 
-#: chat.php:1107 chat.php:1116 chat.php:1316 chat.php:2586
+#: index.php:1116 index.php:1125 index.php:1325 index.php:2600 chat.php:1116
+#: chat.php:1125 chat.php:1325 chat.php:2600
 msgid "Members"
 msgstr "正式成员"
 
-#: chat.php:1108 chat.php:1117 chat.php:2362 chat.php:2370
+#: index.php:1117 index.php:1126 index.php:2373 index.php:2381 chat.php:1117
+#: chat.php:1126 chat.php:2373 chat.php:2381
 msgid "Notes"
 msgstr "公告"
 
-#: chat.php:1109
+#: index.php:1118 chat.php:1118
 msgid "Backup"
 msgstr "备用"
 
-#: chat.php:1118
+#: index.php:1127 chat.php:1127
 msgid "Restore"
 msgstr "恢复"
 
-#: chat.php:1122 chat.php:1165 chat.php:1203 chat.php:1233 chat.php:4317
+#: index.php:1131 index.php:1174 index.php:1212 index.php:1242 index.php:4342
+#: chat.php:1131 chat.php:1174 chat.php:1212 chat.php:1242 chat.php:4342
 msgid "Go to the Setup-Page"
 msgstr "去设置界面"
 
-#: chat.php:1130 chat.php:1139 chat.php:1997
+#: index.php:1139 index.php:1148 index.php:2006 chat.php:1139 chat.php:1148
+#: chat.php:2006
 msgid "Are you sure?"
 msgstr "你确定吗?"
 
-#: chat.php:1131 chat.php:1140 chat.php:2004
+#: index.php:1140 index.php:1149 index.php:2013 chat.php:1140 chat.php:1149
+#: chat.php:2013
 msgid "Yes"
 msgstr "是"
 
-#: chat.php:1132 chat.php:1141 chat.php:2011
+#: index.php:1141 index.php:1150 index.php:2020 chat.php:1141 chat.php:1150
+#: chat.php:2020
 msgid "No"
 msgstr "否"
 
-#: chat.php:1149 chat.php:4316
+#: index.php:1158 index.php:4341 chat.php:1158 chat.php:4341
 msgid "Superadmin Login"
 msgstr "超级管理员登录"
 
-#: chat.php:1150
+#: index.php:1159 chat.php:1159
 msgid "Superadmin Nickname:"
 msgstr "超级管理员用户名:"
 
-#: chat.php:1151
+#: index.php:1160 chat.php:1160
 msgid "Superadmin Password:"
 msgstr "超级管理员密码:"
 
-#: chat.php:1152
+#: index.php:1161 chat.php:1161
 msgid "Confirm Password:"
 msgstr "重复密码:"
 
-#: chat.php:1153
+#: index.php:1162 chat.php:1162
 msgid "Initialise Chat"
 msgstr "初始化聊天室"
 
-#: chat.php:1154 chat.php:1178 chat.php:1204 chat.php:2325 chat.php:2487
+#: index.php:1163 index.php:1187 index.php:1213 index.php:2336 index.php:2498
+#: chat.php:1163 chat.php:1187 chat.php:1213 chat.php:2336 chat.php:2498
 msgid "Change language:"
 msgstr "修改语言:"
 
-#: chat.php:1165
+#: index.php:1174 chat.php:1174
 msgid "Database successfully updated!"
 msgstr "数据库更新成功！"
 
-#: chat.php:1173 chat.php:1374 chat.php:2455
+#: index.php:1182 index.php:1383 index.php:2466 chat.php:1182 chat.php:1383
+#: chat.php:2466
 msgid "Nickname:"
 msgstr "用户名:"
 
-#: chat.php:1174 chat.php:1375 chat.php:2456
+#: index.php:1183 index.php:1384 index.php:2467 chat.php:1183 chat.php:1384
+#: chat.php:2467
 msgid "Password:"
 msgstr "密码:"
 
-#: chat.php:1176
+#: index.php:1185 chat.php:1185
 msgid "Login"
 msgstr "登录"
 
-#: chat.php:1177
+#: index.php:1186 chat.php:1186
 msgid "Forgot login?"
 msgstr ""
 
-#: chat.php:1190 chat.php:1354
+#: index.php:1199 index.php:1363 chat.php:1199 chat.php:1363
 msgid "Reset password"
 msgstr "重设密码"
 
-#: chat.php:1198
+#: index.php:1207 chat.php:1207
 #, php-format
 msgid ""
 "Successfully reset password for username %s. Please remove the password "
 "reset define from the script again."
 msgstr ""
 
-#: chat.php:1201
+#: index.php:1210 chat.php:1210
 msgid ""
 "Please modify the script and put the following at the bottom of it (change "
 "the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
 "'changeme');"
 msgstr ""
 
-#: chat.php:1217 chat.php:1241 chat.php:1306 chat.php:1318 chat.php:1342
-#: chat.php:1356 chat.php:1364 chat.php:2193 chat.php:2201
+#: index.php:1226 index.php:1250 index.php:1315 index.php:1327 index.php:1351
+#: index.php:1365 index.php:1373 index.php:2204 index.php:2212 chat.php:1226
+#: chat.php:1250 chat.php:1315 chat.php:1327 chat.php:1351 chat.php:1365
+#: chat.php:1373 chat.php:2204 chat.php:2212
 msgid "(choose)"
 msgstr "(选择)"
 
-#: chat.php:1218
+#: index.php:1227 chat.php:1227
 msgid "All guests"
 msgstr "全部游客"
 
-#: chat.php:1230
+#: index.php:1239 chat.php:1239
 msgid "Administrative functions"
 msgstr "管理员功能"
 
-#: chat.php:1236
+#: index.php:1245 chat.php:1245
 msgid "Clean messages"
 msgstr "清理消息"
 
-#: chat.php:1239
+#: index.php:1248 chat.php:1248
 msgid "Whole room"
 msgstr "整个房间"
 
-#: chat.php:1240
+#: index.php:1249 chat.php:1249
 msgid "Selection"
 msgstr "选择"
 
-#: chat.php:1241
+#: index.php:1250 chat.php:1250
 msgid "Following nickname:"
 msgstr "下面的名称:"
 
-#: chat.php:1248
+#: index.php:1257 chat.php:1257
 msgid "Clean"
 msgstr "清理"
 
-#: chat.php:1250
+#: index.php:1259 chat.php:1259
 #, php-format
 msgid "Kick Chatter (%d minutes)"
 msgstr ""
 
-#: chat.php:1252
+#: index.php:1261 chat.php:1261
 msgid "Kickmessage:"
 msgstr "踢出信息:"
 
-#: chat.php:1253
+#: index.php:1262 chat.php:1262
 msgid "Purge messages"
 msgstr "清除信息"
 
-#: chat.php:1254 chat.php:1436 chat.php:1594 chat.php:1628 chat.php:1639
-#: chat.php:2090
+#: index.php:1263 index.php:1445 index.php:1603 index.php:1637 index.php:1648
+#: index.php:2101 chat.php:1263 chat.php:1445 chat.php:1603 chat.php:1637
+#: chat.php:1648 chat.php:2101
 msgid "Kick"
 msgstr "踢出"
 
-#: chat.php:1256
+#: index.php:1265 chat.php:1265
 msgid "Logout inactive Chatter"
 msgstr "注销非活动聊天者"
 
-#: chat.php:1260
+#: index.php:1269 chat.php:1269
 msgid "View active sessions"
 msgstr "查看活动聊天"
 
-#: chat.php:1260 chat.php:1651
+#: index.php:1269 index.php:1660 chat.php:1269 chat.php:1660
 msgid "Linkfilter"
 msgstr "链接过滤器"
 
-#: chat.php:1265
+#: index.php:1274 chat.php:1274
 msgid "View"
 msgstr "显示"
 
-#: chat.php:1271 chat.php:1301 chat.php:1352 chat.php:1360 chat.php:1630
-#: chat.php:1674
+#: index.php:1280 index.php:1310 index.php:1361 index.php:1369 index.php:1639
+#: index.php:1683 chat.php:1280 chat.php:1310 chat.php:1361 chat.php:1369
+#: chat.php:1639 chat.php:1683
 msgid "Change"
 msgstr "修改"
 
-#: chat.php:1304
+#: index.php:1313 chat.php:1313
 msgid "Register applicant"
 msgstr "注册申请员"
 
-#: chat.php:1312 chat.php:1370 chat.php:1376
+#: index.php:1321 index.php:1379 index.php:1385 chat.php:1321 chat.php:1379
+#: chat.php:1385
 msgid "Register"
 msgstr "注册"
 
-#: chat.php:1342
+#: index.php:1351 chat.php:1351
 msgid "Delete from database"
 msgstr "从数据库删除"
 
-#: chat.php:1342
+#: index.php:1351 chat.php:1351
 msgid "Deny access (!)"
 msgstr "拒绝访问 (!)"
 
-#: chat.php:1344
+#: index.php:1353 chat.php:1353
 msgid "Set to applicant (SG)"
 msgstr "申请为申请人 (SG)"
 
-#: chat.php:1346
+#: index.php:1355 chat.php:1355
 msgid "Set to regular member"
 msgstr "设置为正式成员"
 
-#: chat.php:1347
+#: index.php:1356 chat.php:1356
 msgid "Set to moderator (M)"
 msgstr "设置为主持人 (M)"
 
-#: chat.php:1348
+#: index.php:1357 chat.php:1357
 msgid "Set to supermod (SM)"
 msgstr "设置为0.5 (SM)"
 
-#: chat.php:1350
+#: index.php:1359 chat.php:1359
 msgid "Set to admin (A)"
 msgstr "设置为管理员 (A)"
 
-#: chat.php:1362
+#: index.php:1371 chat.php:1371
 msgid "Register Guest"
 msgstr "注册游客"
 
-#: chat.php:1372
+#: index.php:1381 chat.php:1381
 msgid "Register new Member"
 msgstr "注册新成员"
 
-#: chat.php:1380 chat.php:1456 chat.php:1643 chat.php:1684 chat.php:1758
-#: chat.php:1972
+#: index.php:1389 index.php:1465 index.php:1652 index.php:1693 index.php:1767
+#: index.php:1981 chat.php:1389 chat.php:1465 chat.php:1652 chat.php:1693
+#: chat.php:1767 chat.php:1981
 msgid "Reload"
 msgstr "刷新"
 
-#: chat.php:1393
+#: index.php:1402 chat.php:1402
 msgid "Active Sessions"
 msgstr "活动会话"
 
-#: chat.php:1394 chat.php:1921
+#: index.php:1403 index.php:1930 chat.php:1403 chat.php:1930
 msgid "Nickname"
 msgstr "用户名"
 
-#: chat.php:1394
+#: index.php:1403 chat.php:1403
 msgid "Timeout in"
 msgstr "超时"
 
-#: chat.php:1394 chat.php:1921
+#: index.php:1403 index.php:1930 chat.php:1403 chat.php:1930
 msgid "User-Agent"
 msgstr "用户代理"
 
-#: chat.php:1398
+#: index.php:1407 chat.php:1407
 msgid "IP-Address"
 msgstr "IP地址"
 
-#: chat.php:1399
+#: index.php:1408 chat.php:1408
 msgid "Actions"
 msgstr "操作"
 
-#: chat.php:1441
+#: index.php:1450 chat.php:1450
 msgid "Unban"
 msgstr "取消禁止"
 
-#: chat.php:1464
+#: index.php:1473 chat.php:1473
 msgid "Incorrect regular expression!"
 msgstr "正则表达式错误!"
 
-#: chat.php:1464 chat.php:1472
+#: index.php:1473 index.php:1481 chat.php:1473 chat.php:1481
 #, php-format
 msgid "Your match was as follows: %s"
 msgstr "你的申请如下: %s"
 
-#: chat.php:1472
+#: index.php:1481 chat.php:1481
 msgid ""
 "Your match was too long. You can use max. 255 characters. Try splitting it "
 "up."
 msgstr "你的申请太长了。 你可以用max。 255个字符。 尝试拆分它."
 
-#: chat.php:1589 chat.php:1654
+#: index.php:1598 index.php:1663 chat.php:1598 chat.php:1663
 msgid "Filter ID:"
 msgstr "过滤器ID:"
 
-#: chat.php:1590 chat.php:1655
+#: index.php:1599 index.php:1664 chat.php:1599 chat.php:1664
 msgid "Match"
 msgstr "匹配"
 
-#: chat.php:1591 chat.php:1656
+#: index.php:1600 index.php:1665 chat.php:1600 chat.php:1665
 msgid "Replace"
 msgstr "替换"
 
-#: chat.php:1592 chat.php:1626 chat.php:1637
+#: index.php:1601 index.php:1635 index.php:1646 chat.php:1601 chat.php:1635
+#: chat.php:1646
 msgid "Allow in PM"
 msgstr "允许在PM"
 
-#: chat.php:1593 chat.php:1627 chat.php:1638 chat.php:1657 chat.php:1673
-#: chat.php:1681
+#: index.php:1602 index.php:1636 index.php:1647 index.php:1666 index.php:1682
+#: index.php:1690 chat.php:1602 chat.php:1636 chat.php:1647 chat.php:1666
+#: chat.php:1682 chat.php:1690
 msgid "Regex"
 msgstr "正则表达式"
 
-#: chat.php:1595 chat.php:1629 chat.php:1640
+#: index.php:1604 index.php:1638 index.php:1649 chat.php:1604 chat.php:1638
+#: chat.php:1649
 msgid "Case sensitive"
 msgstr "大小写"
 
-#: chat.php:1634 chat.php:1678
+#: index.php:1643 index.php:1687 chat.php:1643 chat.php:1687
 msgid "New filter:"
 msgstr "新过滤器:"
 
-#: chat.php:1641 chat.php:1682
+#: index.php:1650 index.php:1691 chat.php:1650 chat.php:1691
 msgid "Add"
 msgstr "添加"
 
-#: chat.php:1739
+#: index.php:1748 chat.php:1748
 msgid ""
 "This chat uses <b>frames</b>. Please enable frames in your browser or use a "
 "suitable one!"
@@ -786,103 +823,106 @@ msgstr ""
 "这个聊天室使用 <b>frames</b>. 请在浏览器中启用<b>frames</b>或使用合适的"
 "<b>frames</b>!"
 
-#: chat.php:1739 chat.php:2418 chat.php:2505
+#: index.php:1748 index.php:2429 index.php:2516 chat.php:1748 chat.php:2429
+#: chat.php:2516
 msgid "Back to the login page."
 msgstr "返回登录页面."
 
-#: chat.php:1757
+#: index.php:1766 chat.php:1766
 msgid "Bottom"
 msgstr "底部"
 
-#: chat.php:1758
+#: index.php:1767 chat.php:1767
 msgid "Manual refresh required"
 msgstr ""
 
-#: chat.php:1774
+#: index.php:1783 chat.php:1783
 msgid "Top"
 msgstr "顶部"
 
-#: chat.php:1782 chat.php:1988 chat.php:1990
+#: index.php:1791 index.php:1997 index.php:1999 chat.php:1791 chat.php:1997
+#: chat.php:1999
 msgid "Delete selected messages"
 msgstr "删除所选信息"
 
-#: chat.php:1809 chat.php:1936 chat.php:2149 chat.php:2329
+#: index.php:1818 index.php:1945 index.php:2160 index.php:2340 chat.php:1818
+#: chat.php:1945 chat.php:2160 chat.php:2340
 msgid "Back to the chat."
 msgstr "回到聊天室."
 
-#: chat.php:1822 chat.php:1839
+#: index.php:1831 index.php:1848 chat.php:1831 chat.php:1848
 msgid "Admin notes"
 msgstr "管理员说明"
 
-#: chat.php:1825 chat.php:1836
+#: index.php:1834 index.php:1845 chat.php:1834 chat.php:1845
 msgid "Staff notes"
 msgstr "工作人员说明"
 
-#: chat.php:1859
+#: index.php:1868 chat.php:1868
 msgid "Notes saved!"
 msgstr "说明已保存!"
 
-#: chat.php:1883 chat.php:2170
+#: index.php:1892 index.php:2181 chat.php:1892 chat.php:2181
 #, php-format
 msgid "Last edited by %1$s at %2$s"
 msgstr "上次由%1$s编辑 时间为%2$s"
 
-#: chat.php:1896
+#: index.php:1905 chat.php:1905
 msgid "Save notes"
 msgstr "保存说明"
 
-#: chat.php:1898
+#: index.php:1907 chat.php:1907
 msgid "Revisions:"
 msgstr "修订:"
 
-#: chat.php:1901
+#: index.php:1910 chat.php:1910
 msgid "Older"
 msgstr "旧的"
 
-#: chat.php:1905
+#: index.php:1914 chat.php:1914
 msgid "Newer"
 msgstr "较新"
 
-#: chat.php:1916 chat.php:1962
+#: index.php:1925 index.php:1971 chat.php:1925 chat.php:1971
 msgid "Waiting room"
 msgstr "等候室"
 
-#: chat.php:1928
+#: index.php:1937 chat.php:1937
 msgid "Allow checked"
 msgstr "允许检查"
 
-#: chat.php:1929
+#: index.php:1938 chat.php:1938
 msgid "Allow all"
 msgstr "允许全部"
 
-#: chat.php:1930
+#: index.php:1939 chat.php:1939
 msgid "Deny checked"
 msgstr "拒绝检查"
 
-#: chat.php:1931
+#: index.php:1940 chat.php:1940
 msgid "Deny all"
 msgstr "全部拒绝"
 
-#: chat.php:1931
+#: index.php:1940 chat.php:1940
 msgid "Send message to denied:"
 msgstr "发送消息给拒绝:"
 
-#: chat.php:1932
+#: index.php:1941 chat.php:1941
 msgid "Submit"
 msgstr "提交"
 
-#: chat.php:1934
+#: index.php:1943 chat.php:1943
 msgid "No more entry requests to approve."
 msgstr "不再需要批准入场申请."
 
-#: chat.php:1964
+#: index.php:1973 chat.php:1973
 #, php-format
 msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat in %2$d "
 "seconds."
 msgstr "欢迎%1$s, 您的登录信息已被延迟，您可以访问聊天记录%2$d秒."
 
-#: chat.php:1966
+#: index.php:1975 chat.php:1975
 #, php-format
 msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat as soon, "
@@ -890,71 +930,76 @@ msgid ""
 msgstr ""
 "欢迎%1$s, 您的登录信息已被延迟，您可以尽快访问聊天内容，因为主持人会让您进入."
 
-#: chat.php:1969
+#: index.php:1978 chat.php:1978
 #, php-format
 msgid ""
 "If this page doesn't refresh every %d seconds, use the button below to "
 "reload it manually!"
 msgstr "如果这个页面没有刷新%d秒, 使用下面的按钮手动重新加载!"
 
-#: chat.php:1974 chat.php:2387
+#: index.php:1983 index.php:2398 chat.php:1983 chat.php:2398
 msgid "Exit Chat"
 msgstr "退出聊天室"
 
-#: chat.php:1977 chat.php:2122 chat.php:2133 chat.php:2478
+#: index.php:1986 index.php:2133 index.php:2144 index.php:2489 chat.php:1986
+#: chat.php:2133 chat.php:2144 chat.php:2489
 msgid "Rules"
 msgstr "规则"
 
-#: chat.php:2033
+#: index.php:2042 chat.php:2042
 msgid "Send to"
 msgstr "发送至"
 
-#: chat.php:2038
+#: index.php:2047 chat.php:2047
 msgid "All chatters"
 msgstr "所有的聊天者"
 
-#: chat.php:2044
+#: index.php:2053 chat.php:2053
 msgid "Members only"
 msgstr "内部使用"
 
-#: chat.php:2051
+#: index.php:2060 chat.php:2060
 msgid "Staff only"
 msgstr "只供职员使用"
 
-#: chat.php:2058
+#: index.php:2067 chat.php:2067
 msgid "Admin only"
 msgstr "仅限管理员"
 
-#: chat.php:2067
+#: index.php:2076 chat.php:2076
 msgid "(offline)"
 msgstr "(离线)"
 
-#: chat.php:2091
+#: index.php:2078 chat.php:2078
+msgid "(logging out)"
+msgstr ""
+
+#: index.php:2102 chat.php:2102
 msgid "Also purge messages"
 msgstr "同时清除消息"
 
-#: chat.php:2098
+#: index.php:2109 chat.php:2109
 msgid "Delete last message"
 msgstr "删除上一条消息"
 
-#: chat.php:2103
+#: index.php:2114 chat.php:2114
 msgid "Delete all messages"
 msgstr "删除所有信息"
 
-#: chat.php:2105
+#: index.php:2116 chat.php:2116
 msgid "Switch to single-line"
 msgstr "切换到单行"
 
-#: chat.php:2107
+#: index.php:2118 chat.php:2118
 msgid "Switch to multi-line"
 msgstr "切换到多行"
 
-#: chat.php:2118
+#: index.php:2129 chat.php:2129
 #, php-format
 msgid "Welcome %s!"
 msgstr "欢迎%s!"
 
-#: chat.php:2119
+#: index.php:2130 chat.php:2130
 #, php-format
 msgid ""
 "If this frame does not reload in %d seconds, you'll have to enable automatic "
@@ -965,11 +1010,11 @@ msgid ""
 "bottom to refresh manually."
 msgstr ""
 
-#: chat.php:2135
+#: index.php:2146 chat.php:2146
 msgid "Help"
 msgstr "帮助"
 
-#: chat.php:2136
+#: index.php:2147 chat.php:2147
 msgid ""
 "All functions should be pretty much self-explaining, just use the buttons. "
 "In your profile you can adjust the refresh rate and font colour, as well as "
@@ -980,7 +1025,7 @@ msgstr ""
 "体颜色和首选输入框大小.<br><u>注意:</u> 这是一个聊天室，所以如果你不再说话，"
 "你会在一段时间后自动退出."
 
-#: chat.php:2138
+#: index.php:2149 chat.php:2149
 msgid ""
 "If you want to embed an image in your post, simply put [img] in front of "
 "your image URL. Example: [img]http://example.com/images/file.jpg will embed "
@@ -989,7 +1034,7 @@ msgstr ""
 "如果您想在帖子中嵌入图片，只需将[img]放在图片网址前面即可。示例:[img]http://"
 "example.com/images/file.jpg会将图片嵌入到您的帖子中."
 
-#: chat.php:2141
+#: index.php:2152 chat.php:2152
 msgid ""
 "Members: You'll have some more options in your profile. You can adjust your "
 "font face, change your password anytime and of course you can delete your "
@@ -998,7 +1043,7 @@ msgstr ""
 "成员：您的个人资料中还有更多选项。 您可以随时调整字体，更改密码，当然也可以删"
 "除您的帐户."
 
-#: chat.php:2143
+#: index.php:2154 chat.php:2154
 msgid ""
 "Moderators: Notice the Admin-button at the bottom. It'll bring up a page "
 "where you can clean the room, kick chatters, view all active sessions and "
@@ -1007,602 +1052,624 @@ msgstr ""
 "版主：请注意底部。 它将打开一个页面，您可以在其中清理房间，踢聊天，查看所有活"
 "动会话并在需要时完全禁用访客访问权限."
 
-#: chat.php:2145
+#: index.php:2156 chat.php:2156
 msgid ""
 "Admins: You'll be furthermore able to register guests, edit members and "
 "register new nicknames."
 msgstr "管理员：您还可以注册客人，编辑成员并注册新的昵称。"
 
-#: chat.php:2183
+#: index.php:2194 chat.php:2194
 msgid "Your Profile"
 msgstr "你的个人资料"
 
-#: chat.php:2192
+#: index.php:2203 chat.php:2203
 msgid "Don't ignore anymore"
 msgstr "取消忽略"
 
-#: chat.php:2200
+#: index.php:2211 chat.php:2211
 msgid "Ignore"
 msgstr "忽略"
 
-#: chat.php:2211
+#: index.php:2222 chat.php:2222
 #, php-format
 msgid "Refresh rate (%1$d-%2$d seconds)"
 msgstr "刷新时间(%1$d秒-%2$d秒)"
 
-#: chat.php:2215 chat.php:2218
+#: index.php:2226 index.php:2229 chat.php:2226 chat.php:2229
 msgid "View examples"
 msgstr "查看示例"
 
-#: chat.php:2222
+#: index.php:2233 chat.php:2233
 msgid "Fontface"
 msgstr "字体"
 
-#: chat.php:2223
+#: index.php:2234 chat.php:2234
 msgid "Room Default"
 msgstr "默认房间"
 
-#: chat.php:2236
+#: index.php:2247 chat.php:2247
 msgid "Bold"
 msgstr "大胆"
 
-#: chat.php:2240
+#: index.php:2251 chat.php:2251
 msgid "Italic"
 msgstr "斜体"
 
-#: chat.php:2244
+#: index.php:2255 chat.php:2255
 msgid "Small"
 msgstr ""
 
-#: chat.php:2247
+#: index.php:2258 chat.php:2258
 msgid "Example for your chosen font"
 msgstr "您选择的字体的示例"
 
-#: chat.php:2251
+#: index.php:2262 chat.php:2262
 msgid "Autoscroll (for old browsers or top-to-bottom sort)."
 msgstr "自动滚动（适用于旧浏览器或从上到下排序）."
 
-#: chat.php:2282
+#: index.php:2293 chat.php:2293
 msgid "For everyone"
 msgstr "所以人"
 
-#: chat.php:2287
+#: index.php:2298 chat.php:2298
 msgid "For members only"
 msgstr "仅限会员"
 
-#: chat.php:2292
+#: index.php:2303 chat.php:2303
 msgid "For staff only"
 msgstr "仅限员工"
 
-#: chat.php:2296
+#: index.php:2307 chat.php:2307
 msgid "Time zone"
 msgstr "时区"
 
-#: chat.php:2309
+#: index.php:2320 chat.php:2320
 msgid "Change Password"
 msgstr "更改密码"
 
-#: chat.php:2311
+#: index.php:2322 chat.php:2322
 msgid "Old password:"
 msgstr "旧密码:"
 
-#: chat.php:2312
+#: index.php:2323 chat.php:2323
 msgid "New password:"
 msgstr "新密码:"
 
-#: chat.php:2313
+#: index.php:2324 chat.php:2324
 msgid "Confirm new password:"
 msgstr "在重复一次新密码:"
 
-#: chat.php:2316
+#: index.php:2327 chat.php:2327
 msgid "Change Nickname"
 msgstr ""
 
-#: chat.php:2317
+#: index.php:2328 chat.php:2328
 msgid "New nickname:"
 msgstr "新昵称:"
 
-#: chat.php:2321
+#: index.php:2332 chat.php:2332
 msgid "Save changes"
 msgstr "保存更改"
 
-#: chat.php:2323
+#: index.php:2334 chat.php:2334
 msgid "Delete account"
 msgstr "删除帐户"
 
-#: chat.php:2349
+#: index.php:2360 chat.php:2360
 msgid "Reload Post Box"
 msgstr "刷新缓存"
 
-#: chat.php:2352
+#: index.php:2363 chat.php:2363
 msgid "Reload Messages"
 msgstr "刷新一下消息"
 
-#: chat.php:2355
+#: index.php:2366 chat.php:2366
 msgid "Profile"
 msgstr "个人资料"
 
-#: chat.php:2359 chat.php:2576
+#: index.php:2370 index.php:2590 chat.php:2370 chat.php:2590
 msgid "Admin"
 msgstr "管理"
 
-#: chat.php:2366
+#: index.php:2377 chat.php:2377
 msgid "View public notes"
 msgstr "阅读用户配置文件"
 
-#: chat.php:2373
+#: index.php:2384 chat.php:2384
 msgid "Clone"
 msgstr "打开新标签"
 
-#: chat.php:2382
+#: index.php:2393 chat.php:2393
 msgid "Rearrange"
 msgstr "改变方向"
 
-#: chat.php:2385
+#: index.php:2396 chat.php:2396
 msgid "Rules & Help"
 msgstr "条款 & 帮助"
 
-#: chat.php:2406 chat.php:2410
+#: index.php:2417 index.php:2421 chat.php:2417 chat.php:2421
 msgid "File not found!"
 msgstr "找不到文件!"
 
-#: chat.php:2418
+#: index.php:2429 chat.php:2429
 #, php-format
 msgid "Bye %s, visit again soon!"
 msgstr "再见%s, 欢迎你再此访问!"
 
-#: chat.php:2425
+#: index.php:2436 chat.php:2436
 msgid "Colourtable"
 msgstr "颜色表"
 
-#: chat.php:2436
+#: index.php:2447 chat.php:2447
 msgid "Back to your Profile"
 msgstr "回到你的个人资料"
 
-#: chat.php:2460
+#: index.php:2471 chat.php:2471
 msgid "Repeat password<br>to register"
 msgstr "重复密码<br>注册"
 
-#: chat.php:2460
+#: index.php:2471 chat.php:2471
 msgid "(optional)"
 msgstr "(可选的)"
 
-#: chat.php:2465
+#: index.php:2476 chat.php:2476
 msgid "Guests, choose a colour:"
 msgstr "客人，选择一种颜色:"
 
-#: chat.php:2465
+#: index.php:2476 chat.php:2476
 msgid "Random Colour"
 msgstr "随机颜色"
 
-#: chat.php:2469 chat.php:2483 chat.php:2617
+#: index.php:2480 index.php:2494 index.php:2631 chat.php:2480 chat.php:2494
+#: chat.php:2631
 msgid "Sorry, currently members only!"
 msgstr "对不起，目前仅限会员!"
 
-#: chat.php:2471 chat.php:2485
+#: index.php:2482 index.php:2496 chat.php:2482 chat.php:2496
 msgid "Enter Chat"
 msgstr "回车"
 
-#: chat.php:2505
+#: index.php:2516 chat.php:2516
 #, php-format
 msgid "Error: %s"
 msgstr "错误: %s"
 
-#: chat.php:2515
+#: index.php:2526 chat.php:2526
 msgid "Fatal error"
 msgstr "致命错误"
 
-#: chat.php:2518
+#: index.php:2529 chat.php:2529
 #, php-format
 msgid "Fatal error: %s"
 msgstr "致命错误: %s"
 
-#: chat.php:2530 chat.php:2741
+#: index.php:2541 index.php:2756 chat.php:2541 chat.php:2756
 msgid "Failed login attempt(s)"
 msgstr "登录尝试失败"
 
-#: chat.php:2537
+#: index.php:2548 chat.php:2548
 #, php-format
 msgid "Read %d messages in your inbox"
 msgstr "阅读收件箱中的%d条消息"
 
-#: chat.php:2546
+#: index.php:2557 chat.php:2557
 #, php-format
 msgid "%d new guests to approve"
 msgstr "%d新客人批准"
 
-#: chat.php:2578
+#: index.php:2577 chat.php:2577
+msgid "logging out"
+msgstr ""
+
+#: index.php:2592 chat.php:2592
 msgid "Admin:"
 msgstr "管理:"
 
-#: chat.php:2581
+#: index.php:2595 chat.php:2595
 msgid "Staff"
 msgstr "工作人员"
 
-#: chat.php:2583
+#: index.php:2597 chat.php:2597
 msgid "Staff:"
 msgstr "工作人员:"
 
-#: chat.php:2588
+#: index.php:2602 chat.php:2602
 msgid "Members:"
 msgstr "正式成员:"
 
-#: chat.php:2590
+#: index.php:2604 chat.php:2604
 msgid "Guests"
 msgstr "游客"
 
-#: chat.php:2611 chat.php:3041 chat.php:3245 chat.php:4149
+#: index.php:2625 index.php:3063 index.php:3267 index.php:4172 chat.php:2625
+#: chat.php:3063 chat.php:3267 chat.php:4172
 #, php-format
 msgid ""
 "Invalid nickname (%1$d characters maximum and has to match the regular "
 "expression \"%2$s\")"
 msgstr "无效的用户名 (最多%1$d个字符，必须与正则表达式\"%2$s\"匹配)"
 
-#: chat.php:2614 chat.php:3044 chat.php:3210 chat.php:4151
+#: index.php:2628 index.php:3066 index.php:3232 index.php:4174 chat.php:2628
+#: chat.php:3066 chat.php:3232 chat.php:4174
 #, php-format
 msgid ""
 "Invalid password (At least %1$d characters and has to match the regular "
 "expression \"%2$s\")"
 msgstr "无效的密码 (至少包含%1$d个字符，并且必须与正则表达式\"%2$s\"匹配)"
 
-#: chat.php:2622 chat.php:2787
+#: index.php:2636 index.php:2806 chat.php:2636 chat.php:2806
 msgid "Wrong global Password!"
 msgstr "错误的全球密码!"
 
-#: chat.php:2639 chat.php:2660
+#: index.php:2654 index.php:2675 chat.php:2654 chat.php:2675
 msgid "Wrong Captcha"
 msgstr "错误验证码"
 
-#: chat.php:2644 chat.php:2652
+#: index.php:2659 index.php:2667 chat.php:2659 chat.php:2667
 msgid "Captcha already used or timed out."
 msgstr "验证码已经使用或超时."
 
-#: chat.php:2700
+#: index.php:2715 chat.php:2715
 msgid "A user with this nickname is already logged in."
 msgstr "具有此昵称的用户已登录。"
 
-#: chat.php:2700 chat.php:2981 chat.php:3224
+#: index.php:2715 index.php:3003 index.php:3246 chat.php:2715 chat.php:3003
+#: chat.php:3246
 msgid "Wrong Password!"
 msgstr "密码错误!"
 
-#: chat.php:2744
+#: index.php:2759 chat.php:2759
 msgid "Dismiss"
 msgstr "承认"
 
-#: chat.php:2795 chat.php:3219 chat.php:4153
+#: index.php:2814 index.php:3241 index.php:4176 chat.php:2814 chat.php:3241
+#: chat.php:4176
 msgid "Password confirmation does not match!"
 msgstr "重复密码不匹配!"
 
-#: chat.php:2907
+#: index.php:2854 chat.php:2854
+#, fuzzy
+#| msgid "Kickmessage:"
+msgid "no kick message"
+msgstr "踢出信息:"
+
+#: index.php:2929 chat.php:2929
 msgid "Invalid/expired session"
 msgstr "无效/已过期的会话"
 
-#: chat.php:2923 chat.php:3460
+#: index.php:2945 index.php:3483 chat.php:2945 chat.php:3483
 msgid "You have been kicked!"
 msgstr "你被踢出该聊天室!"
 
-#: chat.php:2933
+#: index.php:2955 chat.php:2955
 #, php-format
 msgid "Currently %d chatter(s) in room:"
 msgstr "目前%d人在房间里聊天:"
 
-#: chat.php:2981
+#: index.php:3003 chat.php:3003
 msgid "This nickname is a registered member."
 msgstr "这个昵称是注册会员."
 
-#: chat.php:3008 chat.php:3049
+#: index.php:3030 index.php:3071 chat.php:3030 chat.php:3071
 #, php-format
 msgid "%s is already registered."
 msgstr "%s已经注册。"
 
-#: chat.php:3017 chat.php:3038
+#: index.php:3039 index.php:3060 chat.php:3039 chat.php:3060
 #, php-format
 msgid "Can't register %s"
 msgstr "无法注册%s"
 
-#: chat.php:3026 chat.php:3071
+#: index.php:3048 index.php:3093 chat.php:3048 chat.php:3093
 #, php-format
 msgid "%s successfully registered."
 msgstr "%s成功注册."
 
-#: chat.php:3079 chat.php:3084
+#: index.php:3101 index.php:3106 chat.php:3101 chat.php:3106
 #, php-format
 msgid "Can't change status of %s"
 msgstr "无法改变状态%s"
 
-#: chat.php:3095
+#: index.php:3117 chat.php:3117
 #, php-format
 msgid "%s successfully deleted from database."
 msgstr "%s已成功从数据库中删除."
 
-#: chat.php:3104
+#: index.php:3126 chat.php:3126
 #, php-format
 msgid "Status of %s successfully changed."
 msgstr "%s的状态已更改."
 
-#: chat.php:3121
+#: index.php:3143 chat.php:3143
 #, php-format
 msgid "Successfully reset password for %s"
 msgstr ""
 
-#: chat.php:3123
+#: index.php:3145 chat.php:3145
 #, php-format
 msgid "Can't reset password for %s"
 msgstr ""
 
-#: chat.php:3238
+#: index.php:3260 chat.php:3260
 msgid "Your profile has successfully been saved."
 msgstr "您的个人资料已成功保存."
 
-#: chat.php:3250
+#: index.php:3272 chat.php:3272
 msgid "Nickname is already taken"
 msgstr "昵称已被取消"
 
-#: chat.php:3762
+#: index.php:3785 chat.php:3785
 msgid "system message"
 msgstr "系统信息"
 
-#: chat.php:3978
+#: index.php:4001 chat.php:4001
 msgid "Beige"
 msgstr "米色"
 
-#: chat.php:3979
+#: index.php:4002 chat.php:4002
 msgid "Black"
 msgstr "黑色"
 
-#: chat.php:3980
+#: index.php:4003 chat.php:4003
 msgid "Blue"
 msgstr "蓝色"
 
-#: chat.php:3981
+#: index.php:4004 chat.php:4004
 msgid "Blue violet"
 msgstr "紫罗兰色"
 
-#: chat.php:3982
+#: index.php:4005 chat.php:4005
 msgid "Brown"
 msgstr "棕色"
 
-#: chat.php:3983
+#: index.php:4006 chat.php:4006
 msgid "Cyan"
 msgstr "青色"
 
-#: chat.php:3984
+#: index.php:4007 chat.php:4007
 msgid "Dark blue"
 msgstr "深蓝"
 
-#: chat.php:3985
+#: index.php:4008 chat.php:4008
 msgid "Dark green"
 msgstr "深绿色"
 
-#: chat.php:3986
+#: index.php:4009 chat.php:4009
 msgid "Dark red"
 msgstr "深红"
 
-#: chat.php:3987
+#: index.php:4010 chat.php:4010
 msgid "Dark violet"
 msgstr "深紫罗兰"
 
-#: chat.php:3988
+#: index.php:4011 chat.php:4011
 msgid "Sky blue"
 msgstr "天蓝色"
 
-#: chat.php:3989
+#: index.php:4012 chat.php:4012
 msgid "Gold"
 msgstr "金"
 
-#: chat.php:3990
+#: index.php:4013 chat.php:4013
 msgid "Grey"
 msgstr "灰色"
 
-#: chat.php:3991
+#: index.php:4014 chat.php:4014
 msgid "Green"
 msgstr "绿色"
 
-#: chat.php:3992
+#: index.php:4015 chat.php:4015
 msgid "Hot pink"
 msgstr "亮粉色"
 
-#: chat.php:3993
+#: index.php:4016 chat.php:4016
 msgid "Indigo"
 msgstr "靛青"
 
-#: chat.php:3994
+#: index.php:4017 chat.php:4017
 msgid "Light blue"
 msgstr "浅蓝"
 
-#: chat.php:3995
+#: index.php:4018 chat.php:4018
 msgid "Light green"
 msgstr "浅绿色"
 
-#: chat.php:3996
+#: index.php:4019 chat.php:4019
 msgid "Lime green"
 msgstr "柠檬绿"
 
-#: chat.php:3997
+#: index.php:4020 chat.php:4020
 msgid "Magenta"
 msgstr "品红"
 
-#: chat.php:3998
+#: index.php:4021 chat.php:4021
 msgid "Olive"
 msgstr "橄榄"
 
-#: chat.php:3999
+#: index.php:4022 chat.php:4022
 msgid "Orange"
 msgstr "橙子"
 
-#: chat.php:4000
+#: index.php:4023 chat.php:4023
 msgid "Orange red"
 msgstr "橙红色"
 
-#: chat.php:4001
+#: index.php:4024 chat.php:4024
 msgid "Purple"
 msgstr "紫色"
 
-#: chat.php:4002
+#: index.php:4025 chat.php:4025
 msgid "Red"
 msgstr "红色"
 
-#: chat.php:4003
+#: index.php:4026 chat.php:4026
 msgid "Royal blue"
 msgstr "宝蓝色"
 
-#: chat.php:4004
+#: index.php:4027 chat.php:4027
 msgid "Sea green"
 msgstr "海绿色"
 
-#: chat.php:4005
+#: index.php:4028 chat.php:4028
 msgid "Sienna"
 msgstr "黄土"
 
-#: chat.php:4006
+#: index.php:4029 chat.php:4029
 msgid "Silver"
 msgstr "银色"
 
-#: chat.php:4007
+#: index.php:4030 chat.php:4030
 msgid "Tan"
 msgstr "黄褐色"
 
-#: chat.php:4008
+#: index.php:4031 chat.php:4031
 msgid "Teal"
 msgstr "蓝绿色"
 
-#: chat.php:4009
+#: index.php:4032 chat.php:4032
 msgid "Violet"
 msgstr "紫色"
 
-#: chat.php:4010
+#: index.php:4033 chat.php:4033
 msgid "White"
 msgstr "白色"
 
-#: chat.php:4011
+#: index.php:4034 chat.php:4034
 msgid "Yellow"
 msgstr "黄色"
 
-#: chat.php:4012
+#: index.php:4035 chat.php:4035
 msgid "Yellow green"
 msgstr "黄绿色"
 
-#: chat.php:4134
+#: index.php:4157 chat.php:4157
 msgid "Successfully destroyed chat"
 msgstr "成功破坏了聊天"
 
-#: chat.php:4143
+#: index.php:4166 chat.php:4166
 msgid ""
 "Database tables already exist! To continue, you have to delete these tables "
 "manually first."
 msgstr "数据库表已经存在！，要继续，您必须先手动删除这些表。"
 
-#: chat.php:4146
+#: index.php:4169 chat.php:4169
 msgid "A Superadmin already exists!"
 msgstr "超级管理员已经存在！"
 
-#: chat.php:4239 chat.php:4426
+#: index.php:4263 index.php:4451 chat.php:4263 chat.php:4451
 #, php-format
 msgid "%s - "
 msgstr "%s - "
 
-#: chat.php:4240 chat.php:4426
+#: index.php:4264 index.php:4451 chat.php:4264 chat.php:4451
 #, php-format
 msgid "[M] %s - "
 msgstr ""
 
-#: chat.php:4241 chat.php:4426
+#: index.php:4265 index.php:4451 chat.php:4265 chat.php:4451
 #, php-format
 msgid "[Staff] %s - "
 msgstr ""
 
-#: chat.php:4242 chat.php:4426
+#: index.php:4266 index.php:4451 chat.php:4266 chat.php:4451
 #, php-format
 msgid "[Admin] %s - "
 msgstr ""
 
-#: chat.php:4243 chat.php:4426
+#: index.php:4267 index.php:4451 chat.php:4267 chat.php:4451
 #, php-format
 msgid "[%1$s to %2$s] - "
 msgstr ""
 
-#: chat.php:4244
+#: index.php:4268 chat.php:4268
 #, php-format
 msgid "%s entered the chat."
 msgstr "%s进入聊天室."
 
-#: chat.php:4245
+#: index.php:4269 chat.php:4269
 #, php-format
 msgid "%s left the chat."
 msgstr "%s离开了聊天室。"
 
-#: chat.php:4246
+#: index.php:4270 chat.php:4270
 #, php-format
 msgid "%s is now a registered member."
 msgstr "%s现在是注册会员."
 
-#: chat.php:4247
+#: index.php:4271 chat.php:4271
 #, php-format
 msgid "%s is now a registered applicant."
 msgstr "%s现在是注册申请人."
 
-#: chat.php:4248
-#, php-format
-msgid "%s has been kicked."
+#: index.php:4272 chat.php:4272
+#, fuzzy, php-format
+#| msgid "%s has been kicked."
+msgid "%1$s has been kicked: %2$s"
 msgstr "%s被踢了."
 
-#: chat.php:4249
-#, php-format
-msgid "%s have been kicked."
+#: index.php:4273 chat.php:4273
+#, fuzzy, php-format
+#| msgid "%s have been kicked."
+msgid "%1$s have been kicked: %2$s"
 msgstr "%s被踢了."
 
-#: chat.php:4250
-msgid "All guests have been kicked."
+#: index.php:4274 chat.php:4274
+#, fuzzy, php-format
+#| msgid "All guests have been kicked."
+msgid "All guests have been kicked: %1$s"
 msgstr "所有客人都被踢了."
 
-#: chat.php:4251
+#: index.php:4275 chat.php:4275
 #, php-format
 msgid "%s has been cleaned."
 msgstr "%s已经清理干净了."
 
-#: chat.php:4259 chat.php:4453
+#: index.php:4283 index.php:4478 chat.php:4283 chat.php:4478
 msgid "Temporarily disabled"
 msgstr "暂时禁用"
 
-#: chat.php:4275 chat.php:4651
+#: index.php:4299 index.php:4676 chat.php:4299 chat.php:4676
 msgid "A chat community"
 msgstr ""
 
-#: chat.php:4313
+#: index.php:4338 chat.php:4338
 msgid "Successfully registered!"
 msgstr "成功注册!"
 
-#: chat.php:4579 chat.php:4778 chat.php:4785
+#: index.php:4604 index.php:4807 index.php:4814 chat.php:4604 chat.php:4807
+#: chat.php:4814
 msgid "No connection to database!"
 msgstr "没有连接到数据库!"
 
-#: chat.php:4588
+#: index.php:4613 chat.php:4613
 msgid ""
 "Note: Default CSS is now hardcoded and can be removed from the CSS setting"
 msgstr "注意：默认的CSS现在是硬编码的，可以从CSS设置中删除"
 
-#: chat.php:4668
+#: index.php:4697 chat.php:4697
 #, php-format
 msgid ""
 "The %s extension of PHP is required for the encryption feature. Please "
 "install it first or set the encrypted setting back to false."
 msgstr "加密功能需要PHP的%s扩展。 请先安装它或将加密设置恢复为false."
 
-#: chat.php:4741 chat.php:4746 chat.php:4751
+#: index.php:4770 index.php:4775 index.php:4780 chat.php:4770 chat.php:4775
+#: chat.php:4780
 #, php-format
 msgid ""
 "The %s extension of PHP is required for the selected database driver. Please "
 "install it first."
 msgstr "所选数据库驱动程序需要PHP的%s扩展名。 请先安装它."
 
-#: chat.php:4764 chat.php:4772 chat.php:4776 chat.php:4783
+#: index.php:4793 index.php:4801 index.php:4805 index.php:4812 chat.php:4793
+#: chat.php:4801 chat.php:4805 chat.php:4812
 msgid ""
 "No connection to database, please create a database and edit the script to "
 "use the correct database with given username and password!"
 msgstr ""
 "没有连接到数据库，请创建一个数据库并编辑脚本并修改为用户名密码正确的数据库!"
 
-#: chat.php:4791
+#: index.php:4820 chat.php:4820
 msgid ""
 "The memcached extension of PHP is required for the caching feature. Please "
 "install it first or set the memcached setting back to false."
