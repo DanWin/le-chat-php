@@ -2850,6 +2850,9 @@ function kill_session(): void
 function kick_chatter(array $names, string $mes, bool $purge) : bool {
 	global $U, $db;
 	$lonick='';
+	if (strlen($mes)<1){
+		$mes=_("no kick message");
+	}
 	$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 	$check=$db->prepare('SELECT style, entry FROM ' . PREFIX . 'sessions WHERE nickname=? AND status!=0 AND (status<? OR nickname=?);');
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=?;');
@@ -2876,13 +2879,13 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 	}
 	if($i>0){
 		if($all){
-			add_system_message(get_setting('msgallkick'), $U['nickname']);
+			add_system_message(sprintf(get_setting('msgallkick'), $mes), $U['nickname']);
 		}else{
 			$lonick=substr($lonick, 0, -2);
 			if($i>1){
-				add_system_message(sprintf(get_setting('msgmultikick'), $lonick), $U['nickname']);
+				add_system_message(sprintf(get_setting('msgmultikick'), $lonick, $mes), $U['nickname']);
 			}else{
-				add_system_message(sprintf(get_setting('msgkick'), $lonick), $U['nickname']);
+				add_system_message(sprintf(get_setting('msgkick'), $lonick, $mes), $U['nickname']);
 			}
 		}
 		return true;
@@ -4266,9 +4269,9 @@ function init_chat(): void
 			['msgexit', _('%s left the chat.')],
 			['msgmemreg', _('%s is now a registered member.')],
 			['msgsureg', _('%s is now a registered applicant.')],
-			['msgkick', _('%s has been kicked.')],
-			['msgmultikick', _('%s have been kicked.')],
-			['msgallkick', _('All guests have been kicked.')],
+			['msgkick', _('%1$s has been kicked: %2$s')],
+			['msgmultikick', _('%1$s have been kicked: %2$s')],
+			['msgallkick', _('All guests have been kicked: %1$s')],
 			['msgclean', _('%s has been cleaned.')],
 			['numnotes', '3'],
 			['mailsender', 'www-data <www-data@localhost>'],
