@@ -4424,7 +4424,7 @@ function update_db(): void
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('css', ''), ('memberexpire', '60'), ('guestexpire', '15'), ('kickpenalty', '10'), ('entrywait', '120'), ('messageexpire', '14400'), ('messagelimit', '150'), ('maxmessage', 2000), ('captchatime', '600');");
 	}
 	if($dbversion<11){
-		$db->exec('ALTER TABLE ' , PREFIX . 'captcha CHARACTER SET utf8 COLLATE utf8_bin;');
+		$db->exec('ALTER TABLE ' . PREFIX . 'captcha CHARACTER SET utf8 COLLATE utf8_bin;');
 		$db->exec('ALTER TABLE ' . PREFIX . 'filter CHARACTER SET utf8 COLLATE utf8_bin;');
 		$db->exec('ALTER TABLE ' . PREFIX . 'ignored CHARACTER SET utf8 COLLATE utf8_bin;');
 		$db->exec('ALTER TABLE ' . PREFIX . 'messages CHARACTER SET utf8 COLLATE utf8_bin;');
@@ -4460,7 +4460,7 @@ function update_db(): void
 		$db->exec('ALTER TABLE ' . PREFIX . 'notes MODIFY type char(5) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, MODIFY editedby varchar(50) NOT NULL, MODIFY text varchar(20000) NOT NULL;');
 		$db->exec('ALTER TABLE ' . PREFIX . 'settings MODIFY id integer unsigned NOT NULL, MODIFY setting varchar(50) CHARACTER SET latin1 COLLATE latin1_bin NOT NULL, MODIFY value varchar(20000) NOT NULL;');
 		$db->exec('ALTER TABLE ' . PREFIX . 'settings DROP PRIMARY KEY, DROP id, ADD PRIMARY KEY(setting);');
-		$stmt = $db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('chatname', 'My Chat'), ('topic', ''), ('msgsendall', ?), ('msgsendmem', ?), ('msgsendmod', ?), ('msgsendadm', ?), ('msgsendprv', ?), ('numnotes', '3');");
+		$stmt = $db->prepare('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('chatname', 'My Chat'), ('topic', ''), ('msgsendall', ?), ('msgsendmem', ?), ('msgsendmod', ?), ('msgsendadm', ?), ('msgsendprv', ?), ('numnotes', '3');");
 		$stmt->execute([_('%s - '), _('[M] %s - '), _('[Staff] %s - '), _('[Admin] %s - '), _('[%1$s to %2$s] - ')]);
 	}
 	if($dbversion<13){
