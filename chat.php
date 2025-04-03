@@ -69,6 +69,17 @@ if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 	$session = $_COOKIE[COOKIENAME];
 }
 $session = preg_replace('/[^0-9a-zA-Z]/', '', $session);
+if (!extension_loaded('gettext')) {
+	prepare_stylesheets('fatal_error');
+	send_headers();
+	echo '<!DOCTYPE html><html lang="en" dir="ltr"><head>'.meta_html();
+	echo '<title>Fatal error</title>';
+	echo "<style>$styles[fatal_error]</style>";
+	echo '</head><body>';
+	echo '<h2>Fatal error: The gettext extension of PHP is required, please install it first</h2>';
+	print_end();
+}
+
 load_lang();
 check_db();
 cron();
@@ -4861,7 +4872,7 @@ function load_lang(): void
 		$locale = LANGUAGES[$_COOKIE['language']]['locale'];
 		$language = $_COOKIE['language'];
 		$dir = LANGUAGES[$_COOKIE['language']]['dir'];
-	}elseif(!empty($_SERVER['HTTP_ACCEPT_LANGUAGE'])){
+	}elseif(!empty($_SERVER['HTTP_ACCEPT_LANGUAGE']) && extension_loaded('intl')){
 		$prefLocales = array_reduce(
 			explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']),
 			function (array $res, string $el) {
