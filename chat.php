@@ -64,9 +64,6 @@ const LANGUAGES = [
 	'zh-Hans' => ['name' => '简体中文', 'locale' => 'zh_CN', 'dir' => 'ltr'],
 	'zh-Hant' => ['name' => '正體中文', 'locale' => 'zh_TW', 'dir' => 'ltr'],
 ];
-if(!extension_loaded('mbstring')){
-	send_fatal_error(sprintf(_('The %s extension of PHP is required, please install it first.'), 'mbstring'));
-}
 load_config();
 $U=[];// This user data
 $db = null;// Database connection
@@ -83,6 +80,12 @@ if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 }
 $session = preg_replace('/[^0-9a-zA-Z]/', '', $session);
 load_lang();
+foreach(['date', 'mbstring', 'pcre'] as $extension) {
+	if(!extension_loaded($extension)) {
+		send_fatal_error(sprintf(_('The %s extension of PHP is required, please install it first.'), $extension));
+	}
+}
+mb_internal_encoding('UTF-8');
 check_db();
 cron();
 route();
@@ -4903,7 +4906,6 @@ function load_lang(): void
 
 function load_config(): void
 {
-	mb_internal_encoding('UTF-8');
 	define('VERSION', '1.24.1'); // Script version
 	define('DBVERSION', 48); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
