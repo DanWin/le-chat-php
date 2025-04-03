@@ -32,6 +32,16 @@
 * 9 - Private messages
 */
 
+if (!extension_loaded('gettext')) {
+	prepare_stylesheets('fatal_error');
+	send_headers();
+	echo '<!DOCTYPE html><html lang="en" dir="ltr"><head>'.meta_html();
+	echo '<title>Fatal error</title>';
+	echo "<style>$styles[fatal_error]</style>";
+	echo '</head><body>';
+	echo '<h2>Fatal error: The gettext extension of PHP is required, please install it first.</h2>';
+	print_end();
+}
 // initialize and load variables/configuration
 const LANGUAGES = [
 	'ar' => ['name' => 'العربية', 'locale' => 'ar', 'dir' => 'rtl'],
@@ -54,6 +64,9 @@ const LANGUAGES = [
 	'zh-Hans' => ['name' => '简体中文', 'locale' => 'zh_CN', 'dir' => 'ltr'],
 	'zh-Hant' => ['name' => '正體中文', 'locale' => 'zh_TW', 'dir' => 'ltr'],
 ];
+if(!extension_loaded('mbstring')){
+	send_fatal_error(sprintf(_('The %s extension of PHP is required, please install it first.'), 'mbstring'));
+}
 load_config();
 $U=[];// This user data
 $db = null;// Database connection
@@ -69,17 +82,6 @@ if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
 	$session = $_COOKIE[COOKIENAME];
 }
 $session = preg_replace('/[^0-9a-zA-Z]/', '', $session);
-if (!extension_loaded('gettext')) {
-	prepare_stylesheets('fatal_error');
-	send_headers();
-	echo '<!DOCTYPE html><html lang="en" dir="ltr"><head>'.meta_html();
-	echo '<title>Fatal error</title>';
-	echo "<style>$styles[fatal_error]</style>";
-	echo '</head><body>';
-	echo '<h2>Fatal error: The gettext extension of PHP is required, please install it first</h2>';
-	print_end();
-}
-
 load_lang();
 check_db();
 cron();
