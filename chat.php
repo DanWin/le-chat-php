@@ -4897,7 +4897,9 @@ function load_lang(): void
 			}
 		}
 	}
-	putenv('LC_ALL='.$locale);
+	if(function_exists('putenv')) {
+		putenv('LC_ALL='.$locale);
+	}
 	setlocale(LC_ALL, $locale);
 	bindtextdomain('le-chat-php', __DIR__.'/locale');
 	bind_textdomain_codeset('le-chat-php', 'UTF-8');
