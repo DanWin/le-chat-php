@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-01-18 21:32+0100\n"
+"POT-Creation-Date: 2025-03-29 17:02+0100\n"
 "PO-Revision-Date: 2023-01-26 18:54+0000\n"
 "Last-Translator: Weblate Admin <daniel@danwin1210.de>\n"
 "Language-Team: Portuguese (Portugal) <https://weblate.danwin1210.de/projects/"
@@ -19,358 +19,372 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Weblate 4.15\n"
 
-#: chat.php:261
+#: index.php:272 chat.php:272
 msgid "Enable applicants"
 msgstr "Habilitar candidatos"
 
-#: chat.php:262
+#: index.php:273 index.php:2267 chat.php:273 chat.php:2267
 msgid "Embed images"
 msgstr "Incorporar imagens"
 
-#: chat.php:263 chat.php:2202
+#: index.php:274 index.php:2261 chat.php:274 chat.php:2261
 msgid "Show Timestamps"
 msgstr "Mostrar carimbos de hora"
 
-#: chat.php:264
+#: index.php:275 chat.php:275
 msgid "Show session-IP"
 msgstr "Mostrar os endereços IP das sessões ativas"
 
-#: chat.php:265
+#: index.php:276 chat.php:276
 msgid "Members can kick, if no moderator is present"
 msgstr "Os membros podem kickar, se nenhum moderador estiver presente"
 
-#: chat.php:266
+#: index.php:277 chat.php:277
 msgid "Members can always kick"
 msgstr "Os membros podem sempre espulsar"
 
-#: chat.php:267
+#: index.php:278 chat.php:278
 msgid "Force redirection"
 msgstr "Forçar redirecionamento"
 
-#: chat.php:268
+#: index.php:279 index.php:2270 chat.php:279 chat.php:2270
 msgid "Incognito mode"
 msgstr "Modo incógnito"
 
-#: chat.php:269
+#: index.php:280 chat.php:280
 msgid "Send mail on new public message"
 msgstr "Mandar mensagems públicas por e-mail"
 
-#: chat.php:270
+#: index.php:281 chat.php:281
 msgid "Fallback to waiting room, if no moderator is present to approve guests"
 msgstr ""
 "Alternativa para a sala de espera, se nenhum moderador estiver presente para "
 "aprovar os convidados"
 
-#: chat.php:271
+#: index.php:282 chat.php:282
 msgid "Disable private messages"
 msgstr "Desativar mensagens privadas"
 
-#: chat.php:272 chat.php:2223
+#: index.php:283 index.php:2282 chat.php:283 chat.php:2282
 msgid "Enable offline inbox"
 msgstr "Ativar caixa de entrada offline"
 
-#: chat.php:273
+#: index.php:284 chat.php:284
 msgid "Show a greeting message before showing the messages"
 msgstr "Mostrar uma mensagem de saudação antes de mostrar as mensagens"
 
-#: chat.php:274 chat.php:2204
+#: index.php:285 index.php:2263 chat.php:285 chat.php:2263
 msgid "Sort messages from top to bottom"
 msgstr "Sortir mensagens de topo a base"
 
-#: chat.php:275 chat.php:2205
+#: index.php:286 index.php:2264 chat.php:286 chat.php:2264
 msgid "Hide list of chatters"
 msgstr "Ocultar lista de usuários"
 
-#: chat.php:276 chat.php:1780 chat.php:1794
+#: index.php:287 index.php:1837 index.php:1851 chat.php:287 chat.php:1837
+#: chat.php:1851
 msgid "Personal notes"
 msgstr "Notas pessoais"
 
-#: chat.php:277 chat.php:1783 chat.php:1797 chat.php:2110
+#: index.php:288 index.php:1840 index.php:1854 index.php:2169 chat.php:288
+#: chat.php:1840 chat.php:1854 chat.php:2169
 msgid "Public notes"
 msgstr "Notas públicas"
 
-#: chat.php:278
+#: index.php:289 chat.php:289
 msgid "Apply kick filter on moderators"
 msgstr "Aplicar filtro da expulsão nos moderadores"
 
-#: chat.php:279
+#: index.php:290 chat.php:290
 msgid "Show who kicks people or purges all messages."
 msgstr "Mostre quem expulsa as pessoas ou expurga todas as mensagens."
 
-#: chat.php:280
+#: index.php:291 chat.php:291
 msgid "Hide reload post box button"
 msgstr ""
 
-#: chat.php:281
+#: index.php:292 chat.php:292
 msgid "Hide reload messages button"
 msgstr ""
 
-#: chat.php:282
+#: index.php:293 chat.php:293
 msgid "Hide profile button"
 msgstr ""
 
-#: chat.php:283
+#: index.php:294 chat.php:294
 msgid "Hide admin button"
 msgstr ""
 
-#: chat.php:284
+#: index.php:295 chat.php:295
 msgid "Hide notes button"
 msgstr ""
 
-#: chat.php:285
+#: index.php:296 chat.php:296
 msgid "Hide clone button"
 msgstr ""
 
-#: chat.php:286
+#: index.php:297 chat.php:297
 msgid "Hide rearrange button"
 msgstr ""
 
-#: chat.php:287
+#: index.php:298 chat.php:298
 msgid "Hide help button"
 msgstr ""
 
-#: chat.php:288
+#: index.php:299 chat.php:299
 msgid "Apply postbox delete button globally"
 msgstr ""
 
-#: chat.php:289
+#: index.php:300 chat.php:300
 msgid "Allow enhancing functionality with JavaScript"
 msgstr ""
 
-#: chat.php:292 chat.php:2170
+#: index.php:303 index.php:2229 chat.php:303 chat.php:2229
 msgid "Background colour"
 msgstr "Cor de fundo"
 
-#: chat.php:293 chat.php:2167
+#: index.php:304 index.php:2226 chat.php:304 chat.php:2226
 msgid "Font colour"
 msgstr "Cor da fonte"
 
-#: chat.php:296
+#: index.php:307 chat.php:307
 msgid "Entrance"
 msgstr "Entrada"
 
-#: chat.php:297
+#: index.php:308 chat.php:308
 msgid "Leaving"
 msgstr "Saída"
 
-#: chat.php:298
+#: index.php:309 chat.php:309
 msgid "Member registered"
 msgstr "Membro registrado"
 
-#: chat.php:299
+#: index.php:310 chat.php:310
 msgid "Applicant registered"
 msgstr "Candidato registrado"
 
-#: chat.php:300
+#: index.php:311 chat.php:311
 msgid "Kicked"
 msgstr "Expulso"
 
-#: chat.php:301
+#: index.php:312 chat.php:312
 msgid "Multiple kicked"
 msgstr "Expulsão múltiplo"
 
-#: chat.php:302
+#: index.php:313 chat.php:313
 msgid "All kicked"
 msgstr "Todos expulsos"
 
-#: chat.php:303
+#: index.php:314 chat.php:314
 msgid "Room cleaned"
 msgstr "Sala limpa"
 
-#: chat.php:304
+#: index.php:315 chat.php:315
 msgid "Message to all"
 msgstr "Mensagem a todos"
 
-#: chat.php:305
+#: index.php:316 chat.php:316
 msgid "Message to members only"
 msgstr "Mensagem a membros"
 
-#: chat.php:306
+#: index.php:317 chat.php:317
 msgid "Message to staff only"
 msgstr "Mensagem a equipe"
 
-#: chat.php:307
+#: index.php:318 chat.php:318
 msgid "Message to admins only"
 msgstr "Mensagem a admins"
 
-#: chat.php:308
+#: index.php:319 chat.php:319
 msgid "Private message"
 msgstr "Mensagem privada"
 
-#: chat.php:309
+#: index.php:320 chat.php:320
 msgid "Attachement"
 msgstr "Anexar"
 
-#: chat.php:312
+#: index.php:323 chat.php:323
 msgid "Member timeout (minutes)"
 msgstr "Intervalo antes do desconexão dos membros (minutos)"
 
-#: chat.php:313
+#: index.php:324 chat.php:324
 msgid "Guest timeout (minutes)"
 msgstr "Intervalo antes do desconexão dos convidados (minutos)"
 
-#: chat.php:314
+#: index.php:325 chat.php:325
 msgid "Kick penalty (minutes)"
 msgstr "Duração da expulsão (minutos)"
 
-#: chat.php:315
+#: index.php:326 chat.php:326
 msgid "Waiting room time (seconds)"
 msgstr "Duração da sala de espera (segundos)"
 
-#: chat.php:316
+#: index.php:327 chat.php:327
+msgid "Logout delay (seconds)"
+msgstr ""
+
+#: index.php:328 chat.php:328
 msgid "Captcha timeout (seconds)"
 msgstr "Duração para resolver CAPTCHA (segundos)"
 
-#: chat.php:317
+#: index.php:329 chat.php:329
 msgid "Message timeout (minutes)"
 msgstr "Minutos até que mensagens se expire"
 
-#: chat.php:318
+#: index.php:330 chat.php:330
 msgid "Message limit (public)"
 msgstr "Número máximo das mensagens publicas"
 
-#: chat.php:319
+#: index.php:331 chat.php:331
 msgid "Maximal message length"
 msgstr "Comprimento máximo da mensagem"
 
-#: chat.php:320
+#: index.php:332 chat.php:332
 msgid "Maximal nickname length"
 msgstr "Comprimento máximo do nickname"
 
-#: chat.php:321
+#: index.php:333 chat.php:333
 msgid "Minimal password length"
 msgstr "Comprimento mínimo da senha"
 
-#: chat.php:322
+#: index.php:334 chat.php:334
 msgid "Default message reload time (seconds)"
 msgstr "Tempo padrão de recarga de mensagem (segundos)"
 
-#: chat.php:323
+#: index.php:335 chat.php:335
 msgid "Number of notes revisions to keep"
 msgstr "Número de revisões de notas para manter"
 
-#: chat.php:324
+#: index.php:336 chat.php:336
 msgid "Maximum upload size in KB"
 msgstr "Tamanho máximo de upload em KB"
 
-#: chat.php:325
+#: index.php:337 chat.php:337
 msgid "Enable file uploads"
 msgstr "Habilitar uploads de arquivos"
 
-#: chat.php:326
+#: index.php:338 chat.php:338
 msgid "Lowest refresh rate"
 msgstr ""
 
-#: chat.php:327
+#: index.php:339 chat.php:339
 msgid "Highest refresh rate"
 msgstr ""
 
-#: chat.php:330
+#: index.php:342 chat.php:342
 msgid "Rules (html)"
 msgstr "Regras (html)"
 
-#: chat.php:331
+#: index.php:343 chat.php:343
 msgid "CSS Style"
 msgstr "Estilo CSS"
 
-#: chat.php:332
+#: index.php:344 chat.php:344
 msgid "Chat disabled message (html)"
 msgstr "Mensagem de chat desativado (html)"
 
-#: chat.php:335
+#: index.php:347 chat.php:347
 msgid ""
 "<a target=\"_blank\" href=\"https://php.net/manual/en/function.date."
 "php#refsect1-function.date-parameters\" rel=\"noopener noreferrer\">Date "
 "formating</a>"
 msgstr ""
 "<a target=\"_blank\" href=\"https://www.php.net/manual/pt_BR/function.date."
-"php#refsect1-function.date-parameters\" rel=\"noopener noreferrer"
-"\">Formatação da data</a>"
+"php#refsect1-function.date-parameters\" rel=\"noopener "
+"noreferrer\">Formatação da data</a>"
 
-#: chat.php:336
+#: index.php:348 chat.php:348
 msgid "Characters used in Captcha"
 msgstr "Caracteres usados no Captcha"
 
-#: chat.php:337
+#: index.php:349 chat.php:349
 msgid "Custom redirection script"
 msgstr "Personalizar script de redirecionamento"
 
-#: chat.php:338
+#: index.php:350 chat.php:350
 msgid "Chat name"
 msgstr "Nome do chat"
 
-#: chat.php:339
+#: index.php:351 chat.php:351
 msgid "Send mail using this address"
 msgstr "Envie o e-mail do endereço seguinte"
 
-#: chat.php:340
+#: index.php:352 chat.php:352
 msgid "Send mail to this address"
 msgstr "Envie o e-mail ao endereço seguinte"
 
-#: chat.php:341
+#: index.php:353 chat.php:353
 msgid "Nickname regex"
 msgstr "Expressão regular da nickname"
 
-#: chat.php:342
+#: index.php:354 chat.php:354
 msgid "Password regex"
 msgstr "Expressão regular da senha"
 
-#: chat.php:343
+#: index.php:355 chat.php:355
 msgid "Link to external CSS file (on your own server)"
 msgstr "Hiperligação ao arquivo externo CSS (em seu próprio servidor)"
 
-#: chat.php:344
+#: index.php:356 chat.php:356
 msgid "Meta description (best 50 - 160 characters for SEO)"
 msgstr ""
 "Meta descrição (melhores 50 - 160 caracteras por otimização para motores de "
 "busca)"
 
-#: chat.php:345
+#: index.php:357 chat.php:357
+msgid "Show this text when a user's logout is delayed"
+msgstr ""
+
+#: index.php:358 chat.php:358
 msgid "Prepend this text to system messages"
 msgstr "Este texto precede mensagens do sistema"
 
-#: chat.php:348 chat.php:728 chat.php:1225
+#: index.php:361 index.php:780 index.php:1282 chat.php:361 chat.php:780
+#: chat.php:1282
 msgid "Change Guestaccess"
 msgstr "Mudar Acesso do convidados"
 
-#: chat.php:349
+#: index.php:362 chat.php:362
 msgid "Enable global Password"
 msgstr ""
 
-#: chat.php:350 chat.php:758 chat.php:2415 chat.php:2433
+#: index.php:363 index.php:810 index.php:2474 index.php:2492 chat.php:363
+#: chat.php:810 chat.php:2474 chat.php:2492
 msgid "Global Password:"
 msgstr "Senha global:"
 
-#: chat.php:351 chat.php:819
+#: index.php:364 index.php:871 chat.php:364 chat.php:871
 msgid "Captcha"
 msgstr "Captcha"
 
-#: chat.php:352 chat.php:775 chat.php:835
+#: index.php:365 index.php:827 index.php:887 chat.php:365 chat.php:827
+#: chat.php:887
 msgid "Only for guests"
 msgstr "Apenas para convidadosSimples"
 
-#: chat.php:353 chat.php:1220
+#: index.php:366 index.php:1277 chat.php:366 chat.php:1277
 msgid "Topic"
 msgstr "Assunto"
 
-#: chat.php:354 chat.php:781
+#: index.php:367 index.php:833 chat.php:367 chat.php:833
 msgid "Let guests register themselves"
 msgstr "Permitir que os convidados se registrem"
 
-#: chat.php:355 chat.php:862
+#: index.php:368 index.php:919 chat.php:368 chat.php:919
 msgid "Default time zone"
 msgstr "Fuso horário padrão"
 
-#: chat.php:568 chat.php:1100 chat.php:4078 chat.php:4259
+#: index.php:581 index.php:1157 index.php:4158 index.php:4341 chat.php:581
+#: chat.php:1157 chat.php:4158 chat.php:4341
 msgid "Initial Setup"
 msgstr "Configuração inicial"
 
-#: chat.php:588
+#: index.php:601 chat.php:601
 #, php-format
 msgid "Redirecting to: %s"
 msgstr "Redirecionando para: %s"
 
-#: chat.php:595
+#: index.php:608 chat.php:608
 #, php-format
 msgid ""
 "Dangerous non-http link requested, copy paste this link if you are really "
@@ -379,78 +393,81 @@ msgstr ""
 "Hiperligação não http perigoso solicitado, copie e cole esta hiperligação se "
 "você tiver certeza: %s"
 
-#: chat.php:597
+#: index.php:610 chat.php:610
 #, php-format
 msgid "Non-http link requested: %s"
 msgstr "Link não http solicitado: %s"
 
-#: chat.php:599
+#: index.php:612 chat.php:612
 #, php-format
 msgid "If it's not working, try this one: %s"
 msgstr "Se não estiver funcionando, tente este: %s"
 
-#: chat.php:609
+#: index.php:622 chat.php:622
 msgid "Access denied"
 msgstr "Acesso negado"
 
-#: chat.php:609
+#: index.php:622 chat.php:622
 #, php-format
 msgid "You are logged in as %s and don't have access to this section."
 msgstr "Você está logado como %s e não tem acesso a esta seção."
 
-#: chat.php:611 chat.php:915 chat.php:1211 chat.php:1393
+#: index.php:624 index.php:972 index.php:1268 index.php:1450 chat.php:624
+#: chat.php:972 chat.php:1268 chat.php:1450
 msgid "Logout"
 msgstr "Terminar sessão"
 
-#: chat.php:636
+#: index.php:649 chat.php:649
 msgid "Copy:"
 msgstr "Copiar:"
 
-#: chat.php:724
+#: index.php:776 chat.php:776
 msgid "Chat Setup"
 msgstr "Configuração do Chat"
 
-#: chat.php:734 chat.php:1233
+#: index.php:786 index.php:1290 chat.php:786 chat.php:1290
 msgid "Allow"
 msgstr "Permitir"
 
-#: chat.php:739 chat.php:1238
+#: index.php:791 index.php:1295 chat.php:791 chat.php:1295
 msgid "Allow with waitingroom"
 msgstr "Permitir com sala de espera"
 
-#: chat.php:744 chat.php:1243
+#: index.php:796 index.php:1300 chat.php:796 chat.php:1300
 msgid "Require moderator approval"
 msgstr "Requer aprovação do moderador"
 
-#: chat.php:749 chat.php:1248
+#: index.php:801 index.php:1305 chat.php:801 chat.php:1305
 msgid "Only members"
 msgstr "Apenas membros"
 
-#: chat.php:754 chat.php:1251
+#: index.php:806 index.php:1308 chat.php:806 chat.php:1308
 msgid "Disable chat"
 msgstr "Desativar chat"
 
-#: chat.php:765 chat.php:787 chat.php:842 chat.php:896 chat.php:2229
+#: index.php:817 index.php:839 index.php:894 index.php:953 index.php:2288
+#: chat.php:817 chat.php:839 chat.php:894 chat.php:953 chat.php:2288
 msgid "Disabled"
 msgstr "Desativado"
 
-#: chat.php:770 chat.php:830 chat.php:901 chat.php:2219
+#: index.php:822 index.php:882 index.php:958 index.php:2278 chat.php:822
+#: chat.php:882 chat.php:958 chat.php:2278
 msgid "Enabled"
 msgstr "Ativado"
 
-#: chat.php:792
+#: index.php:844 chat.php:844
 msgid "As applicant"
 msgstr "Como convidado"
 
-#: chat.php:797
+#: index.php:849 chat.php:849
 msgid "As member"
 msgstr "Como membro"
 
-#: chat.php:800
+#: index.php:852 chat.php:852
 msgid "System messages"
 msgstr "Mensagens do sistema"
 
-#: chat.php:822 chat.php:1053
+#: index.php:874 index.php:1110 chat.php:874 chat.php:1110
 #, php-format
 msgid ""
 "The %s extension of PHP is required for this feature. Please install it "
@@ -459,120 +476,135 @@ msgstr ""
 "La biblioteca de extensão %s da PHP é obrigada por usando esta feição. Por "
 "favor instalar isso primeiramente."
 
-#: chat.php:847
+#: index.php:899 chat.php:899
 msgid "Simple"
 msgstr "Simples"
 
-#: chat.php:852
+#: index.php:904 chat.php:904
 msgid "Moderate"
 msgstr "Médio"
 
-#: chat.php:857
+#: index.php:909 chat.php:909
+msgid "Hard"
+msgstr ""
+
+#: index.php:914 chat.php:914
 msgid "Extreme"
 msgstr "Extremo"
 
-#: chat.php:906 chat.php:1548 chat.php:1610
+#: index.php:963 index.php:1605 index.php:1667 chat.php:963 chat.php:1605
+#: chat.php:1667
 msgid "Apply"
 msgstr "Aplicar"
 
-#: chat.php:910 chat.php:1050
+#: index.php:967 index.php:1107 chat.php:967 chat.php:1107
 msgid "Backup and restore"
 msgstr "Backup e restauração"
 
-#: chat.php:912
+#: index.php:969 chat.php:969
 msgid "Destroy chat"
 msgstr "Destruir chat"
 
-#: chat.php:1057 chat.php:1066
+#: index.php:1114 index.php:1123 chat.php:1114 chat.php:1123
 msgid "Settings"
 msgstr "Configurações"
 
-#: chat.php:1058 chat.php:1067 chat.php:1212 chat.php:1538 chat.php:1575
-#: chat.php:1622
+#: index.php:1115 index.php:1124 index.php:1269 index.php:1595 index.php:1632
+#: index.php:1679 chat.php:1115 chat.php:1124 chat.php:1269 chat.php:1595
+#: chat.php:1632 chat.php:1679
 msgid "Filter"
 msgstr "Filtro"
 
-#: chat.php:1059 chat.php:1068 chat.php:1268 chat.php:2538
+#: index.php:1116 index.php:1125 index.php:1325 index.php:2600 chat.php:1116
+#: chat.php:1125 chat.php:1325 chat.php:2600
 msgid "Members"
 msgstr "Membros"
 
-#: chat.php:1060 chat.php:1069 chat.php:2314 chat.php:2322
+#: index.php:1117 index.php:1126 index.php:2373 index.php:2381 chat.php:1117
+#: chat.php:1126 chat.php:2373 chat.php:2381
 msgid "Notes"
 msgstr "Notas"
 
-#: chat.php:1061
+#: index.php:1118 chat.php:1118
 msgid "Backup"
 msgstr "Backup"
 
-#: chat.php:1070
+#: index.php:1127 chat.php:1127
 msgid "Restore"
 msgstr "Restauração"
 
-#: chat.php:1074 chat.php:1117 chat.php:1155 chat.php:1185 chat.php:4260
+#: index.php:1131 index.php:1174 index.php:1212 index.php:1242 index.php:4342
+#: chat.php:1131 chat.php:1174 chat.php:1212 chat.php:1242 chat.php:4342
 msgid "Go to the Setup-Page"
 msgstr "Ir para a página de configuração"
 
-#: chat.php:1082 chat.php:1091 chat.php:1949
+#: index.php:1139 index.php:1148 index.php:2006 chat.php:1139 chat.php:1148
+#: chat.php:2006
 msgid "Are you sure?"
 msgstr "Você tem certeza?"
 
-#: chat.php:1083 chat.php:1092 chat.php:1956
+#: index.php:1140 index.php:1149 index.php:2013 chat.php:1140 chat.php:1149
+#: chat.php:2013
 msgid "Yes"
 msgstr "Sim"
 
-#: chat.php:1084 chat.php:1093 chat.php:1963
+#: index.php:1141 index.php:1150 index.php:2020 chat.php:1141 chat.php:1150
+#: chat.php:2020
 msgid "No"
 msgstr "Não"
 
-#: chat.php:1101 chat.php:4259
+#: index.php:1158 index.php:4341 chat.php:1158 chat.php:4341
 msgid "Superadmin Login"
 msgstr "Superadmin Login"
 
-#: chat.php:1102
+#: index.php:1159 chat.php:1159
 msgid "Superadmin Nickname:"
 msgstr "Nickname do Superadmin:"
 
-#: chat.php:1103
+#: index.php:1160 chat.php:1160
 msgid "Superadmin Password:"
 msgstr "Senha do Superadmin:"
 
-#: chat.php:1104
+#: index.php:1161 chat.php:1161
 msgid "Confirm Password:"
 msgstr "Confirmar senha:"
 
-#: chat.php:1105
+#: index.php:1162 chat.php:1162
 msgid "Initialise Chat"
 msgstr "Inicializar Chat"
 
-#: chat.php:1106 chat.php:1130 chat.php:1156 chat.php:2277 chat.php:2439
+#: index.php:1163 index.php:1187 index.php:1213 index.php:2336 index.php:2498
+#: chat.php:1163 chat.php:1187 chat.php:1213 chat.php:2336 chat.php:2498
 msgid "Change language:"
 msgstr "Mudar idioma:"
 
-#: chat.php:1117
+#: index.php:1174 chat.php:1174
 msgid "Database successfully updated!"
 msgstr "Banco de dados atualizado com sucesso!"
 
-#: chat.php:1125 chat.php:1326 chat.php:2407
+#: index.php:1182 index.php:1383 index.php:2466 chat.php:1182 chat.php:1383
+#: chat.php:2466
 msgid "Nickname:"
 msgstr "Nickname:"
 
-#: chat.php:1126 chat.php:1327 chat.php:2408
+#: index.php:1183 index.php:1384 index.php:2467 chat.php:1183 chat.php:1384
+#: chat.php:2467
 msgid "Password:"
 msgstr "Senha:"
 
-#: chat.php:1128
+#: index.php:1185 chat.php:1185
 msgid "Login"
 msgstr "Login"
 
-#: chat.php:1129
+#: index.php:1186 chat.php:1186
 msgid "Forgot login?"
 msgstr "Esqueceu o login?"
 
-#: chat.php:1142 chat.php:1306
+#: index.php:1199 index.php:1363 chat.php:1199 chat.php:1363
 msgid "Reset password"
 msgstr "Redefinir senha"
 
-#: chat.php:1150
+#: index.php:1207 chat.php:1207
 #, php-format
 msgid ""
 "Successfully reset password for username %s. Please remove the password "
@@ -581,7 +613,7 @@ msgstr ""
 "Senha redefinida com sucesso para o nome de usuário %s. Remova a definição "
 "de redefinição de senha do script novamente."
 
-#: chat.php:1153
+#: index.php:1210 chat.php:1210
 msgid ""
 "Please modify the script and put the following at the bottom of it (change "
 "the password). Then refresh this page: define('RESET_SUPERADMIN_PASSWORD', "
@@ -591,165 +623,171 @@ msgstr ""
 "Recarregue esta página depois.: define('RESET_SUPERADMIN_PASSWORD', "
 "'mudar_esta_senha');"
 
-#: chat.php:1169 chat.php:1193 chat.php:1258 chat.php:1270 chat.php:1294
-#: chat.php:1308 chat.php:1316 chat.php:2145 chat.php:2153
+#: index.php:1226 index.php:1250 index.php:1315 index.php:1327 index.php:1351
+#: index.php:1365 index.php:1373 index.php:2204 index.php:2212 chat.php:1226
+#: chat.php:1250 chat.php:1315 chat.php:1327 chat.php:1351 chat.php:1365
+#: chat.php:1373 chat.php:2204 chat.php:2212
 msgid "(choose)"
 msgstr "(escolher)"
 
-#: chat.php:1170
+#: index.php:1227 chat.php:1227
 msgid "All guests"
 msgstr "Todos os convidados"
 
-#: chat.php:1182
+#: index.php:1239 chat.php:1239
 msgid "Administrative functions"
 msgstr "Funções administrativas"
 
-#: chat.php:1188
+#: index.php:1245 chat.php:1245
 msgid "Clean messages"
 msgstr "Limpar mensagens"
 
-#: chat.php:1191
+#: index.php:1248 chat.php:1248
 msgid "Whole room"
 msgstr "Sala inteira"
 
-#: chat.php:1192
+#: index.php:1249 chat.php:1249
 msgid "Selection"
 msgstr "Selecionar"
 
-#: chat.php:1193
+#: index.php:1250 chat.php:1250
 msgid "Following nickname:"
 msgstr "Seguinte nickname:"
 
-#: chat.php:1200
+#: index.php:1257 chat.php:1257
 msgid "Clean"
 msgstr "Limpar"
 
-#: chat.php:1202
+#: index.php:1259 chat.php:1259
 #, php-format
 msgid "Kick Chatter (%d minutes)"
 msgstr "Expulsar usuário (%d minutos)"
 
-#: chat.php:1204
+#: index.php:1261 chat.php:1261
 msgid "Kickmessage:"
 msgstr "Mensagem da expulsão:"
 
-#: chat.php:1205
+#: index.php:1262 chat.php:1262
 msgid "Purge messages"
 msgstr "Limpar mensagens"
 
-#: chat.php:1206 chat.php:1388 chat.php:1546 chat.php:1580 chat.php:1591
-#: chat.php:2042
+#: index.php:1263 index.php:1445 index.php:1603 index.php:1637 index.php:1648
+#: index.php:2101 chat.php:1263 chat.php:1445 chat.php:1603 chat.php:1637
+#: chat.php:1648 chat.php:2101
 msgid "Kick"
 msgstr "Expulsar"
 
-#: chat.php:1208
+#: index.php:1265 chat.php:1265
 msgid "Logout inactive Chatter"
 msgstr "Terminar sessão da pessoa inativa"
 
-#: chat.php:1212
+#: index.php:1269 chat.php:1269
 msgid "View active sessions"
 msgstr "Ver sessões ativas"
 
-#: chat.php:1212 chat.php:1603
+#: index.php:1269 index.php:1660 chat.php:1269 chat.php:1660
 msgid "Linkfilter"
 msgstr "Filtro das hiperligações"
 
-#: chat.php:1217
+#: index.php:1274 chat.php:1274
 msgid "View"
 msgstr "Ver"
 
-#: chat.php:1223 chat.php:1253 chat.php:1304 chat.php:1312 chat.php:1582
-#: chat.php:1626
+#: index.php:1280 index.php:1310 index.php:1361 index.php:1369 index.php:1639
+#: index.php:1683 chat.php:1280 chat.php:1310 chat.php:1361 chat.php:1369
+#: chat.php:1639 chat.php:1683
 msgid "Change"
 msgstr "Alterar"
 
-#: chat.php:1256
+#: index.php:1313 chat.php:1313
 msgid "Register applicant"
 msgstr "Registrar candidato"
 
-#: chat.php:1264 chat.php:1322 chat.php:1328
+#: index.php:1321 index.php:1379 index.php:1385 chat.php:1321 chat.php:1379
+#: chat.php:1385
 msgid "Register"
 msgstr "Registrar"
 
-#: chat.php:1294
+#: index.php:1351 chat.php:1351
 msgid "Delete from database"
 msgstr "Excluir do banco de dados"
 
-#: chat.php:1294
+#: index.php:1351 chat.php:1351
 msgid "Deny access (!)"
 msgstr "Negar acesso (!)"
 
-#: chat.php:1296
+#: index.php:1353 chat.php:1353
 msgid "Set to applicant (SG)"
 msgstr "Definir como candidato (SG)"
 
-#: chat.php:1298
+#: index.php:1355 chat.php:1355
 msgid "Set to regular member"
 msgstr "Definir como membro regular"
 
-#: chat.php:1299
+#: index.php:1356 chat.php:1356
 msgid "Set to moderator (M)"
 msgstr "Definir como moderador (M)"
 
-#: chat.php:1300
+#: index.php:1357 chat.php:1357
 msgid "Set to supermod (SM)"
 msgstr "Definir como supermod (SM)"
 
-#: chat.php:1302
+#: index.php:1359 chat.php:1359
 msgid "Set to admin (A)"
 msgstr "Definir como administrador (A)"
 
-#: chat.php:1314
+#: index.php:1371 chat.php:1371
 msgid "Register Guest"
 msgstr "Registrar convidado"
 
-#: chat.php:1324
+#: index.php:1381 chat.php:1381
 msgid "Register new Member"
 msgstr "Registrar novo Membro"
 
-#: chat.php:1332 chat.php:1408 chat.php:1595 chat.php:1636 chat.php:1710
-#: chat.php:1924
+#: index.php:1389 index.php:1465 index.php:1652 index.php:1693 index.php:1767
+#: index.php:1981 chat.php:1389 chat.php:1465 chat.php:1652 chat.php:1693
+#: chat.php:1767 chat.php:1981
 msgid "Reload"
 msgstr "Recarregar"
 
-#: chat.php:1345
+#: index.php:1402 chat.php:1402
 msgid "Active Sessions"
 msgstr "Sessões ativas"
 
-#: chat.php:1346 chat.php:1873
+#: index.php:1403 index.php:1930 chat.php:1403 chat.php:1930
 msgid "Nickname"
 msgstr "Nickname"
 
-#: chat.php:1346
+#: index.php:1403 chat.php:1403
 msgid "Timeout in"
 msgstr "Tempo restante"
 
-#: chat.php:1346 chat.php:1873
+#: index.php:1403 index.php:1930 chat.php:1403 chat.php:1930
 msgid "User-Agent"
 msgstr "User-Agent"
 
-#: chat.php:1350
+#: index.php:1407 chat.php:1407
 msgid "IP-Address"
 msgstr "Endereço de IP"
 
-#: chat.php:1351
+#: index.php:1408 chat.php:1408
 msgid "Actions"
 msgstr "Ações"
 
-#: chat.php:1393
+#: index.php:1450 chat.php:1450
 msgid "Unban"
 msgstr "Permitir"
 
-#: chat.php:1416
+#: index.php:1473 chat.php:1473
 msgid "Incorrect regular expression!"
 msgstr "Expressão regular incorreta!"
 
-#: chat.php:1416 chat.php:1424
+#: index.php:1473 index.php:1481 chat.php:1473 chat.php:1481
 #, php-format
 msgid "Your match was as follows: %s"
 msgstr "O texto correspondente é o seguinte: %s"
 
-#: chat.php:1424
+#: index.php:1481 chat.php:1481
 msgid ""
 "Your match was too long. You can use max. 255 characters. Try splitting it "
 "up."
@@ -757,40 +795,43 @@ msgstr ""
 "O texto correspondente é muito longo. Você pode usar de 255 caracteres ou "
 "menos. Você pode tentar dividi-lo."
 
-#: chat.php:1541 chat.php:1606
+#: index.php:1598 index.php:1663 chat.php:1598 chat.php:1663
 msgid "Filter ID:"
 msgstr "Número do filtro:"
 
-#: chat.php:1542 chat.php:1607
+#: index.php:1599 index.php:1664 chat.php:1599 chat.php:1664
 msgid "Match"
 msgstr "Match"
 
-#: chat.php:1543 chat.php:1608
+#: index.php:1600 index.php:1665 chat.php:1600 chat.php:1665
 msgid "Replace"
 msgstr "Substituir"
 
-#: chat.php:1544 chat.php:1578 chat.php:1589
+#: index.php:1601 index.php:1635 index.php:1646 chat.php:1601 chat.php:1635
+#: chat.php:1646
 msgid "Allow in PM"
 msgstr "Permitir MP"
 
-#: chat.php:1545 chat.php:1579 chat.php:1590 chat.php:1609 chat.php:1625
-#: chat.php:1633
+#: index.php:1602 index.php:1636 index.php:1647 index.php:1666 index.php:1682
+#: index.php:1690 chat.php:1602 chat.php:1636 chat.php:1647 chat.php:1666
+#: chat.php:1682 chat.php:1690
 msgid "Regex"
 msgstr "Expressão regular"
 
-#: chat.php:1547 chat.php:1581 chat.php:1592
+#: index.php:1604 index.php:1638 index.php:1649 chat.php:1604 chat.php:1638
+#: chat.php:1649
 msgid "Case sensitive"
 msgstr "Sensível à caixa das letras"
 
-#: chat.php:1586 chat.php:1630
+#: index.php:1643 index.php:1687 chat.php:1643 chat.php:1687
 msgid "New filter:"
 msgstr "Novo filtro:"
 
-#: chat.php:1593 chat.php:1634
+#: index.php:1650 index.php:1691 chat.php:1650 chat.php:1691
 msgid "Add"
 msgstr "Adicionar"
 
-#: chat.php:1691
+#: index.php:1748 chat.php:1748
 msgid ""
 "This chat uses <b>frames</b>. Please enable frames in your browser or use a "
 "suitable one!"
@@ -798,96 +839,99 @@ msgstr ""
 "Esse chat usa <b>frames</b>. Por favor, habilite os frames em seu navegador "
 "ou use um adequado!"
 
-#: chat.php:1691 chat.php:2370 chat.php:2457
+#: index.php:1748 index.php:2429 index.php:2516 chat.php:1748 chat.php:2429
+#: chat.php:2516
 msgid "Back to the login page."
 msgstr "Voltar para a página de login."
 
-#: chat.php:1709
+#: index.php:1766 chat.php:1766
 msgid "Bottom"
 msgstr "Base"
 
-#: chat.php:1710
+#: index.php:1767 chat.php:1767
 msgid "Manual refresh required"
 msgstr "Recarregar a página manualmente"
 
-#: chat.php:1726
+#: index.php:1783 chat.php:1783
 msgid "Top"
 msgstr "Topo"
 
-#: chat.php:1734 chat.php:1940 chat.php:1942
+#: index.php:1791 index.php:1997 index.php:1999 chat.php:1791 chat.php:1997
+#: chat.php:1999
 msgid "Delete selected messages"
 msgstr "Excluir mensagens selecionadas"
 
-#: chat.php:1761 chat.php:1888 chat.php:2101 chat.php:2281
+#: index.php:1818 index.php:1945 index.php:2160 index.php:2340 chat.php:1818
+#: chat.php:1945 chat.php:2160 chat.php:2340
 msgid "Back to the chat."
 msgstr "Voltar para o chat."
 
-#: chat.php:1774 chat.php:1791
+#: index.php:1831 index.php:1848 chat.php:1831 chat.php:1848
 msgid "Admin notes"
 msgstr "Notas dos administradores"
 
-#: chat.php:1777 chat.php:1788
+#: index.php:1834 index.php:1845 chat.php:1834 chat.php:1845
 msgid "Staff notes"
 msgstr "Notas do equipe"
 
-#: chat.php:1811
+#: index.php:1868 chat.php:1868
 msgid "Notes saved!"
 msgstr "Notas salvadas!"
 
-#: chat.php:1835 chat.php:2122
+#: index.php:1892 index.php:2181 chat.php:1892 chat.php:2181
 #, php-format
 msgid "Last edited by %1$s at %2$s"
 msgstr "Última edição por %1$s em %2$s"
 
-#: chat.php:1848
+#: index.php:1905 chat.php:1905
 msgid "Save notes"
 msgstr "Salvar Notas"
 
-#: chat.php:1850
+#: index.php:1907 chat.php:1907
 msgid "Revisions:"
 msgstr "Revisões:"
 
-#: chat.php:1853
+#: index.php:1910 chat.php:1910
 msgid "Older"
 msgstr "Mais velho"
 
-#: chat.php:1857
+#: index.php:1914 chat.php:1914
 msgid "Newer"
 msgstr "Mais recente"
 
-#: chat.php:1868 chat.php:1914
+#: index.php:1925 index.php:1971 chat.php:1925 chat.php:1971
 msgid "Waiting room"
 msgstr "Sala de espera"
 
-#: chat.php:1880
+#: index.php:1937 chat.php:1937
 msgid "Allow checked"
 msgstr "Permitir selecionado"
 
-#: chat.php:1881
+#: index.php:1938 chat.php:1938
 msgid "Allow all"
 msgstr "Permitir todos"
 
-#: chat.php:1882
+#: index.php:1939 chat.php:1939
 msgid "Deny checked"
 msgstr "Negar selecionado"
 
-#: chat.php:1883
+#: index.php:1940 chat.php:1940
 msgid "Deny all"
 msgstr "Negar todos"
 
-#: chat.php:1883
+#: index.php:1940 chat.php:1940
 msgid "Send message to denied:"
 msgstr "Enviar mensagem para negado:"
 
-#: chat.php:1884
+#: index.php:1941 chat.php:1941
 msgid "Submit"
 msgstr "Enviar"
 
-#: chat.php:1886
+#: index.php:1943 chat.php:1943
 msgid "No more entry requests to approve."
 msgstr "Não há mais solicitações de entrada para aprovar."
 
-#: chat.php:1916
+#: index.php:1973 chat.php:1973
 #, php-format
 msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat in %2$d "
@@ -896,7 +940,7 @@ msgstr ""
 "Bem-vindo %1$s, seu login foi atrasado, você pode acessar o chat em %2$d "
 "segundos."
 
-#: chat.php:1918
+#: index.php:1975 chat.php:1975
 #, php-format
 msgid ""
 "Welcome %1$s, your login has been delayed, you can access the chat as soon, "
@@ -905,7 +949,7 @@ msgstr ""
 "Bem-vindo %1$s, seu login foi atrasado, você pode acessar o chat assim que "
 "um moderador permitir que você entre."
 
-#: chat.php:1921
+#: index.php:1978 chat.php:1978
 #, php-format
 msgid ""
 "If this page doesn't refresh every %d seconds, use the button below to "
@@ -914,64 +958,69 @@ msgstr ""
 "Se esta página não atualizar a cada %d segundos, use o botão abaixo para "
 "recarregá-la manualmente!"
 
-#: chat.php:1926 chat.php:2339
+#: index.php:1983 index.php:2398 chat.php:1983 chat.php:2398
 msgid "Exit Chat"
 msgstr "Sair do chat"
 
-#: chat.php:1929 chat.php:2074 chat.php:2085 chat.php:2430
+#: index.php:1986 index.php:2133 index.php:2144 index.php:2489 chat.php:1986
+#: chat.php:2133 chat.php:2144 chat.php:2489
 msgid "Rules"
 msgstr "Regras"
 
-#: chat.php:1985
+#: index.php:2042 chat.php:2042
 msgid "Send to"
 msgstr "Enviar para"
 
-#: chat.php:1990
+#: index.php:2047 chat.php:2047
 msgid "All chatters"
 msgstr "Todos"
 
-#: chat.php:1996
+#: index.php:2053 chat.php:2053
 msgid "Members only"
 msgstr "Apenas membros"
 
-#: chat.php:2003
+#: index.php:2060 chat.php:2060
 msgid "Staff only"
 msgstr "Apenas equipe"
 
-#: chat.php:2010
+#: index.php:2067 chat.php:2067
 msgid "Admin only"
 msgstr "Apenas administradores"
 
-#: chat.php:2019
+#: index.php:2076 chat.php:2076
 msgid "(offline)"
 msgstr "(offline)"
 
-#: chat.php:2043
+#: index.php:2078 chat.php:2078
+msgid "(logging out)"
+msgstr ""
+
+#: index.php:2102 chat.php:2102
 msgid "Also purge messages"
 msgstr "Também limpar mensagens"
 
-#: chat.php:2050
+#: index.php:2109 chat.php:2109
 msgid "Delete last message"
 msgstr "Apagar a última mensagem"
 
-#: chat.php:2055
+#: index.php:2114 chat.php:2114
 msgid "Delete all messages"
 msgstr "Apagar todas as mensagens"
 
-#: chat.php:2057
+#: index.php:2116 chat.php:2116
 msgid "Switch to single-line"
 msgstr "Mudar para linha única"
 
-#: chat.php:2059
+#: index.php:2118 chat.php:2118
 msgid "Switch to multi-line"
 msgstr "Mudar para multilinhas"
 
-#: chat.php:2070
+#: index.php:2129 chat.php:2129
 #, php-format
 msgid "Welcome %s!"
 msgstr "Bem-vindo %s!"
 
-#: chat.php:2071
+#: index.php:2130 chat.php:2130
 #, php-format
 msgid ""
 "If this frame does not reload in %d seconds, you'll have to enable automatic "
@@ -989,11 +1038,11 @@ msgstr ""
 "você pode usar os botoes na parte inferior da página para atualizar "
 "manualmente."
 
-#: chat.php:2087
+#: index.php:2146 chat.php:2146
 msgid "Help"
 msgstr "Ajuda"
 
-#: chat.php:2088
+#: index.php:2147 chat.php:2147
 msgid ""
 "All functions should be pretty much self-explaining, just use the buttons. "
 "In your profile you can adjust the refresh rate and font colour, as well as "
@@ -1005,7 +1054,7 @@ msgstr ""
 "ignorar os usuários.<br><u>Observação:</u> Isso é um chat, então se você não "
 "continuar falando, será automaticamente desconectado depois de um tempo."
 
-#: chat.php:2090
+#: index.php:2149 chat.php:2149
 msgid ""
 "If you want to embed an image in your post, simply put [img] in front of "
 "your image URL. Example: [img]http://example.com/images/file.jpg will embed "
@@ -1015,7 +1064,7 @@ msgstr ""
 "frente do URL da imagem. Exemplo: [img]http://example.com/images/file.jpg "
 "irá incorporar a imagem em sua postagem."
 
-#: chat.php:2093
+#: index.php:2152 chat.php:2152
 msgid ""
 "Members: You'll have some more options in your profile. You can adjust your "
 "font face, change your password anytime and of course you can delete your "
@@ -1025,7 +1074,7 @@ msgstr ""
 "sua fonte, alterar sua senha a qualquer momento e, claro, você pode excluir "
 "sua conta."
 
-#: chat.php:2095
+#: index.php:2154 chat.php:2154
 msgid ""
 "Moderators: Notice the Admin-button at the bottom. It'll bring up a page "
 "where you can clean the room, kick chatters, view all active sessions and "
@@ -1035,7 +1084,7 @@ msgstr ""
 "onde você pode limpar a sala, interromper as conversas, ver todas as sessões "
 "ativas e desabilitar o acesso de convidados completamente, se necessário."
 
-#: chat.php:2097
+#: index.php:2156 chat.php:2156
 msgid ""
 "Admins: You'll be furthermore able to register guests, edit members and "
 "register new nicknames."
@@ -1043,227 +1092,233 @@ msgstr ""
 "Admins: Além de tudo isso, você poderá registrar convidados, editar membros "
 "e registrar novas nicknames."
 
-#: chat.php:2135
+#: index.php:2194 chat.php:2194
 msgid "Your Profile"
 msgstr "Seu perfil"
 
-#: chat.php:2144
+#: index.php:2203 chat.php:2203
 msgid "Don't ignore anymore"
 msgstr "Não ignorar mais"
 
-#: chat.php:2152
+#: index.php:2211 chat.php:2211
 msgid "Ignore"
 msgstr "Ignorar"
 
-#: chat.php:2163
+#: index.php:2222 chat.php:2222
 #, php-format
 msgid "Refresh rate (%1$d-%2$d seconds)"
 msgstr "Taxa de recarregar (%1$d-%2$d segundos)"
 
-#: chat.php:2167 chat.php:2170
+#: index.php:2226 index.php:2229 chat.php:2226 chat.php:2229
 msgid "View examples"
 msgstr "Ver exemplos"
 
-#: chat.php:2174
+#: index.php:2233 chat.php:2233
 msgid "Fontface"
 msgstr "Tipo de letra"
 
-#: chat.php:2175
+#: index.php:2234 chat.php:2234
 msgid "Room Default"
 msgstr "Padrão"
 
-#: chat.php:2188
+#: index.php:2247 chat.php:2247
 msgid "Bold"
 msgstr "Negrito"
 
-#: chat.php:2192
+#: index.php:2251 chat.php:2251
 msgid "Italic"
 msgstr "Itálico"
 
-#: chat.php:2196
+#: index.php:2255 chat.php:2255
 msgid "Small"
 msgstr "Pequeno"
 
-#: chat.php:2199
+#: index.php:2258 chat.php:2258
 msgid "Example for your chosen font"
 msgstr "Exemplo para a fonte escolhida"
 
-#: chat.php:2203
+#: index.php:2262 chat.php:2262
 msgid "Autoscroll (for old browsers or top-to-bottom sort)."
 msgstr ""
 "Rolagem automática (para navegadores antigos ou quando mostra as mensagens "
 "mais novas no alto)"
 
-#: chat.php:2234
+#: index.php:2293 chat.php:2293
 msgid "For everyone"
 msgstr "Para todos"
 
-#: chat.php:2239
+#: index.php:2298 chat.php:2298
 msgid "For members only"
 msgstr "Apenas para membros"
 
-#: chat.php:2244
+#: index.php:2303 chat.php:2303
 msgid "For staff only"
 msgstr "Apenas para equipe"
 
-#: chat.php:2248
+#: index.php:2307 chat.php:2307
 msgid "Time zone"
 msgstr "Fuso horário"
 
-#: chat.php:2261
+#: index.php:2320 chat.php:2320
 msgid "Change Password"
 msgstr "Mudar Senha"
 
-#: chat.php:2263
+#: index.php:2322 chat.php:2322
 msgid "Old password:"
 msgstr "Senha Antiga:"
 
-#: chat.php:2264
+#: index.php:2323 chat.php:2323
 msgid "New password:"
 msgstr "Nova senha:"
 
-#: chat.php:2265
+#: index.php:2324 chat.php:2324
 msgid "Confirm new password:"
 msgstr "Confirmar nova senha:"
 
-#: chat.php:2268
+#: index.php:2327 chat.php:2327
 msgid "Change Nickname"
 msgstr "Mudar nickname"
 
-#: chat.php:2269
+#: index.php:2328 chat.php:2328
 msgid "New nickname:"
 msgstr "Nova nickname:"
 
-#: chat.php:2273
+#: index.php:2332 chat.php:2332
 msgid "Save changes"
 msgstr "Salvar alterações"
 
-#: chat.php:2275
+#: index.php:2334 chat.php:2334
 msgid "Delete account"
 msgstr "Deletar conta"
 
-#: chat.php:2301
+#: index.php:2360 chat.php:2360
 msgid "Reload Post Box"
 msgstr "Recarregar caixa de postagem"
 
-#: chat.php:2304
+#: index.php:2363 chat.php:2363
 msgid "Reload Messages"
 msgstr "Recarregar Mensagens"
 
-#: chat.php:2307
+#: index.php:2366 chat.php:2366
 msgid "Profile"
 msgstr "Perfil"
 
-#: chat.php:2311 chat.php:2528
+#: index.php:2370 index.php:2590 chat.php:2370 chat.php:2590
 msgid "Admin"
 msgstr "Admin"
 
-#: chat.php:2318
+#: index.php:2377 chat.php:2377
 msgid "View public notes"
 msgstr "Ler notas públicas"
 
-#: chat.php:2325
+#: index.php:2384 chat.php:2384
 msgid "Clone"
 msgstr "Clonar"
 
-#: chat.php:2334
+#: index.php:2393 chat.php:2393
 msgid "Rearrange"
 msgstr "Rearrumar"
 
-#: chat.php:2337
+#: index.php:2396 chat.php:2396
 msgid "Rules & Help"
 msgstr "Regras & Ajuda"
 
-#: chat.php:2358 chat.php:2362
+#: index.php:2417 index.php:2421 chat.php:2417 chat.php:2421
 msgid "File not found!"
 msgstr "Arquivo não encontrado!"
 
-#: chat.php:2370
+#: index.php:2429 chat.php:2429
 #, php-format
 msgid "Bye %s, visit again soon!"
 msgstr "Tchau %s, te vejo em breve!"
 
-#: chat.php:2377
+#: index.php:2436 chat.php:2436
 msgid "Colourtable"
 msgstr ""
 
-#: chat.php:2388
+#: index.php:2447 chat.php:2447
 msgid "Back to your Profile"
 msgstr "Voltar para o seu Perfil"
 
-#: chat.php:2412
+#: index.php:2471 chat.php:2471
 msgid "Repeat password<br>to register"
 msgstr "Repita a senha<br>para registrar"
 
-#: chat.php:2412
+#: index.php:2471 chat.php:2471
 msgid "(optional)"
 msgstr "(opcional)"
 
-#: chat.php:2417
+#: index.php:2476 chat.php:2476
 msgid "Guests, choose a colour:"
 msgstr "Convidados, escolham uma cor:"
 
-#: chat.php:2417
+#: index.php:2476 chat.php:2476
 msgid "Random Colour"
 msgstr "Cor Aleatória"
 
-#: chat.php:2421 chat.php:2435 chat.php:2569
+#: index.php:2480 index.php:2494 index.php:2631 chat.php:2480 chat.php:2494
+#: chat.php:2631
 msgid "Sorry, currently members only!"
 msgstr "Desculpe, atualmente apenas membros!"
 
-#: chat.php:2423 chat.php:2437
+#: index.php:2482 index.php:2496 chat.php:2482 chat.php:2496
 msgid "Enter Chat"
 msgstr "Entrar no Chat"
 
-#: chat.php:2457
+#: index.php:2516 chat.php:2516
 #, php-format
 msgid "Error: %s"
 msgstr "Erro: %s"
 
-#: chat.php:2467
+#: index.php:2526 chat.php:2526
 msgid "Fatal error"
 msgstr "Erro fatal"
 
-#: chat.php:2470
+#: index.php:2529 chat.php:2529
 #, php-format
 msgid "Fatal error: %s"
 msgstr "Erro fatal: %s"
 
-#: chat.php:2482 chat.php:2693
+#: index.php:2541 index.php:2756 chat.php:2541 chat.php:2756
 msgid "Failed login attempt(s)"
 msgstr "Tentativas de login falhada(s)"
 
-#: chat.php:2489
+#: index.php:2548 chat.php:2548
 #, php-format
 msgid "Read %d messages in your inbox"
 msgstr "Leia %d mensagens na sua caixa de entrada"
 
-#: chat.php:2498
+#: index.php:2557 chat.php:2557
 #, php-format
 msgid "%d new guests to approve"
 msgstr "%d novos convidados para aprovar"
 
-#: chat.php:2530
+#: index.php:2577 chat.php:2577
+msgid "logging out"
+msgstr ""
+
+#: index.php:2592 chat.php:2592
 msgid "Admin:"
 msgstr "Admin:"
 
-#: chat.php:2533
+#: index.php:2595 chat.php:2595
 msgid "Staff"
 msgstr "Equipe"
 
-#: chat.php:2535
+#: index.php:2597 chat.php:2597
 msgid "Staff:"
 msgstr "Equipe:"
 
-#: chat.php:2540
+#: index.php:2602 chat.php:2602
 msgid "Members:"
 msgstr "Membros:"
 
-#: chat.php:2542
+#: index.php:2604 chat.php:2604
 msgid "Guests"
 msgstr "Convidados"
 
-#: chat.php:2563 chat.php:2993 chat.php:3197 chat.php:4092
+#: index.php:2625 index.php:3063 index.php:3267 index.php:4172 chat.php:2625
+#: chat.php:3063 chat.php:3267 chat.php:4172
 #, php-format
 msgid ""
 "Invalid nickname (%1$d characters maximum and has to match the regular "
@@ -1272,7 +1327,8 @@ msgstr ""
 "Nickname inválido (%1$d caracteres no máximo e deve corresponder à expressão "
 "regular \"%2$s\")"
 
-#: chat.php:2566 chat.php:2996 chat.php:3162 chat.php:4094
+#: index.php:2628 index.php:3066 index.php:3232 index.php:4174 chat.php:2628
+#: chat.php:3066 chat.php:3232 chat.php:4174
 #, php-format
 msgid ""
 "Invalid password (At least %1$d characters and has to match the regular "
@@ -1281,248 +1337,256 @@ msgstr ""
 "Senha inválida (Pelo menos %1$d caracteres e tem que corresponder à "
 "expressão regular \"%2$s\")"
 
-#: chat.php:2574 chat.php:2739
+#: index.php:2636 index.php:2806 chat.php:2636 chat.php:2806
 msgid "Wrong global Password!"
 msgstr "Senha global incorreta!"
 
-#: chat.php:2591 chat.php:2612
+#: index.php:2654 index.php:2675 chat.php:2654 chat.php:2675
 msgid "Wrong Captcha"
 msgstr "Captcha Errado"
 
-#: chat.php:2596 chat.php:2604
+#: index.php:2659 index.php:2667 chat.php:2659 chat.php:2667
 msgid "Captcha already used or timed out."
 msgstr "Captcha já usado ou expirou."
 
-#: chat.php:2652
+#: index.php:2715 chat.php:2715
 msgid "A user with this nickname is already logged in."
 msgstr "Um usuário com este nickname já está logado."
 
-#: chat.php:2652 chat.php:2933 chat.php:3176
+#: index.php:2715 index.php:3003 index.php:3246 chat.php:2715 chat.php:3003
+#: chat.php:3246
 msgid "Wrong Password!"
 msgstr "Senha errada!"
 
-#: chat.php:2696
+#: index.php:2759 chat.php:2759
 msgid "Dismiss"
 msgstr "Reconhecido"
 
-#: chat.php:2747 chat.php:3171 chat.php:4096
+#: index.php:2814 index.php:3241 index.php:4176 chat.php:2814 chat.php:3241
+#: chat.php:4176
 msgid "Password confirmation does not match!"
 msgstr "A confirmação da senha não corresponde!"
 
-#: chat.php:2859
+#: index.php:2854 chat.php:2854
+#, fuzzy
+#| msgid "Kickmessage:"
+msgid "no kick message"
+msgstr "Mensagem da expulsão:"
+
+#: index.php:2929 chat.php:2929
 msgid "Invalid/expired session"
 msgstr "Sessão inválida/expirada"
 
-#: chat.php:2875 chat.php:3412
+#: index.php:2945 index.php:3483 chat.php:2945 chat.php:3483
 msgid "You have been kicked!"
 msgstr "Você foi expulso!"
 
-#: chat.php:2885
+#: index.php:2955 chat.php:2955
 #, php-format
 msgid "Currently %d chatter(s) in room:"
 msgstr "Atualmente %d usuário(s) na sala:"
 
-#: chat.php:2933
+#: index.php:3003 chat.php:3003
 msgid "This nickname is a registered member."
 msgstr "Este nickname é de um membro registrado."
 
-#: chat.php:2960 chat.php:3001
+#: index.php:3030 index.php:3071 chat.php:3030 chat.php:3071
 #, php-format
 msgid "%s is already registered."
 msgstr "%s já está registrado."
 
-#: chat.php:2969 chat.php:2990
+#: index.php:3039 index.php:3060 chat.php:3039 chat.php:3060
 #, php-format
 msgid "Can't register %s"
 msgstr "Não é possível registrar %s"
 
-#: chat.php:2978 chat.php:3023
+#: index.php:3048 index.php:3093 chat.php:3048 chat.php:3093
 #, php-format
 msgid "%s successfully registered."
 msgstr "%s registrado com sucesso."
 
-#: chat.php:3031 chat.php:3036
+#: index.php:3101 index.php:3106 chat.php:3101 chat.php:3106
 #, php-format
 msgid "Can't change status of %s"
 msgstr "Não é possível alterar o status de %s"
 
-#: chat.php:3047
+#: index.php:3117 chat.php:3117
 #, php-format
 msgid "%s successfully deleted from database."
 msgstr "%s excluído com sucesso do banco de dados."
 
-#: chat.php:3056
+#: index.php:3126 chat.php:3126
 #, php-format
 msgid "Status of %s successfully changed."
 msgstr "Status de %s alterado com sucesso."
 
-#: chat.php:3073
+#: index.php:3143 chat.php:3143
 #, php-format
 msgid "Successfully reset password for %s"
 msgstr ""
 
-#: chat.php:3075
+#: index.php:3145 chat.php:3145
 #, php-format
 msgid "Can't reset password for %s"
 msgstr ""
 
-#: chat.php:3190
+#: index.php:3260 chat.php:3260
 msgid "Your profile has successfully been saved."
 msgstr "Seu perfil foi salvo com sucesso."
 
-#: chat.php:3202
+#: index.php:3272 chat.php:3272
 msgid "Nickname is already taken"
 msgstr "A nickname já foi escolhida"
 
-#: chat.php:3714
+#: index.php:3785 chat.php:3785
 msgid "system message"
 msgstr "mensagem do sistema"
 
-#: chat.php:3921
+#: index.php:4001 chat.php:4001
 msgid "Beige"
 msgstr "Bege"
 
-#: chat.php:3922
+#: index.php:4002 chat.php:4002
 msgid "Black"
 msgstr "Preto"
 
-#: chat.php:3923
+#: index.php:4003 chat.php:4003
 msgid "Blue"
 msgstr "Azul"
 
-#: chat.php:3924
+#: index.php:4004 chat.php:4004
 msgid "Blue violet"
 msgstr "Violeta azul"
 
-#: chat.php:3925
+#: index.php:4005 chat.php:4005
 msgid "Brown"
 msgstr "Marrom"
 
-#: chat.php:3926
+#: index.php:4006 chat.php:4006
 msgid "Cyan"
 msgstr "Ciano"
 
-#: chat.php:3927
+#: index.php:4007 chat.php:4007
 msgid "Dark blue"
 msgstr "Azul escuro"
 
-#: chat.php:3928
+#: index.php:4008 chat.php:4008
 msgid "Dark green"
 msgstr "Verde escuro"
 
-#: chat.php:3929
+#: index.php:4009 chat.php:4009
 msgid "Dark red"
 msgstr "Vermelho escuro"
 
-#: chat.php:3930
+#: index.php:4010 chat.php:4010
 msgid "Dark violet"
 msgstr "Violeta escuro"
 
-#: chat.php:3931
+#: index.php:4011 chat.php:4011
 msgid "Sky blue"
 msgstr "Azul-celeste"
 
-#: chat.php:3932
+#: index.php:4012 chat.php:4012
 msgid "Gold"
 msgstr "Dourado"
 
-#: chat.php:3933
+#: index.php:4013 chat.php:4013
 msgid "Grey"
 msgstr "Cinza"
 
-#: chat.php:3934
+#: index.php:4014 chat.php:4014
 msgid "Green"
 msgstr "Verde"
 
-#: chat.php:3935
+#: index.php:4015 chat.php:4015
 msgid "Hot pink"
 msgstr "Rosa quente"
 
-#: chat.php:3936
+#: index.php:4016 chat.php:4016
 msgid "Indigo"
 msgstr "Índigo"
 
-#: chat.php:3937
+#: index.php:4017 chat.php:4017
 msgid "Light blue"
 msgstr "Azul claro"
 
-#: chat.php:3938
+#: index.php:4018 chat.php:4018
 msgid "Light green"
 msgstr "Verde claro"
 
-#: chat.php:3939
+#: index.php:4019 chat.php:4019
 msgid "Lime green"
 msgstr "Verde limão"
 
-#: chat.php:3940
+#: index.php:4020 chat.php:4020
 msgid "Magenta"
 msgstr "Magenta"
 
-#: chat.php:3941
+#: index.php:4021 chat.php:4021
 msgid "Olive"
 msgstr "Oliva"
 
-#: chat.php:3942
+#: index.php:4022 chat.php:4022
 msgid "Orange"
 msgstr "Laranja"
 
-#: chat.php:3943
+#: index.php:4023 chat.php:4023
 msgid "Orange red"
 msgstr "Vermelho alaranjado"
 
-#: chat.php:3944
+#: index.php:4024 chat.php:4024
 msgid "Purple"
 msgstr "Roxo"
 
-#: chat.php:3945
+#: index.php:4025 chat.php:4025
 msgid "Red"
 msgstr "Vermelho"
 
-#: chat.php:3946
+#: index.php:4026 chat.php:4026
 msgid "Royal blue"
 msgstr "Azul royal"
 
-#: chat.php:3947
+#: index.php:4027 chat.php:4027
 msgid "Sea green"
 msgstr "Verde Mar"
 
-#: chat.php:3948
+#: index.php:4028 chat.php:4028
 msgid "Sienna"
 msgstr "Sienna"
 
-#: chat.php:3949
+#: index.php:4029 chat.php:4029
 msgid "Silver"
 msgstr "Prata"
 
-#: chat.php:3950
+#: index.php:4030 chat.php:4030
 msgid "Tan"
 msgstr "Bronzeado"
 
-#: chat.php:3951
+#: index.php:4031 chat.php:4031
 msgid "Teal"
 msgstr "Cerceta"
 
-#: chat.php:3952
+#: index.php:4032 chat.php:4032
 msgid "Violet"
 msgstr "Violeta"
 
-#: chat.php:3953
+#: index.php:4033 chat.php:4033
 msgid "White"
 msgstr "Branco"
 
-#: chat.php:3954
+#: index.php:4034 chat.php:4034
 msgid "Yellow"
 msgstr "Amarelo"
 
-#: chat.php:3955
+#: index.php:4035 chat.php:4035
 msgid "Yellow green"
 msgstr "Amarelo verde"
 
-#: chat.php:4077
+#: index.php:4157 chat.php:4157
 msgid "Successfully destroyed chat"
 msgstr "Chat destruído com sucesso"
 
-#: chat.php:4086
+#: index.php:4166 chat.php:4166
 msgid ""
 "Database tables already exist! To continue, you have to delete these tables "
 "manually first."
@@ -1530,98 +1594,103 @@ msgstr ""
 "As tabelas de banco de dados já existem! Para continuar, você deve primeiro "
 "excluir essas tabelas manualmente."
 
-#: chat.php:4089
+#: index.php:4169 chat.php:4169
 msgid "A Superadmin already exists!"
 msgstr "Já existe um Superadmin!"
 
-#: chat.php:4182 chat.php:4369
+#: index.php:4263 index.php:4451 chat.php:4263 chat.php:4451
 #, php-format
 msgid "%s - "
 msgstr "%s - "
 
-#: chat.php:4183 chat.php:4369
+#: index.php:4264 index.php:4451 chat.php:4264 chat.php:4451
 #, php-format
 msgid "[M] %s - "
 msgstr "[M] %s - "
 
-#: chat.php:4184 chat.php:4369
+#: index.php:4265 index.php:4451 chat.php:4265 chat.php:4451
 #, php-format
 msgid "[Staff] %s - "
 msgstr "[Equipe] %s - "
 
-#: chat.php:4185 chat.php:4369
+#: index.php:4266 index.php:4451 chat.php:4266 chat.php:4451
 #, php-format
 msgid "[Admin] %s - "
 msgstr "[Admin] %s - "
 
-#: chat.php:4186 chat.php:4369
+#: index.php:4267 index.php:4451 chat.php:4267 chat.php:4451
 #, php-format
 msgid "[%1$s to %2$s] - "
 msgstr "[%1$s a %2$s] - "
 
-#: chat.php:4187
+#: index.php:4268 chat.php:4268
 #, php-format
 msgid "%s entered the chat."
 msgstr "%s entrou no chat."
 
-#: chat.php:4188
+#: index.php:4269 chat.php:4269
 #, php-format
 msgid "%s left the chat."
 msgstr "%s saiu do chat."
 
-#: chat.php:4189
+#: index.php:4270 chat.php:4270
 #, php-format
 msgid "%s is now a registered member."
 msgstr "%s agora é um membro registrado."
 
-#: chat.php:4190
+#: index.php:4271 chat.php:4271
 #, php-format
 msgid "%s is now a registered applicant."
 msgstr "%s agora é um candidato registrado."
 
-#: chat.php:4191
-#, php-format
-msgid "%s has been kicked."
+#: index.php:4272 chat.php:4272
+#, fuzzy, php-format
+#| msgid "%s has been kicked."
+msgid "%1$s has been kicked: %2$s"
 msgstr "%s foi kickado."
 
-#: chat.php:4192
-#, php-format
-msgid "%s have been kicked."
+#: index.php:4273 chat.php:4273
+#, fuzzy, php-format
+#| msgid "%s have been kicked."
+msgid "%1$s have been kicked: %2$s"
 msgstr "%s foram kickados."
 
-#: chat.php:4193
-msgid "All guests have been kicked."
+#: index.php:4274 chat.php:4274
+#, fuzzy, php-format
+#| msgid "All guests have been kicked."
+msgid "All guests have been kicked: %1$s"
 msgstr "Todos os convidados foram expulsos."
 
-#: chat.php:4194
+#: index.php:4275 chat.php:4275
 #, php-format
 msgid "%s has been cleaned."
 msgstr "%s foi limpa."
 
-#: chat.php:4202 chat.php:4396
+#: index.php:4283 index.php:4478 chat.php:4283 chat.php:4478
 msgid "Temporarily disabled"
 msgstr "Temporariamente desativado"
 
-#: chat.php:4218 chat.php:4594
+#: index.php:4299 index.php:4676 chat.php:4299 chat.php:4676
 msgid "A chat community"
 msgstr "Uma comunidade de bate-papo"
 
-#: chat.php:4256
+#: index.php:4338 chat.php:4338
 msgid "Successfully registered!"
 msgstr "Registrado com sucesso!"
 
-#: chat.php:4522 chat.php:4721 chat.php:4728
+#: index.php:4604 index.php:4807 index.php:4814 chat.php:4604 chat.php:4807
+#: chat.php:4814
 msgid "No connection to database!"
 msgstr "Sem conexão com o banco de dados!"
 
-#: chat.php:4531
+#: index.php:4613 chat.php:4613
 msgid ""
 "Note: Default CSS is now hardcoded and can be removed from the CSS setting"
 msgstr ""
 "Nota: CSS padrão agora está codificado e pode ser removido da configuração "
 "CSS"
 
-#: chat.php:4611
+#: index.php:4697 chat.php:4697
 #, php-format
 msgid ""
 "The %s extension of PHP is required for the encryption feature. Please "
@@ -1630,7 +1699,8 @@ msgstr ""
 "La biblioteca de extensão %s da PHP é obrigada por usando criptografia. Por "
 "favor instalar isso primeiramente ou altere a opção MSGENCRYPTED para false."
 
-#: chat.php:4684 chat.php:4689 chat.php:4694
+#: index.php:4770 index.php:4775 index.php:4780 chat.php:4770 chat.php:4775
+#: chat.php:4780
 #, php-format
 msgid ""
 "The %s extension of PHP is required for the selected database driver. Please "
@@ -1639,7 +1709,8 @@ msgstr ""
 "La biblioteca de extensão %s da PHP é obrigada por usando o banco de dados "
 "escolhido (MySQL ou MariaDB). Por favor instalar isso primeiramente."
 
-#: chat.php:4707 chat.php:4715 chat.php:4719 chat.php:4726
+#: index.php:4793 index.php:4801 index.php:4805 index.php:4812 chat.php:4793
+#: chat.php:4801 chat.php:4805 chat.php:4812
 msgid ""
 "No connection to database, please create a database and edit the script to "
 "use the correct database with given username and password!"
@@ -1648,7 +1719,7 @@ msgstr ""
 "para usar o banco de dados correto com o nome de usuário e a senha "
 "fornecidos!"
 
-#: chat.php:4734
+#: index.php:4820 chat.php:4820
 msgid ""
 "The memcached extension of PHP is required for the caching feature. Please "
 "install it first or set the memcached setting back to false."

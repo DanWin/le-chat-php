@@ -38,11 +38,12 @@ Features:
 Installation Instructions:
 --------------------------
 
-You'll need to have php with intl, gettext, pdo, pcre, mbstring and date extension, and a web-server installed.
+You'll need to have php with gettext, pdo, pcre, mbstring and date extension, and a web-server installed.
 You will also need the pdo_sqlite, pdo_mysql or pdo_pgsql extension, depending on which database you choose.
 Optionally, you can install:
 - the gd extension for the captcha feature
 - the json extension for save/restore
+- the intl extension for browser language detection
 - a memcached server and the memcached extension and change the configuration to use memcached. This will lessen the database load a bit.
 - a MySQL or PostgreSQL server to use as an external database instead of SQLite
 - the libsodium extension (PHP >= 7.2) for encryption of messages and notes in the database
