@@ -2231,7 +2231,7 @@ function send_post(string $rejected=''): void
 	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	echo '<table><tr><td><table><tr id="firstline"><td> ' . $U['status'] . ' ' .style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
+	echo '<table><tr><td><table><tr id="firstline"><td> ' . style_this(htmlspecialchars($U['nickname']), $U['style']) . '</td><td>:</td>';
 	if(isset($_POST['multi'])){
 		echo "<td><textarea name=\"message\" rows=\"3\" cols=\"40\" style=\"$U[style]\" autofocus>$rejected</textarea></td>";
 	}else{
