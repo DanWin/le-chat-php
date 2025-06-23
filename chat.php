@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - Main program
 *
-* Copyright (C) 2015-2021 Daniel Winzen <daniel@danwin1210.me>
+* Copyright (C) 2015-2025 Daniel Winzen <daniel@danwin1210.me>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -115,7 +115,20 @@ function route(): void
 				}
 			}
 		}elseif(isset($_POST['message']) && isset($_POST['sendto'])){
-			send_post(validate_input());
+			if($_POST['sendto']!=='s *'){
+				if($U['status']==='1'){ // Check if user if Guest
+					$noguespm=(bool)  get_setting('noguestpm'); // get the Guest PM settings
+					if(!$noguespm){
+						send_post(validate_input());
+					}else{
+						system_pm('noguestpm'); // Return a PM from the System to tell the guest it didn't work/
+					}
+				}else{
+					send_post(validate_input()); // Not a guest
+				}
+			}else{
+				send_post(validate_input()); // Sent to everyone
+			}
 		}
 		send_post();
 	}elseif($_REQUEST['action']==='login'){
@@ -295,6 +308,7 @@ function route_setup(): void
 		'incognito' => _('Incognito mode'),
 		'sendmail' => _('Send mail on new public message'),
 		'modfallback' => _('Fallback to waiting room, if no moderator is present to approve guests'),
+		'noguestpm' =>_('Disable Guests private messages'),
 		'disablepm' => _('Disable private messages'),
 		'eninbox' => _('Enable offline inbox'),
 		'enablegreeting' => _('Show a greeting message before showing the messages'),
@@ -2217,7 +2231,7 @@ function send_post(string $rejected=''): void
 	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
-	echo '<table><tr><td><table><tr id="firstline"><td>'.style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
+	echo '<table><tr><td><table><tr id="firstline"><td> ' . $U['status'] . ' ' .style_this(htmlspecialchars($U['nickname']), $U['style']).'</td><td>:</td>';
 	if(isset($_POST['multi'])){
 		echo "<td><textarea name=\"message\" rows=\"3\" cols=\"40\" style=\"$U[style]\" autofocus>$rejected</textarea></td>";
 	}else{
@@ -3516,8 +3530,16 @@ function add_user_defaults(string $password): void
 	$U['exiting']=0;
 }
 
+// Sending system messages via PM to users
+/* This can be used for many different warnings or information*/
+function system_pm(string $type) : string {
+	global $U;
+	if($type == 'noguestpm'){ // Disabled Guest PM Message.
+		add_system_pm_message('[<span style="color:red;">System</span> - <span style="' . $U['style'] . '">' . $U['nickname'] . '</span>] <span style="color:yellow;">Unable to send private messages while your in guest mode.</span>', $U['nickname'], '');
+	}
+	return '';	
+}
 // message handling
-
 function validate_input() : string {
 	global $U, $db;
 	$inbox=false;
@@ -3825,7 +3847,33 @@ function add_system_message(string $mes, string $doer): void
 	}
 	write_message($sysmessage);
 }
+function add_system_pm_message(string $mes, string $recipient, string $doer): void
+{
+	if($mes===''){
+		return;
+	}
+	if($doer==='' || !get_setting('namedoers')){
+		$sysmessage=[
+			'postdate'	=>time(),
+			'poststatus'	=>9,
+			'poster'	=>'System',
+			'recipient'	=> $recipient,
+			'text'		=>"$mes",
+			'delstatus'	=>4
+		];
 
+	} else {
+		$sysmessage=[
+			'postdate'	=>time(),
+			'poststatus'	=>9,
+			'poster'	=>'System',
+			'recipient'	=> $recipient,
+			'text'		=>"$mes ($doer)",
+			'delstatus'	=>4
+		];
+	}
+	write_message($sysmessage);
+}
 function write_message(array $message): void
 {
 	global $db;
@@ -4433,6 +4481,7 @@ function init_chat(): void
 			['defaultrefresh', '20'],
 			['dismemcaptcha', '0'],
 			['suguests', '0'],
+			['noguestpm', '0'],
 			['imgembed', '1'],
 			['timestamps', '1'],
 			['trackip', '0'],
@@ -4620,7 +4669,7 @@ function update_db(): void
 			}
 			$stmt->execute([$style, $temp['id']]);
 		}
-		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('colbg', '000000'), ('coltxt', 'FFFFFF'), ('maxname', '20'), ('minpass', '5'), ('defaultrefresh', '20'), ('dismemcaptcha', '0'), ('suguests', '0'), ('imgembed', '1'), ('timestamps', '1'), ('trackip', '0'), ('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), ('memkick', '1'), ('forceredirect', '0'), ('redirect', ''), ('incognito', '1');");
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('colbg', '000000'), ('coltxt', 'FFFFFF'), ('maxname', '20'), ('minpass', '5'), ('defaultrefresh', '20'), ('dismemcaptcha', '0'), ('suguests', '0'), ('noguestpm', '0'), ('imgembed', '1'), ('timestamps', '1'), ('trackip', '0'), ('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), ('memkick', '1'), ('forceredirect', '0'), ('redirect', ''), ('incognito', '1');");
 	}
 	if($dbversion<12){
 		$db->exec('ALTER TABLE ' . PREFIX . 'captcha MODIFY code char(5) NOT NULL, DROP INDEX id, ADD PRIMARY KEY (id) USING BTREE;');
