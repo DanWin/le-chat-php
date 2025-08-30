@@ -115,20 +115,7 @@ function route(): void
 				}
 			}
 		}elseif(isset($_POST['message']) && isset($_POST['sendto'])){
-			if($_POST['sendto']!=='s *'){
-				if($U['status']==='1'){ // Check if user if Guest
-					$noguespm=(bool)  get_setting('noguestpm'); // get the Guest PM settings
-					if(!$noguespm){
-						send_post(validate_input());
-					}else{
-						system_pm('noguestpm'); // Return a PM from the System to tell the guest it didn't work/
-					}
-				}else{
-					send_post(validate_input()); // Not a guest
-				}
-			}else{
-				send_post(validate_input()); // Sent to everyone
-			}
+			send_post(validate_input()); // Not a guest
 		}
 		send_post();
 	}elseif($_REQUEST['action']==='login'){
@@ -2265,7 +2252,7 @@ function send_post(string $rejected=''): void
 		echo 'value="s _">-'._('Admin only').'-</option>';
 	}
 	$disablepm=(bool) get_setting('disablepm');
-	if(!$disablepm){
+	if(!$disablepm && !($U['status']==1 && get_setting('noguestpm'))){
 		$users=[];
 		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, exiting, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 0, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY LOWER(nickname);');
 		$stmt->execute([$U['status'], $U['nickname'], $U['nickname']]);
@@ -3530,15 +3517,6 @@ function add_user_defaults(string $password): void
 	$U['exiting']=0;
 }
 
-// Sending system messages via PM to users
-/* This can be used for many different warnings or information*/
-function system_pm(string $type) : string {
-	global $U;
-	if($type == 'noguestpm'){ // Disabled Guest PM Message.
-		add_system_pm_message('[<span style="color:red;">System</span> - <span style="' . $U['style'] . '">' . $U['nickname'] . '</span>] <span style="color:yellow;">Unable to send private messages while your in guest mode.</span>', $U['nickname'], '');
-	}
-	return '';	
-}
 // message handling
 function validate_input() : string {
 	global $U, $db;
@@ -3587,6 +3565,10 @@ function validate_input() : string {
 	}else{ // known nick in room?
 		if(get_setting('disablepm')){
 			//PMs disabled
+			return '';
+		}
+		if($U['status']==1 && get_setting('noguestpm')){
+			// Guest user disabled from sending PMs
 			return '';
 		}
 		$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'ignored WHERE (ignby=? AND ign=?) OR (ign=? AND ignby=?);');
@@ -4669,7 +4651,7 @@ function update_db(): void
 			}
 			$stmt->execute([$style, $temp['id']]);
 		}
-		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('colbg', '000000'), ('coltxt', 'FFFFFF'), ('maxname', '20'), ('minpass', '5'), ('defaultrefresh', '20'), ('dismemcaptcha', '0'), ('suguests', '0'), ('noguestpm', '0'), ('imgembed', '1'), ('timestamps', '1'), ('trackip', '0'), ('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), ('memkick', '1'), ('forceredirect', '0'), ('redirect', ''), ('incognito', '1');");
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('colbg', '000000'), ('coltxt', 'FFFFFF'), ('maxname', '20'), ('minpass', '5'), ('defaultrefresh', '20'), ('dismemcaptcha', '0'), ('suguests', '0'), ('imgembed', '1'), ('timestamps', '1'), ('trackip', '0'), ('captchachars', '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), ('memkick', '1'), ('forceredirect', '0'), ('redirect', ''), ('incognito', '1');");
 	}
 	if($dbversion<12){
 		$db->exec('ALTER TABLE ' . PREFIX . 'captcha MODIFY code char(5) NOT NULL, DROP INDEX id, ADD PRIMARY KEY (id) USING BTREE;');
@@ -4928,6 +4910,9 @@ function update_db(): void
 	if($dbversion<49){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('captchattfont', '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf');");
 	}
+	if($dbversion<50){
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('noguestpm', '0');");
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -5130,7 +5115,7 @@ function load_lang(): void
 function load_config(): void
 {
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 49); // Database layout version
+	define('DBVERSION', 50); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
