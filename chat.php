@@ -683,7 +683,7 @@ function send_captcha(): void
 		$fg=imagecolorallocate($im, 255, 255, 255);
 		imagefill($im, 0, 0, $bg);
 		imagestring($im, 5, 5, 5, $code, $fg);
-		echo '<img alt="" width="55" height="24" src="data:image/gif;base64,';
+		echo '<img alt="" width="55" height="24" src="data:image/png;base64,';
 	}elseif($difficulty===2){
 		$im=imagecreatetruecolor(55, 24);
 		$bg=imagecolorallocate($im, 0, 0, 0);
@@ -698,7 +698,7 @@ function send_captcha(): void
 		for($i=0;$i<100;++$i){
 			imagesetpixel($im, mt_rand(0, 55), mt_rand(0, 24), $dots);
 		}
-		echo '<img alt="" width="55" height="24" src="data:image/gif;base64,';
+		echo '<img alt="" width="55" height="24" src="data:image/png;base64,';
 	}elseif($difficulty===3){ // hard
 		$im=imagecreatetruecolor(55, 24);
 		$bg=imagecolorallocatealpha($im, 0, 0, 0, 127);
@@ -812,7 +812,7 @@ function send_captcha(): void
 			$follow=imagecolorallocate($im, mt_rand(10, 255), mt_rand(10, 255), mt_rand(10, 255));
 			imageline($im, $chars[$i]['x']+ $fontwidth / 2, $chars[$i]['y']+ $fontheight / 2, $chars[$i+1]['x']+4, $chars[$i+1]['y']+8, IMG_COLOR_STYLED);
 		}
-		echo '<img alt="CAPTCHA" width="' . $CAPTCHAWIDTH . '" height="' . $CAPTCHAHEIGHT . '" src="data:image/gif;base64,';
+		echo '<img alt="CAPTCHA" width="' . $CAPTCHAWIDTH . '" height="' . $CAPTCHAHEIGHT . '" src="data:image/png;base64,';
 	} elseif ($difficulty===5 || $difficulty===6 || $difficulty===7 || $difficulty===8){ // TrueType
 		$CAPTCHAWIDTH = 620;
 		$CAPTCHAHEIGHT = 177;
@@ -925,10 +925,10 @@ function send_captcha(): void
 				}
 			}
 		}
-		echo '<img alt="" width="' . $CAPTCHAWIDTH . '" height="' .$CAPTCHAHEIGHT . '" src="data:image/gif;base64,';
+		echo '<img alt="" width="' . $CAPTCHAWIDTH . '" height="' .$CAPTCHAHEIGHT . '" src="data:image/png;base64,';
 	}
 	ob_start();
-	imagegif($im);
+	imagepng($im);
 	imagedestroy($im);
 	echo base64_encode(ob_get_clean()).'">';
 	echo '</td></tr><tr><td>'.hidden('challenge', $randid).'<input type="text" name="captcha" size="15" autocomplete="off" required></td></tr>';
