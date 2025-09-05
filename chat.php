@@ -672,7 +672,7 @@ function send_captcha(): void
 	echo '<tr id="captcha"><td>';
 	if ($difficulty===4) {
 		echo _('Type the characters connected by dotted lines:');
-	} elseif ($difficulty===7 || $difficulty===8) {
+	} elseif ($difficulty===7 || $difficulty===8 || $difficulty===10) {
 		echo _('Type the five largest characters:');
 	} else {
 		echo _('Type the characters in the image:');
@@ -813,7 +813,7 @@ function send_captcha(): void
 			imageline($im, $chars[$i]['x']+ $fontwidth / 2, $chars[$i]['y']+ $fontheight / 2, $chars[$i+1]['x']+4, $chars[$i+1]['y']+8, IMG_COLOR_STYLED);
 		}
 		echo '<img alt="CAPTCHA" width="' . $CAPTCHAWIDTH . '" height="' . $CAPTCHAHEIGHT . '" src="data:image/png;base64,';
-	} elseif ($difficulty===5 || $difficulty===6 || $difficulty===7 || $difficulty===8){ // TrueType
+	} elseif ($difficulty===5 || $difficulty===6 || $difficulty===7 || $difficulty===8 || $difficulty===9 || $difficulty===10){ // TrueType
 		$CAPTCHAWIDTH = 620;
 		$CAPTCHAHEIGHT = 177;
 		$im = imagecreatetruecolor($CAPTCHAWIDTH, $CAPTCHAHEIGHT);
@@ -827,30 +827,31 @@ function send_captcha(): void
 		} else {
 			imagefill($im, 0, 0, imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255)));
 		}
-		if ($difficulty===7 || $difficulty===8){
+		if ($difficulty===7 || $difficulty===8 || $difficulty===10){
 			for($i=0; $i<50; ++$i){ // small spurious characters
-				if ($difficulty===7) {
+				if ($difficulty===7 || $difficulty===10) {
 					$color = imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
 				} else {
 					$lightness = mt_rand(127, 255);
 					$color = imagecolorallocate($im, $lightness, $lightness, $lightness);
 				}
 				$charsize = mt_rand($CAPTCHAHEIGHT * 0.18 , $CAPTCHAHEIGHT * 0.25);
+				//	$color = imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
 				imagefttext($im, $charsize, mt_rand(0, 90) - 45, mt_rand(0, $CAPTCHAWIDTH), mt_rand(0, $CAPTCHAHEIGHT), $color, get_setting('captchattfont'), $captchachars[mt_rand(0, strlen($captchachars)-1)]);
 			}
 		}
 		// characters in solution
 		for($i=0; $i<5; ++$i){
-			if ($difficulty===7) {
-				$color = imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
-			} else {
+			if ($difficulty===8) {
 				$lightness = mt_rand(127, 255);
 				$color = imagecolorallocate($im, $lightness, $lightness, $lightness);
+			} else {
+				$color = imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
 			}
 			$charsize = mt_rand($CAPTCHAHEIGHT * 0.5 , $CAPTCHAHEIGHT * 0.7);
 			imagefttext($im, $charsize, mt_rand(0, 90) - 45, ($CAPTCHAWIDTH  / 8 * ($i * 1.5 + 0.5)), $CAPTCHAHEIGHT - $charsize / 2,  $color, get_setting('captchattfont'), $code[$i-5]);
 		}
-		if ($difficulty===7 || $difficulty===8){
+		if ($difficulty===7 || $difficulty===8 || $difficulty===10){
 			for($i=0; $i<50; ++$i){ // more small spurious characters
 				if ($difficulty===7) {
 					$color = imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
@@ -860,6 +861,23 @@ function send_captcha(): void
 				}
 				$charsize = mt_rand($CAPTCHAHEIGHT * 0.18 , $CAPTCHAHEIGHT * 0.25);
 				imagefttext($im, $charsize, mt_rand(0, 90) - 45, mt_rand(0, $CAPTCHAWIDTH), mt_rand(0, $CAPTCHAHEIGHT), $color, get_setting('captchattfont'), $captchachars[mt_rand(0, strlen($captchachars)-1)]);
+			}
+		}
+		if ($difficulty===9 || $difficulty===10){
+			imagelayereffect($im,IMG_EFFECT_MULTIPLY);
+			$interval=mt_rand(3, $CAPTCHAWIDTH/32);
+			$x=0;
+			while ($x<$CAPTCHAWIDTH) {
+				$interval=mt_rand(2, $CAPTCHAWIDTH/32);
+				$line=imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
+				imagefilledrectangle($im, $x, 0, $x + $interval, $CAPTCHAHEIGHT, imagecolorallocate($im, mt_rand(128, 255), mt_rand(128, 255), mt_rand(128, 255)));
+				$x+=$interval;
+			}
+			$y=0;
+			while ($y<$CAPTCHAHEIGHT) {
+				$interval=mt_rand(3, $CAPTCHAHEIGHT/16);
+				imagefilledrectangle($im, 0, $y, $CAPTCHAWIDTH, $y + $interval, imagecolorallocate($im, mt_rand(128, 255), mt_rand(128, 255), mt_rand(128, 255)));
+				$y+=$interval;
 			}
 		}
 		if ($difficulty===5 || $difficulty===6){
@@ -1097,6 +1115,16 @@ function send_setup(array $C): void
 			echo ' selected';
 		}
 		echo '>'._('TrueType with spurious characters, monochrome').'</option>';
+		echo '<option value="9"';
+		if($captcha===9){
+			echo ' selected';
+		}
+		echo '>'._('TrueType on plaid background').'</option>';
+		echo '<option value="10"';
+		if($captcha===10){
+			echo ' selected';
+		}
+		echo '>'._('TrueType on plaid background with spurious characters').'</option>';
 		echo '</select></td></tr>';
 	}
 	echo '</table></td></tr></table></td></tr>';
