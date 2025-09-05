@@ -677,29 +677,34 @@ function send_captcha(): void
 	} else {
 		echo _('Type the characters in the image:');
 	}
-	if($difficulty===1){
-		$im=imagecreatetruecolor(55, 24);
-		$bg=imagecolorallocate($im, 0, 0, 0);
-		$fg=imagecolorallocate($im, 255, 255, 255);
+	if($difficulty===1 || $difficulty===2){
+		$fontwidth = imagefontwidth(5);
+		$fontheight = imagefontheight(5);
+		$CAPTCHAWIDTH = $fontwidth * 5 * 3;
+		$CAPTCHAHEIGHT = $fontheight * 3;
+		$im=imagecreatetruecolor($CAPTCHAWIDTH, $CAPTCHAHEIGHT);
+		$bg=imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
 		imagefill($im, 0, 0, $bg);
-		imagestring($im, 5, 5, 5, $code, $fg);
-		echo '<img alt="" width="55" height="24" src="data:image/png;base64,';
-	}elseif($difficulty===2){
-		$im=imagecreatetruecolor(55, 24);
-		$bg=imagecolorallocate($im, 0, 0, 0);
-		$fg=imagecolorallocate($im, 255, 255, 255);
-		imagefill($im, 0, 0, $bg);
-		imagestring($im, 5, 5, 5, $code, $fg);
-		$line=imagecolorallocate($im, 255, 255, 255);
-		for($i=0;$i<2;++$i){
-			imageline($im, 0, mt_rand(0, 24), 55, mt_rand(0, 24), $line);
+		$margins = 0;
+		if($difficulty===2){
+			for($i=0; $i<5; $i++){
+				for($j=0; $j<2; $j++){
+					imagefilledrectangle($im, mt_rand($i * $CAPTCHAWIDTH / 5, ($i + 1) * $CAPTCHAWIDTH / 5), mt_rand(0, $CAPTCHAHEIGHT), mt_rand(($i + 0.5) * $CAPTCHAWIDTH / 5, ($i + 1.5) * $CAPTCHAWIDTH / 5), mt_rand(0, $CAPTCHAHEIGHT), imagecolorallocate($im, mt_rand(128, 255), mt_rand(128, 255), mt_rand(128, 255)));
+				}
+			}
 		}
-		$dots=imagecolorallocate($im, 255, 255, 255);
-		for($i=0;$i<100;++$i){
-			imagesetpixel($im, mt_rand(0, 55), mt_rand(0, 24), $dots);
+		imagefilter($im, IMG_FILTER_SMOOTH, 5);
+		$xoffset=0;
+		for($i=0; $i<5; $i++){
+			$xoffset+= mt_rand(0, ($CAPTCHAWIDTH - (5 * $fontwidth)) - $xoffset); // randomly shift characters to the right
+			imagechar($im, 5, $xoffset + $i * $fontwidth, mt_rand(0, $CAPTCHAHEIGHT - $fontheight), $code[$i], imagecolorallocate($im, mt_rand(224, 255), mt_rand(224, 255), mt_rand(224, 255)));
+			if($difficulty===2){
+				imagelayereffect($im,IMG_EFFECT_OVERLAY);
+			}
 		}
-		echo '<img alt="" width="55" height="24" src="data:image/png;base64,';
 	}elseif($difficulty===3){ // hard
+		$CAPTCHAWIDTH=120;
+		$CAPTCHAHEIGHT=80;
 		$im=imagecreatetruecolor(55, 24);
 		$bg=imagecolorallocatealpha($im, 0, 0, 0, 127);
 		$fg=imagecolorallocate($im, 255, 255, 255);
@@ -737,7 +742,6 @@ function send_captcha(): void
 			imagesetpixel($im, mt_rand(0, 120), mt_rand(0, 80), $dots);
 		}
 		imagedestroy($char);
-		echo '<img width="120" height="80" src="data:image/png;base64,';
 	}elseif($difficulty===4){ // extreme
 		$CAPTCHAWIDTH = 300;
 		$CAPTCHAHEIGHT = 300;
@@ -812,7 +816,6 @@ function send_captcha(): void
 			$follow=imagecolorallocate($im, mt_rand(10, 255), mt_rand(10, 255), mt_rand(10, 255));
 			imageline($im, $chars[$i]['x']+ $fontwidth / 2, $chars[$i]['y']+ $fontheight / 2, $chars[$i+1]['x']+4, $chars[$i+1]['y']+8, IMG_COLOR_STYLED);
 		}
-		echo '<img alt="CAPTCHA" width="' . $CAPTCHAWIDTH . '" height="' . $CAPTCHAHEIGHT . '" src="data:image/png;base64,';
 	} elseif ($difficulty===5 || $difficulty===6 || $difficulty===7 || $difficulty===8 || $difficulty===9 || $difficulty===10){ // TrueType
 		$CAPTCHAWIDTH = 620;
 		$CAPTCHAHEIGHT = 177;
@@ -943,8 +946,8 @@ function send_captcha(): void
 				}
 			}
 		}
-		echo '<img alt="" width="' . $CAPTCHAWIDTH . '" height="' .$CAPTCHAHEIGHT . '" src="data:image/png;base64,';
 	}
+	echo '<img alt="CAPTCHA" width="' . $CAPTCHAWIDTH . '" height="' . $CAPTCHAHEIGHT . '" src="data:image/png;base64,';
 	ob_start();
 	imagepng($im);
 	imagedestroy($im);
@@ -1079,12 +1082,12 @@ function send_setup(array $C): void
 		if($captcha===1){
 			echo ' selected';
 		}
-		echo '>'._('Simple (deprecated)').'</option>';
+		echo '>'._('Simple').'</option>';
 		echo '<option value="2"';
 		if($captcha===2){
 			echo ' selected';
 		}
-		echo '>'._('Moderate (deprecated)').'</option>';
+		echo '>'._('Moderate').'</option>';
 		echo '<option value="3"';
 		if($captcha===3){
 			echo ' selected';
