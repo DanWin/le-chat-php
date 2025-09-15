@@ -363,6 +363,7 @@ function route_setup(): void
 	$C['text_settings']=[
 		'dateformat' => _('<a target="_blank" href="https://php.net/manual/en/function.date.php#refsect1-function.date-parameters" rel="noopener noreferrer">Date formating</a>'),
 		'captchachars' => _('Characters used in Captcha'),
+		'captchagdfont' => _('File name or path and file name for optional GD font for captcha'),
 		'captchattfont' => _('Font name or path and filename for TrueType font used in some captchas'),
 		'redirect' => _('Custom redirection script'),
 		'chatname' => _('Chat name'),
@@ -677,9 +678,17 @@ function send_captcha(): void
 	} else {
 		echo _('Type the characters in the image:');
 	}
+	if($difficulty===1 || $difficulty===2 || $difficulty===4){
+		// optionally use custom GD font for simple, moderate and extreme captchas
+		if (get_setting('captchagdfont') === '') {
+			$gdfont = imageloadfont(5); // load 9-by-10-pixel built-in font
+		}else{
+			$gdfont = imageloadfont(get_setting('captchagdfont'));
+		}
+		$fontwidth = imagefontwidth($gdfont);
+		$fontheight = imagefontheight($gdfont);
+	}
 	if($difficulty===1 || $difficulty===2){
-		$fontwidth = imagefontwidth(5);
-		$fontheight = imagefontheight(5);
 		$CAPTCHAWIDTH = $fontwidth * 5 * 3;
 		$CAPTCHAHEIGHT = $fontheight * 3;
 		$im=imagecreatetruecolor($CAPTCHAWIDTH, $CAPTCHAHEIGHT);
@@ -697,7 +706,7 @@ function send_captcha(): void
 		$xoffset=0;
 		for($i=0; $i<5; $i++){
 			$xoffset+= mt_rand(0, ($CAPTCHAWIDTH - (5 * $fontwidth)) - $xoffset); // randomly shift characters to the right
-			imagechar($im, 5, $xoffset + $i * $fontwidth, mt_rand(0, $CAPTCHAHEIGHT - $fontheight), $code[$i], imagecolorallocate($im, mt_rand(224, 255), mt_rand(224, 255), mt_rand(224, 255)));
+			imagechar($im, $gdfont, $xoffset + $i * $fontwidth, mt_rand(0, $CAPTCHAHEIGHT - $fontheight), $code[$i], imagecolorallocate($im, mt_rand(224, 255), mt_rand(224, 255), mt_rand(224, 255)));
 			if($difficulty===2){
 				imagelayereffect($im,IMG_EFFECT_OVERLAY);
 			}
@@ -750,22 +759,17 @@ function send_captcha(): void
 		$fg=imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255));
 		imagefill($im, 0, 0, $bg);
 		imagelayereffect($im,IMG_EFFECT_NORMAL);
-		$fontwidth = imagefontwidth(5); // 9 pixels wide
-		$fontheight = imagefontheight(5); // 10 pixels high
 		for($i=0; $i<20; ++$i){
 			$leftx = mt_rand(0, $CAPTCHAWIDTH - $fontwidth);
 			$topy = mt_rand(0, $CAPTCHAHEIGHT - $fontheight);
-			for($j=0; $j<($numpoints * 2); $j+=2){
-				$points[$j]=$leftx + mt_rand(0, $fontwidth);
-				$points[$j+1]=$topy + mt_rand(0, $fontheight);
-			}
 			$numpoints=(int) mt_rand(3,6);
-			for($k=0; $k<($numpoints * 2); $k+=2){
-				$points[$k]=mt_rand(0, $CAPTCHAWIDTH);
-				$points[$k+1]=mt_rand(0, $CAPTCHAHEIGHT);
+			for($j=0; $j<($numpoints * 2); $j+=2){
+				$points[$j]=mt_rand(0, $CAPTCHAWIDTH); // x coordinate
+				$points[$j+1]=mt_rand(0, $CAPTCHAHEIGHT); // y coordinate
 			}
 			imagefilledpolygon( $im, $points, $numpoints, imagecolorallocate($im, mt_rand(0, 255), mt_rand(0, 255), mt_rand(0, 255)));
 		}
+		imagefilter($im, IMG_FILTER_SMOOTH, 3);
 		$chars=[];
 		$x = $y = 0;
 		imagelayereffect($im,IMG_EFFECT_NORMAL);
@@ -798,9 +802,9 @@ function send_captcha(): void
 			imagelayereffect($im, IMG_EFFECT_OVERLAY);
 			$fg = imagecolorallocate($im, 255, 255, 255);
 			if($i<5){ // characters in solution
-				imagechar($im, 5, $chars[$i]['x'], $chars[$i]['y'], $code[$i], $fg);
+				imagechar($im, $gdfont, $chars[$i]['x'], $chars[$i]['y'], $code[$i], $fg);
 			}else{ // spurious characters
-				imagechar($im, 5, $chars[$i]['x'], $chars[$i]['y'], $captchachars[mt_rand(0, $length)], $fg);
+				imagechar($im, $gdfont, $chars[$i]['x'], $chars[$i]['y'], $captchachars[mt_rand(0, $length)], $fg);
 			}
 		}
 		imagelayereffect($im, IMG_EFFECT_OVERLAY);
@@ -4485,6 +4489,7 @@ function init_chat(): void
 			['messageexpire', '14400'],
 			['messagelimit', '150'],
 			['maxmessage', 2000],
+			['captchagdfont', ''],
 			['captchattfont', '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf'],
 			['captchatime', '600'],
 			['colbg', '000000'],
@@ -4944,6 +4949,9 @@ function update_db(): void
 	if($dbversion<50){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('noguestpm', '0');");
 	}
+	if($dbversion<51){
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('captchagdfont', '');");
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -5146,7 +5154,7 @@ function load_lang(): void
 function load_config(): void
 {
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 50); // Database layout version
+	define('DBVERSION', 51); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
