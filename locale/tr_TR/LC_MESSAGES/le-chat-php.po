@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-29 17:02+0100\n"
-"PO-Revision-Date: 2025-10-27 22:20+0000\n"
-"Last-Translator: Turkish Mark <turkishmark@yandex.com>\n"
+"PO-Revision-Date: 2025-10-28 23:01+0000\n"
+"Last-Translator: Turkish Language Team <turkishmark@yandex.com>\n"
 "Language-Team: Turkish <https://weblate.danwin1210.de/projects/DanWin/"
 "le-chat-php/tr/>\n"
 "Language: tr_TR\n"
@@ -478,7 +478,7 @@ msgstr "Basit"
 
 #: index.php:904 chat.php:904
 msgid "Moderate"
-msgstr "Orta"
+msgstr "Orta düzeyde"
 
 #: index.php:909 chat.php:909
 msgid "Hard"
@@ -752,7 +752,7 @@ msgstr "Aktif Oturumlar"
 
 #: index.php:1403 index.php:1930 chat.php:1403 chat.php:1930
 msgid "Nickname"
-msgstr "Kullanıcı adı"
+msgstr "Takma isim"
 
 #: index.php:1403 chat.php:1403
 msgid "Timeout in"
@@ -960,7 +960,7 @@ msgstr "Sohbetten çık"
 #: index.php:1986 index.php:2133 index.php:2144 index.php:2489 chat.php:1986
 #: chat.php:2133 chat.php:2144 chat.php:2489
 msgid "Rules"
-msgstr "Tüzük"
+msgstr "Kurallar"
 
 #: index.php:2042 chat.php:2042
 msgid "Send to"
@@ -1348,7 +1348,7 @@ msgstr "Bu kullanıcı ismine sahip birisi zaten giriş yapmış."
 #: index.php:2715 index.php:3003 index.php:3246 chat.php:2715 chat.php:3003
 #: chat.php:3246
 msgid "Wrong Password!"
-msgstr "Yanlış şifre!"
+msgstr "Şifre Yalnış!"
 
 #: index.php:2759 chat.php:2759
 msgid "Dismiss"
@@ -1558,7 +1558,7 @@ msgstr "Deniz mavisi"
 
 #: index.php:4032 chat.php:4032
 msgid "Violet"
-msgstr "Mor"
+msgstr "Menekşe"
 
 #: index.php:4033 chat.php:4033
 msgid "White"
@@ -1641,7 +1641,7 @@ msgstr "%1$s atıldı: %2$s"
 #: index.php:4273 chat.php:4273
 #, php-format
 msgid "%1$s have been kicked: %2$s"
-msgstr "%1$s atıldı: %2$s"
+msgstr "%1$s atıldılar: %2$s"
 
 #: index.php:4274 chat.php:4274
 #, php-format
