@@ -15,8 +15,8 @@ Features:
 * Optimized for Tor
 * No JavaScript needed
 * Cookies supported, but not needed
-* Captcha
-* Multiple languages
+* CAPTCHA
+* Multiple languages (20+ languages)
 * Members and guests
 * Waiting room for guests
 * Moderatoral approval of new guests
@@ -38,15 +38,15 @@ Features:
 Installation Instructions:
 --------------------------
 
-You'll need to have php with gettext, pdo, pcre, mbstring and date extension, and a web-server installed.
-You will also need the pdo_sqlite, pdo_mysql or pdo_pgsql extension, depending on which database you choose.
+You'll need to have php with `gettext`, `pdo`, `pcre`, `mbstring` and `date` extension, and a web-server installed.
+You will also need the `pdo_sqlite`, `pdo_mysql` or `pdo_pgsql` extension, depending on which database you choose.
 Optionally, you can install:
-- the gd extension for the captcha feature
-- the json extension for save/restore
-- the intl extension for browser language detection
+- the `gd` extension for the captcha feature
+- the `json` extension for save/restore
+- the `intl` extension for browser language detection
 - a memcached server and the memcached extension and change the configuration to use memcached. This will lessen the database load a bit.
 - a MySQL or PostgreSQL server to use as an external database instead of SQLite
-- the libsodium extension (PHP >= 7.2) for encryption of messages and notes in the database
+- the `libsodium` extension (PHP >= 7.2) for encryption of messages and notes in the database
 When you have everything installed and use MySQL or PostgreSQL, you'll have to create a database and a user for the chat.
 Then edit the configuration at the bottom of the script to reflect the appropriate database settings and to modify the chat settings the way you like them.
 Then copy the script to your web-server directory and call the script in your browser with a parameter like this:
@@ -68,7 +68,7 @@ Regex:
 
 Yes, the chat supports regular expression filtering of messages. As regex tends to be difficult for most people, I decided to give it an extra section here.
 Regex is very powerful and can be used to filter messages that contain certain expressions and replace them with something else.
-It can be used e.g. to turn BB Code into html, so it is possible to use BB Code in the chat to format messages.
+It can be used e.g. to turn BBCode into HTML, so it is possible to use BBCode in the chat to format messages.
 To do this, use this Regex-Match `\[(u|b)\](.*?)\[\/\1\]` and this Regex-Replace `<$1>$2</$1>` and your text will be `[b]bold[/b]` or `[u]underlined[/u]`.
 You can also use smilies by using this Regex-Match `(?-i::(cry|eek|lol|sad|smile|surprised|wink):)` and this Regex-Replace `<img src="/pictures/$1.gif" alt=":$1:">`
 And now if you enter `:smile:` an image with the smiley will be loaded from your server at `/pictures/smile.gif`.
