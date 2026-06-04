@@ -159,7 +159,7 @@ function route(): void
 		check_session();
 		if($U['status']<3 && get_setting('exitwait')){
 			$U['exiting']=1;
-			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET exiting=1 WHERE session=? LIMIT 1;');
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET exiting=1 WHERE session=?;');
 			$stmt->execute([$U['session']]);
 		} else {
 			kill_session();
@@ -1420,7 +1420,7 @@ function send_sa_password_reset(): void
 	if(defined('RESET_SUPERADMIN_PASSWORD') && !empty(RESET_SUPERADMIN_PASSWORD)){
 		$stmt = $db->query('SELECT nickname FROM ' . PREFIX . 'members WHERE status = 8 LIMIT 1;');
 		if($user = $stmt->fetch(PDO::FETCH_ASSOC)){
-			$mem_update = $db->prepare('UPDATE ' . PREFIX . 'members SET passhash = ? WHERE nickname = ? LIMIT 1;');
+			$mem_update = $db->prepare('UPDATE ' . PREFIX . 'members SET passhash = ? WHERE nickname = ?;');
 			$mem_update->execute([password_hash(RESET_SUPERADMIN_PASSWORD, PASSWORD_DEFAULT), $user['nickname']]);
 			$sess_delete = $db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname = ?;');
 			$sess_delete->execute([$user['nickname']]);
@@ -3018,7 +3018,7 @@ function check_login(): void
 	parse_sessions();
 	if(isset($U['session'])){
 		if($U['exiting']==1){
-			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET exiting=0 WHERE session=? LIMIT 1;');
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET exiting=0 WHERE session=?;');
 			$stmt->execute([$U['session']]);
 		}
 		check_kicked();
