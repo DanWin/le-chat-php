@@ -4940,7 +4940,7 @@ function update_db(): void
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('hide_reload_post_box', '0'), ('hide_reload_messages', '0'),('hide_profile', '0'),('hide_admin', '0'),('hide_notes', '0'),('hide_clone', '0'),('hide_rearrange', '0'),('hide_help', '0'),('max_refresh_rate', '150'),('min_refresh_rate', '5'),('postbox_delete_globally', '0'),('allow_js', '1');");
 	}
 	if($dbversion<48){
-		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('exitwait', '180'), ('exitingtxt', ' &#128682;"); // door emoji
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('exitwait', '180'), ('exitingtxt', ' &#128682');"); // door emoji
 		$db->exec('ALTER TABLE ' . PREFIX . 'sessions ADD COLUMN exiting smallint NOT NULL DEFAULT 0;');
 	}
 	if($dbversion<49){
