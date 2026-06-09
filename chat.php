@@ -122,6 +122,10 @@ function route(): void
 		check_login();
 		show_fails();
 		send_frameset();
+	}elseif($_REQUEST['action']==='pgp2fa'){
+		check_pgp2fa();
+		show_fails();
+		send_frameset();
 	}elseif($_REQUEST['action']==='controls'){
 		check_session();
 		send_controls();
@@ -2419,6 +2423,14 @@ function send_profile(string $arg=''): void
 	while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		$ignored[]=htmlspecialchars($tmp['ign']);
 	}
+	$pgpkey='';
+	if($U['status']>=2){
+		$stmt=$db->prepare('SELECT pgpkey FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute([$U['nickname']]);
+		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
+			$pgpkey=$tmp[0] ?? '';
+		}
+	}
 	if(count($ignored)>0){
 		echo '<tr><td><table id="unignore"><tr><th>'._("Don't ignore anymore").'</th><td>';
 		echo '<select name="unignore" size="1"><option value="">'._('(choose)').'</option>';
@@ -2544,6 +2556,11 @@ function send_profile(string $arg=''): void
 		echo '<tr><td>&nbsp;</td><td>'._('Confirm new password:').'</td><td><input type="password" name="confirmpass" size="20" autocomplete="new-password"></td></tr>';
 		echo '</table></td></tr></table></td></tr>';
 		thr();
+		echo '<tr><td><table id="pgp2fa"><tr><th>'._('PGP two-factor authentication').'</th></tr>';
+		echo '<tr><td><textarea name="pgpkey" rows="8" cols="72" placeholder="'._('Paste your PGP public key here to require PGP 2FA at login.').'">'.htmlspecialchars($pgpkey).'</textarea></td></tr>';
+		echo '<tr><td><label><input type="checkbox" name="clearpgpkey" value="on"> '._('Remove PGP two-factor authentication').'</label></td></tr>';
+		echo '</table></td></tr>';
+		thr();
 		echo '<tr><td><table id="changenick"><tr><th>'._('Change Nickname').'</th><td><table>';
 		echo '<tr><td>&nbsp;</td><td>'._('New nickname:').'</td><td><input type="text" name="newnickname" size="20" autocomplete="username">';
 		echo '</table></td></tr></table></td></tr>';
@@ -2665,6 +2682,22 @@ function send_colours(): void
 		echo '<br>';
 	}
 	echo '</b></kbd>'.form('profile').submit(_('Back to your Profile'), ' class="backbutton"').'</form>';
+	print_end();
+}
+
+function send_pgp2fa(string $nickname, string $encrypted_challenge): void
+{
+	print_start('pgp2fa');
+	echo '<h1 id="chatname">'.get_setting('chatname').'</h1>';
+	echo '<h2>'._('PGP two-factor authentication').'</h2>';
+	echo '<p>'._('Decrypt this message with your PGP private key, then enter the verification code.').'</p>';
+	echo '<textarea rows="12" cols="72" readonly>'.htmlspecialchars($encrypted_challenge).'</textarea>';
+	echo form_target('_parent', 'pgp2fa');
+	echo hidden('nick', htmlspecialchars($nickname));
+	echo '<table>';
+	echo '<tr><td>'._('Verification code:').'</td><td><input type="text" name="pgpcode" size="20" autocomplete="one-time-code" autofocus></td></tr>';
+	echo '<tr><td colspan="2">'.submit(_('Enter Chat')).'</td></tr></table></form>';
+	echo form_target('_parent', '').submit(_('Back to the login page.'), 'class="backbutton"').'</form>';
 	print_end();
 }
 
@@ -2836,6 +2869,9 @@ function create_session(bool $setup, string $nickname, string $password): void
 		if($setup && $U['status']>=7){
 			$U['incognito']=1;
 		}
+		if(!$setup && !empty(trim($U['pgpkey'] ?? ''))){
+			start_pgp2fa();
+		}
 		$U['entry']=$U['lastpost']=time();
 	}else{
 		add_user_defaults($password);
@@ -2863,6 +2899,189 @@ function create_session(bool $setup, string $nickname, string $password): void
 		send_error($e->getMessage());
 	}
 	write_new_session($password);
+}
+
+function pgp_encrypt_message(string $public_key, string $message) : string
+{
+	try {
+		$encrypted=pgp_try_encrypt_message($public_key, $message);
+	} catch(Throwable $e) {
+		send_error($e->getMessage());
+	}
+	return $encrypted;
+}
+
+function pgp_try_encrypt_message(string $public_key, string $message) : string
+{
+	$public_key=str_replace("\r\n", "\n", trim($public_key));
+	if(extension_loaded('gnupg')){
+		$gpg=new gnupg();
+		$info=$gpg->import($public_key);
+		$fingerprint=pgp_import_fingerprint($info);
+		if($fingerprint!==''){
+			$gpg->addencryptkey($fingerprint);
+			$encrypted=$gpg->encrypt($message);
+			if($encrypted!==false){
+				return $encrypted;
+			}
+		}
+	}
+	return pgp_try_encrypt_message_with_gpg($public_key, $message);
+}
+
+function pgp_import_fingerprint($info) : string
+{
+	if(!is_array($info)){
+		return '';
+	}
+	if(!empty($info['fingerprint']) && is_string($info['fingerprint'])){
+		return $info['fingerprint'];
+	}
+	if(!empty($info['fingerprints']) && is_array($info['fingerprints'])){
+		foreach($info['fingerprints'] as $fingerprint){
+			if(is_string($fingerprint) && $fingerprint!==''){
+				return $fingerprint;
+			}
+		}
+	}
+	if(!empty($info[0]) && is_string($info[0])){
+		return $info[0];
+	}
+	return '';
+}
+
+function pgp_try_encrypt_message_with_gpg(string $public_key, string $message) : string
+{
+	if(!function_exists('exec')){
+		throw new RuntimeException(_('The PHP exec function or the gnupg extension is required for PGP two-factor authentication.'));
+	}
+	$gpg=pgp_find_gpg_binary();
+	$base=rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.'lechatpgp-'.bin2hex(random_bytes(8));
+	if(!mkdir($base, 0700)){
+		throw new RuntimeException(_('Could not create a temporary directory for PGP two-factor authentication.'));
+	}
+	$keyfile=$base.DIRECTORY_SEPARATOR.'key.asc';
+	$messagefile=$base.DIRECTORY_SEPARATOR.'message.txt';
+	$outputfile=$base.DIRECTORY_SEPARATOR.'message.asc';
+	file_put_contents($keyfile, $public_key);
+	file_put_contents($messagefile, $message);
+	try {
+		$result=pgp_run_command([$gpg, '--batch', '--homedir', $base, '--import', $keyfile]);
+		if($result['code']!==0){
+			throw new RuntimeException(_('Invalid PGP public key.').' '.htmlspecialchars($result['output']));
+		}
+		$result=pgp_run_command([$gpg, '--batch', '--homedir', $base, '--with-colons', '--fingerprint', '--list-keys']);
+		$fingerprint='';
+		foreach(explode("\n", $result['output']) as $line){
+			if(preg_match('/^fpr:::::::::([0-9A-F]+):/i', $line, $match)){
+				$fingerprint=$match[1];
+				break;
+			}
+		}
+		if($fingerprint===''){
+			throw new RuntimeException(_('Invalid PGP public key.'));
+		}
+		$result=pgp_run_command([$gpg, '--batch', '--yes', '--trust-model', 'always', '--homedir', $base, '--armor', '--encrypt', '--recipient', $fingerprint, '--output', $outputfile, $messagefile]);
+		if($result['code']!==0 || !is_file($outputfile)){
+			throw new RuntimeException(_('Could not encrypt the PGP two-factor authentication challenge.').' '.htmlspecialchars($result['output']));
+		}
+		return file_get_contents($outputfile);
+	} finally {
+		pgp_remove_directory($base);
+	}
+}
+
+function pgp_find_gpg_binary() : string
+{
+	if(defined('GPG_BINARY')){
+		return GPG_BINARY;
+	}
+	foreach(['gpg', '/usr/bin/gpg', '/usr/local/bin/gpg', '/opt/homebrew/bin/gpg'] as $gpg){
+		$result=pgp_run_command([$gpg, '--version']);
+		if($result['code']===0){
+			return $gpg;
+		}
+	}
+	throw new RuntimeException(_('The gpg command or the gnupg extension is required for PGP two-factor authentication.'));
+}
+
+function pgp_run_command(array $args) : array
+{
+	$cmd=implode(' ', array_map('escapeshellarg', $args));
+	$output=[];
+	$code=0;
+	exec($cmd.' 2>&1', $output, $code);
+	return ['code' => $code, 'output' => implode("\n", $output)];
+}
+
+function pgp_remove_directory(string $dir): void
+{
+	if(!is_dir($dir)){
+		return;
+	}
+	foreach(scandir($dir) as $file){
+		if($file==='.' || $file==='..'){
+			continue;
+		}
+		$path=$dir.DIRECTORY_SEPARATOR.$file;
+		if(is_dir($path)){
+			pgp_remove_directory($path);
+		}else{
+			unlink($path);
+		}
+	}
+	rmdir($dir);
+}
+
+function start_pgp2fa(): void
+{
+	global $U, $db;
+	try {
+		$code=strtoupper(bin2hex(random_bytes(4)));
+	} catch(Exception $e) {
+		send_error($e->getMessage());
+	}
+	$message=sprintf(_("Your verification code for %s is: %s"), get_setting('chatname'), $code);
+	$encrypted=pgp_encrypt_message($U['pgpkey'], $message);
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=? WHERE nickname=?;');
+	$stmt->execute([hash('sha256', $code), time()+300, $U['nickname']]);
+	send_pgp2fa($U['nickname'], $encrypted);
+}
+
+function check_pgp2fa(): void
+{
+	global $U, $db;
+	if(empty($_POST['nick']) || empty($_POST['pgpcode'])){
+		send_login();
+	}
+	$nick=preg_replace('/\s/', '', $_POST['nick']);
+	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$nick]);
+	if(!$member=$stmt->fetch(PDO::FETCH_ASSOC)){
+		send_error(_('Invalid PGP two-factor authentication challenge.'));
+	}
+	$hash=$member['pgpchallengehash'] ?? '';
+	$expires=(int) ($member['pgpchallengeexpires'] ?? 0);
+	$code=strtoupper(preg_replace('/[^0-9A-F]/i', '', $_POST['pgpcode']));
+	if($hash==='' || $expires<time() || !hash_equals($hash, hash('sha256', $code))){
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
+		$stmt->execute([$member['loginfails']+1, $member['nickname']]);
+		send_error(_('Invalid or expired PGP two-factor authentication code.'));
+	}
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=?, lastlogin=? WHERE nickname=?;');
+	$stmt->execute(['', 0, time(), $member['nickname']]);
+	$U=$member;
+	$U['entry']=$U['lastpost']=time();
+	$U['exiting']=0;
+	try {
+		$U[ 'postid' ] = bin2hex( random_bytes( 3 ) );
+	} catch(Exception $e) {
+		send_error($e->getMessage());
+	}
+	write_new_session('', true);
+	if($U['status']==1 && in_array((int) get_setting('guestaccess'), [2, 3], true)){
+		send_waiting_room();
+	}
 }
 
 function check_captcha(string $challenge, string $captcha_code): void
@@ -2920,14 +3139,14 @@ function set_secure_cookie(string $name, string $value): void
 	}
 }
 
-function write_new_session(string $password): void
+function write_new_session(string $password, bool $authenticated=false): void
 {
 	global $U, $db, $session;
 	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		// check whether alrady logged in
-		if(password_verify($password, $temp['passhash'])){
+		if(($authenticated && hash_equals($U['passhash'], $temp['passhash'])) || password_verify($password, $temp['passhash'])){
 			$U=$temp;
 			check_kicked();
 			set_secure_cookie(COOKIENAME, $U['session']);
@@ -3432,8 +3651,18 @@ function save_profile() : string {
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET refresh=?, style=?, bgcolour=?, timestamps=?, embed=?, incognito=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=? WHERE session=?;');
 	$stmt->execute([$U['refresh'], $U['style'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['session']]);
 	if($U['status']>=2){
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET refresh=?, bgcolour=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=? WHERE nickname=?;');
-		$stmt->execute([$U['refresh'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['nickname']]);
+		$pgpkey=trim($_POST['pgpkey'] ?? '');
+		if(isset($_POST['clearpgpkey'])){
+			$pgpkey='';
+		}elseif($pgpkey!==''){
+			try {
+				pgp_try_encrypt_message($pgpkey, 'test');
+			} catch(Throwable $e) {
+				return $e->getMessage();
+			}
+		}
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET refresh=?, bgcolour=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=?, pgpkey=?, pgpchallengehash=?, pgpchallengeexpires=? WHERE nickname=?;');
+		$stmt->execute([$U['refresh'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $pgpkey, '', 0, $U['nickname']]);
 	}
 	if(!empty($_POST['unignore'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? AND ignby=?;');
@@ -4452,7 +4681,7 @@ function init_chat(): void
 		$db->exec('CREATE TABLE ' . PREFIX . "ignored (id $primary, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
-		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash varchar(255) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, loginfails integer unsigned NOT NULL DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash varchar(255) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, loginfails integer unsigned NOT NULL DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL, pgpkey text, pgpchallengehash varchar(64) NOT NULL DEFAULT '', pgpchallengeexpires integer NOT NULL DEFAULT 0)$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, FOREIGN KEY (recipient) REFERENCES " . PREFIX . "members(nickname) ON DELETE CASCADE ON UPDATE CASCADE)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
@@ -4952,6 +5181,11 @@ function update_db(): void
 	if($dbversion<51){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('captchagdfont', '');");
 	}
+	if($dbversion<52){
+		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN pgpkey text;');
+		$db->exec('ALTER TABLE ' . PREFIX . "members ADD COLUMN pgpchallengehash varchar(64) NOT NULL DEFAULT '';");
+		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN pgpchallengeexpires integer NOT NULL DEFAULT 0;');
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -5154,7 +5388,7 @@ function load_lang(): void
 function load_config(): void
 {
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 51); // Database layout version
+	define('DBVERSION', 52); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
