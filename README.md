@@ -33,6 +33,7 @@ Features:
 * Clean the whole room
 * Plain text message filter
 * Regex message filter
+* 2FA via PGP
 * And more
 
 Installation Instructions:
