@@ -99,6 +99,10 @@ function route(): void
 	}elseif($_REQUEST['action']==='view'){
 		check_session();
 		send_messages();
+	}elseif($_REQUEST['action']==='like'){
+		check_session();
+		toggle_like();
+		send_messages();
 	}elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
 		send_redirect($_GET['url']);
 	}elseif($_REQUEST['action']==='wait'){
@@ -473,6 +477,7 @@ function prepare_stylesheets(string $class): void
 		$styles['messages'] .= '.msg{max-height:180px;overflow-y:auto} #bottom_link{position:fixed;top:0.5em;right:0.5em} #top_link{position:fixed;bottom:0.5em;right:0.5em} ';
 		$styles['messages'] .= '#chatters th,#chatters td{vertical-align:top} a img{width:15%} a:hover img{width:35%}';
 		$styles['messages'] .= '#messages{word-wrap:break-word}';
+		$styles['messages'] .= '.msgactions form{display:inline}.msgactions input{font-size:smaller}.replyref{font-size:smaller}';
 	}
 	$css=get_setting('css');
 	$coltxt=get_setting('coltxt');
@@ -2078,19 +2083,37 @@ function send_notes(int $type): void
 		echo '<h2>'._('Public notes').'</h2><p>';
 		$hiddendo=hidden('do', 'public');
 	}
-	if(isset($_POST['text'])){
-		if(MSGENCRYPTED){
-			try {
-				$_POST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_POST['text'], '', AES_IV, ENCRYPTKEY));
-			} catch (SodiumException $e){
-				send_error($e->getMessage());
+	$notice='';
+	if(isset($_POST['save_notes']) && isset($_POST['text'])){
+		$save=true;
+		if($type===2){
+			$password=$_POST['note_password'] ?? '';
+			$confirm=$_POST['note_password_confirm'] ?? '';
+			if($password===''){
+				$notice='<b>'._('Please enter a note password.').'</b> ';
+				$save=false;
+			}elseif($confirm!=='' && $password!==$confirm){
+				$notice='<b>'._('Password confirmation does not match!').'</b> ';
+				$save=false;
+			}else{
+				$_POST['text']=encrypt_personal_note($_POST['text'], $password);
 			}
 		}
-		$time=time();
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
-		$stmt->execute([$type, $time, $U['nickname'], $_POST['text']]);
-		echo '<b>'._('Notes saved!').'</b> ';
+		if($save){
+			if(MSGENCRYPTED){
+				try {
+					$_POST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_POST['text'], '', AES_IV, ENCRYPTKEY));
+				} catch (SodiumException $e){
+					send_error($e->getMessage());
+				}
+			}
+			$time=time();
+			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
+			$stmt->execute([$type, $time, $U['nickname'], $_POST['text']]);
+			$notice='<b>'._('Notes saved!').'</b> ';
+		}
 	}
+	echo $notice;
 	$dateformat=get_setting('dateformat');
 	if(($type!==2) && ($type !==3)){
 		$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'notes WHERE type=?;');
@@ -2124,9 +2147,30 @@ function send_notes(int $type): void
 			send_error($e->getMessage());
 		}
 	}
+	if($type===2){
+		if(is_personal_note_encrypted($note['text'])){
+			if(isset($_POST['note_password']) && $_POST['note_password']!==''){
+				$decrypted=decrypt_personal_note($note['text'], $_POST['note_password']);
+				if($decrypted===false){
+					echo '<b>'._('Wrong note password.').'</b> ';
+					$note['text']='';
+				}else{
+					$note['text']=$decrypted;
+				}
+			}else{
+				echo '<b>'._('Enter your note password to view or edit encrypted personal notes.').'</b> ';
+				$note['text']='';
+			}
+		}
+	}
 	echo "</p>".form('notes');
 	echo "$hiddendo<textarea name=\"text\">".htmlspecialchars($note['text']).'</textarea><br>';
-	echo submit(_('Save notes')).'</form><br>';
+	if($type===2){
+		echo '<label>'._('Note password').': <input type="password" name="note_password"></label> ';
+		echo '<label>'._('Confirm password').': <input type="password" name="note_password_confirm"></label><br>';
+		echo submit(_('View notes'), 'name="view_notes"').' ';
+	}
+	echo submit(_('Save notes'), 'name="save_notes"').'</form><br>';
 	if($num[0]>1){
 		echo '<br><table><tr><td>'._('Revisions:').'</td>';
 		if($revision<$num[0]-1){
@@ -2140,6 +2184,57 @@ function send_notes(int $type): void
 		echo '</tr></table>';
 	}
 	print_end();
+}
+
+function encrypt_personal_note(string $text, string $password): string
+{
+	if(!extension_loaded('sodium')){
+		send_fatal_error(sprintf(_('The %s extension of PHP is required for encrypted personal notes. Please install it first.'), 'sodium'));
+	}
+	try {
+		$salt=random_bytes(SODIUM_CRYPTO_PWHASH_SALTBYTES);
+		$nonce=random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES);
+		$key=sodium_crypto_pwhash(SODIUM_CRYPTO_SECRETBOX_KEYBYTES, $password, $salt, SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE, SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
+		$cipher=sodium_crypto_secretbox($text, $nonce, $key);
+		sodium_memzero($key);
+		return 'LCNOTE1:'.base64_encode(json_encode([
+			'salt'=>base64_encode($salt),
+			'nonce'=>base64_encode($nonce),
+			'cipher'=>base64_encode($cipher),
+		]));
+	} catch (SodiumException $e){
+		send_error($e->getMessage());
+	} catch (Exception $e){
+		send_error($e->getMessage());
+	}
+	return '';
+}
+
+function decrypt_personal_note(string $payload, string $password)
+{
+	if(!extension_loaded('sodium')){
+		send_fatal_error(sprintf(_('The %s extension of PHP is required for encrypted personal notes. Please install it first.'), 'sodium'));
+	}
+	if(!is_personal_note_encrypted($payload)){
+		return $payload;
+	}
+	$data=json_decode(base64_decode(substr($payload, 8)), true);
+	if(!is_array($data) || !isset($data['salt'], $data['nonce'], $data['cipher'])){
+		return false;
+	}
+	try {
+		$key=sodium_crypto_pwhash(SODIUM_CRYPTO_SECRETBOX_KEYBYTES, $password, base64_decode($data['salt']), SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE, SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE);
+		$plain=sodium_crypto_secretbox_open(base64_decode($data['cipher']), base64_decode($data['nonce']), $key);
+		sodium_memzero($key);
+		return $plain;
+	} catch (SodiumException $e){
+		return false;
+	}
+}
+
+function is_personal_note_encrypted(string $text): bool
+{
+	return strpos($text, 'LCNOTE1:')===0;
 }
 
 function send_approve_waiting(): void
@@ -2252,8 +2347,16 @@ function send_post(string $rejected=''): void
 	if(!isset($_REQUEST['sendto'])){
 		$_REQUEST['sendto']='';
 	}
+	$reply_to=get_valid_reply_id($_REQUEST['reply_to'] ?? 0);
+	if($reply_to>0 && $_REQUEST['sendto']===''){
+		$_REQUEST['sendto']=get_reply_sendto($reply_to);
+	}
 	echo '<table><tr><td>'.form('post');
 	echo hidden('postid', $U['postid']);
+	if($reply_to>0){
+		echo hidden('reply_to', (string) $reply_to);
+		echo '<div class="replyref">'.sprintf(_('Replying to message #%d'), $reply_to).'</div>';
+	}
 	if(isset($_POST['multi'])){
 		echo hidden('multi', 'on');
 	}
@@ -3870,7 +3973,8 @@ function validate_input() : string {
 			$message=sprintf(get_setting('msgattache'), "<a class=\"attachement\" href=\"$_SERVER[SCRIPT_NAME]?action=download&amp;id=$hash\" target=\"_blank\">$name</a>", $message);
 		}
 	}
-	if(add_message($message, $recipient, $U['nickname'], (int) $U['status'], $poststatus, $displaysend, $U['style'])){
+	$reply_to=get_valid_reply_id($_POST['reply_to'] ?? 0);
+	if(add_message($message, $recipient, $U['nickname'], (int) $U['status'], $poststatus, $displaysend, $U['style'], $reply_to)){
 		$U['lastpost']=time();
 		try {
 			$U[ 'postid' ] = bin2hex( random_bytes( 3 ) );
@@ -4043,7 +4147,7 @@ function apply_mention(string $message) : string {
 	}, $message);
 }
 
-function add_message(string $message, string $recipient, string $poster, int $delstatus, int $poststatus, string $displaysend, string$style) : bool {
+function add_message(string $message, string $recipient, string $poster, int $delstatus, int $poststatus, string $displaysend, string $style, int $reply_to=0) : bool {
 	global $db;
 	if($message===''){
 		return false;
@@ -4054,11 +4158,12 @@ function add_message(string $message, string $recipient, string $poster, int $de
 		'poster'	=>$poster,
 		'recipient'	=>$recipient,
 		'text'		=>"<span class=\"usermsg\">$displaysend".style_this($message, $style).'</span>',
-		'delstatus'	=>$delstatus
+		'delstatus'	=>$delstatus,
+		'reply_to'	=>$reply_to
 	];
 	//prevent posting the same message twice, if no other message was posted in-between.
-	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poststatus=? AND poster=? AND recipient=? AND text=? AND id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages ORDER BY id DESC LIMIT 1) AS t);');
-	$stmt->execute([$newmessage['poststatus'], $newmessage['poster'], $newmessage['recipient'], $newmessage['text']]);
+	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poststatus=? AND poster=? AND recipient=? AND text=? AND reply_to=? AND id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages ORDER BY id DESC LIMIT 1) AS t);');
+	$stmt->execute([$newmessage['poststatus'], $newmessage['poster'], $newmessage['recipient'], $newmessage['text'], $newmessage['reply_to']]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return false;
 	}
@@ -4078,7 +4183,8 @@ function add_system_message(string $mes, string $doer): void
 			'poster'	=>'',
 			'recipient'	=>'',
 			'text'		=>"$mes",
-			'delstatus'	=>4
+			'delstatus'	=>4,
+			'reply_to'	=>0
 		];
 
 	} else {
@@ -4088,7 +4194,8 @@ function add_system_message(string $mes, string $doer): void
 			'poster'	=>'',
 			'recipient'	=>'',
 			'text'		=>"$mes ($doer)",
-			'delstatus'	=>4
+			'delstatus'	=>4,
+			'reply_to'	=>0
 		];
 	}
 	write_message($sysmessage);
@@ -4105,7 +4212,8 @@ function add_system_pm_message(string $mes, string $recipient, string $doer): vo
 			'poster'	=>'System',
 			'recipient'	=> $recipient,
 			'text'		=>"$mes",
-			'delstatus'	=>4
+			'delstatus'	=>4,
+			'reply_to'	=>0
 		];
 
 	} else {
@@ -4115,7 +4223,8 @@ function add_system_pm_message(string $mes, string $recipient, string $doer): vo
 			'poster'	=>'System',
 			'recipient'	=> $recipient,
 			'text'		=>"$mes ($doer)",
-			'delstatus'	=>4
+			'delstatus'	=>4,
+			'reply_to'	=>0
 		];
 	}
 	write_message($sysmessage);
@@ -4130,8 +4239,11 @@ function write_message(array $message): void
 			send_error($e->getMessage());
 		}
 	}
-	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus) VALUES (?, ?, ?, ?, ?, ?);');
-	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus']]);
+	if(!isset($message['reply_to'])){
+		$message['reply_to']=0;
+	}
+	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus, reply_to) VALUES (?, ?, ?, ?, ?, ?, ?);');
+	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus'], $message['reply_to']]);
 	if($message['poststatus']<9 && get_setting('sendmail')){
 		$subject='New Chat message';
 		$headers='From: '.get_setting('mailsender')."\r\nX-Mailer: PHP/".phpversion()."\r\nContent-Type: text/html; charset=UTF-8\r\n";
@@ -4237,7 +4349,7 @@ function print_messages(int $delstatus=0): void
 	}
 	echo '<div id="messages">';
 	if($delstatus>0){
-		$stmt=$db->prepare('SELECT postdate, id, text FROM ' . PREFIX . 'messages WHERE '.
+		$stmt=$db->prepare('SELECT postdate, id, text, reply_to FROM ' . PREFIX . 'messages WHERE '.
 		"(poststatus<? AND delstatus<?) OR ((poster=? OR recipient=?) AND postdate>=?) ORDER BY id $direction;");
 		$stmt->execute([$U['status'], $delstatus, $U['nickname'], $U['nickname'], $entry]);
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
@@ -4249,7 +4361,7 @@ function print_messages(int $delstatus=0): void
 			echo " $message[text]</label></div>";
 		}
 	}else{
-		$stmt=$db->prepare('SELECT id, postdate, poststatus, text FROM ' . PREFIX . 'messages WHERE (poststatus<=? OR poststatus=4 OR '.
+		$stmt=$db->prepare('SELECT id, postdate, poststatus, poster, recipient, text, reply_to FROM ' . PREFIX . 'messages WHERE (poststatus<=? OR poststatus=4 OR '.
 		'(poststatus=9 AND ( (poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ) OR recipient=?) AND postdate>=?)'.
 		') AND poster NOT IN (SELECT ign FROM ' . PREFIX . "ignored WHERE ignby=?) ORDER BY id $direction;");
 		$stmt->execute([$U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname']]);
@@ -4262,10 +4374,44 @@ function print_messages(int $delstatus=0): void
 			if ($message['poststatus']==4) {
 				echo '<span class="sysmsg" title="'._('system message').'">'.get_setting('sysmessagetxt')."$message[text]</span></div>";
 			} else {
-				echo "$message[text]</div>";
+				print_reply_reference((int) $message['reply_to']);
+				echo "$message[text]";
+				print_message_actions($message);
+				echo '</div>';
 			}
 		}
 	}
+	echo '</div>';
+}
+
+function print_reply_reference(int $reply_to): void
+{
+	global $db;
+	if($reply_to<1 || !can_view_message($reply_to)){
+		return;
+	}
+	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . 'messages WHERE id=?;');
+	$stmt->execute([$reply_to]);
+	if($message=$stmt->fetch(PDO::FETCH_ASSOC)){
+		echo '<div class="replyref">'.sprintf(_('Reply to #%1$d by %2$s'), $reply_to, htmlspecialchars($message['poster'])).'</div>';
+	}
+}
+
+function print_message_actions(array $message): void
+{
+	global $U;
+	$liked=is_message_liked((int) $message['id']);
+	$likes=count_message_likes((int) $message['id']);
+	echo '<div class="msgactions">';
+	echo form('like').hidden('mid', (string) $message['id']);
+	echo submit(($liked ? _('Unlike') : _('Like'))." ($likes)").'</form> ';
+	echo form_target('post', 'post');
+	echo hidden('reply_to', (string) $message['id']);
+	echo hidden('sendto', htmlspecialchars(get_reply_sendto((int) $message['id'])));
+	if($U['sortupdown']){
+		echo hidden('sort', '1');
+	}
+	echo submit(_('Reply')).'</form>';
 	echo '</div>';
 }
 
@@ -4285,6 +4431,76 @@ function prepare_message_print(array &$message, bool $removeEmbed): void
 			}
 		, $message['text']);
 	}
+}
+
+function toggle_like(): void
+{
+	global $U, $db;
+	$message_id=(int) ($_POST['mid'] ?? 0);
+	if($message_id<1 || !can_view_message($message_id)){
+		return;
+	}
+	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'likes WHERE message_id=? AND nickname=?;');
+	$stmt->execute([$message_id, $U['nickname']]);
+	if($like=$stmt->fetch(PDO::FETCH_ASSOC)){
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'likes WHERE id=?;');
+		$stmt->execute([$like['id']]);
+	}else{
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'likes (message_id, nickname) VALUES (?, ?);');
+		$stmt->execute([$message_id, $U['nickname']]);
+	}
+}
+
+function count_message_likes(int $message_id): int
+{
+	global $db;
+	$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'likes WHERE message_id=?;');
+	$stmt->execute([$message_id]);
+	return (int) $stmt->fetchColumn();
+}
+
+function is_message_liked(int $message_id): bool
+{
+	global $U, $db;
+	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'likes WHERE message_id=? AND nickname=?;');
+	$stmt->execute([$message_id, $U['nickname']]);
+	return (bool) $stmt->fetch(PDO::FETCH_NUM);
+}
+
+function get_valid_reply_id($reply_to): int
+{
+	$reply_to=(int) $reply_to;
+	if($reply_to<1 || !can_view_message($reply_to)){
+		return 0;
+	}
+	return $reply_to;
+}
+
+function get_reply_sendto(int $reply_to): string
+{
+	global $U, $db;
+	$stmt=$db->prepare('SELECT poststatus, poster, recipient FROM ' . PREFIX . 'messages WHERE id=?;');
+	$stmt->execute([$reply_to]);
+	if($message=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if((int) $message['poststatus']===9 && $message['poster']!==$U['nickname']){
+			return $message['poster'];
+		}
+	}
+	return 's *';
+}
+
+function can_view_message(int $message_id): bool
+{
+	global $U, $db;
+	if($message_id<1){
+		return false;
+	}
+	$entry=$U['status']>1 ? 0 : $U['entry'];
+	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'messages WHERE id=? AND (poststatus<=? OR poststatus=4 OR '.
+	'(poststatus=9 AND ( (poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ) OR recipient=?) AND postdate>=?)'.
+	') AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
+	$stmt->execute([$message_id, $U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname']]);
+	return (bool) $stmt->fetch(PDO::FETCH_NUM);
 }
 
 // this and that
@@ -4571,6 +4787,12 @@ function cron(): void
 	while($tmp=$result->fetch(PDO::FETCH_NUM)){
 		$stmt->execute($tmp);
 	}
+	// delete likes that do not belong to any message
+	$result=$db->query('SELECT id FROM ' . PREFIX . 'likes WHERE message_id NOT IN (SELECT id FROM ' . PREFIX . 'messages);');
+	$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'likes WHERE id=?;');
+	while($tmp=$result->fetch(PDO::FETCH_NUM)){
+		$stmt->execute($tmp);
+	}
 	// delete old notes
 	$limit=get_setting('numnotes');
 	$to_keep = [];
@@ -4686,11 +4908,15 @@ function init_chat(): void
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
 		$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL, reply_to integer NOT NULL DEFAULT 0)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
+		$db->exec('CREATE INDEX ' . PREFIX . 'reply_to ON ' . PREFIX . 'messages(reply_to);');
+		$db->exec('CREATE TABLE ' . PREFIX . "likes (id $primary, message_id integer NOT NULL, nickname varchar(50) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'likes_message_id ON ' . PREFIX . 'likes(message_id);');
+		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'likes_message_nickname ON ' . PREFIX . 'likes(message_id, nickname);');
 		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_editedby ON ' . PREFIX . 'notes(editedby);');
@@ -5186,6 +5412,13 @@ function update_db(): void
 		$db->exec('ALTER TABLE ' . PREFIX . "members ADD COLUMN pgpchallengehash varchar(64) NOT NULL DEFAULT '';");
 		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN pgpchallengeexpires integer NOT NULL DEFAULT 0;');
 	}
+	if($dbversion<53){
+		$db->exec('ALTER TABLE ' . PREFIX . 'messages ADD COLUMN reply_to integer NOT NULL DEFAULT 0;');
+		$db->exec('CREATE INDEX ' . PREFIX . 'reply_to ON ' . PREFIX . 'messages(reply_to);');
+		$db->exec('CREATE TABLE ' . PREFIX . "likes (id $primary, message_id integer NOT NULL, nickname varchar(50) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'likes_message_id ON ' . PREFIX . 'likes(message_id);');
+		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'likes_message_nickname ON ' . PREFIX . 'likes(message_id, nickname);');
+	}
 	update_setting('dbversion', DBVERSION);
 	if($msgencrypted!==MSGENCRYPTED){
 		if(!extension_loaded('sodium')){
@@ -5388,7 +5621,7 @@ function load_lang(): void
 function load_config(): void
 {
 	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 52); // Database layout version
+	define('DBVERSION', 53); // Database layout version
 	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
 	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
