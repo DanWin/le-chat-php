@@ -2938,7 +2938,7 @@ function print_chatters(): void
 				$A[]=$link;
 			} elseif(($user[2]>=5) && ($user[2]<=6)){ // moderator or supermoderator
 				$S[]=$link;
-			} elseif($user[2]=3){ // member
+			} elseif($user[2]==3){ // member
 				$M[]=$link;
 			}
 		}
