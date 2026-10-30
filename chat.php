@@ -685,8 +685,11 @@ function send_captcha(): void
 	} elseif ($difficulty===7 || $difficulty===8 || $difficulty===10) {
 		echo _('Type the five largest characters:');
 	} else {
-		echo _('Type the characters in the image:');
+          if($difficulty===-1){ echo _('Type '.$code);}
+	      else{echo _('Type the characters in the image:');}
 	}
+	if($difficulty===-1){$im=false;}
+	else{
 	if($difficulty===1 || $difficulty===2 || $difficulty===4){
 		// optionally use custom GD font for simple, moderate and extreme captchas
 		if (get_setting('captchagdfont') === '') {
@@ -964,7 +967,7 @@ function send_captcha(): void
 	ob_start();
 	imagepng($im);
 	imagedestroy($im);
-	echo base64_encode(ob_get_clean()).'">';
+	echo base64_encode(ob_get_clean()).'">';}
 	echo '</td></tr><tr><td>'.hidden('challenge', $randid).'<input type="text" name="captcha" size="15" autocomplete="off" required></td></tr>';
 }
 
@@ -1091,6 +1094,11 @@ function send_setup(array $C): void
 			echo ' selected';
 		}
 		echo '>'._('Disabled').'</option>';
+		echo '<option value="-1"';
+        if($captcha===-1){
+            echo ' selected';
+        }
+        echo '>'._('Accessible').'</option>';
 		echo '<option value="1"';
 		if($captcha===1){
 			echo ' selected';
