@@ -1,3 +1,12 @@
+Version 2.0.2 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
+Remove the .env file requirement; configure SMTP, database and encryption secrets in chat.php (who needs Git when you have a tarball?)
+Add BBCode and Markdown message formatting
+Add standalone, JavaScript-free private-message window
+Added important warning about upgrading from 1.x.x to 2.x.x
+Started preparations for upcoming bot API and Dead Man's Switch
+
+Version 2.0.1 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
+Load SMTP, database and encryption secrets from .env
 
 
 Version 2.0.0 by [Nix Hartogh](nixie.online) - Nov. 17, 2026

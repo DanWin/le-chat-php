@@ -93,11 +93,24 @@ route();
 function route(): void
 {
 	global $U, $db;
-	if(!isset($_REQUEST['action'])){
+	if(isset($_GET['window']) && $_GET['window']==='pm'){
+		check_session();
+		send_pm_window();
+	}elseif(!isset($_REQUEST['action'])){
 		send_login();
 	}elseif($_REQUEST['action']==='view'){
 		check_session();
 		send_messages();
+	}elseif($_REQUEST['action']==='pm_view'){
+		check_session();
+		send_pm_messages();
+	}elseif($_REQUEST['action']==='pm_post'){
+		check_session();
+		if(isset($_POST['message'], $_POST['sendto'])){
+			send_pm_post(validate_input());
+		}else{
+			send_pm_post();
+		}
 	}elseif($_REQUEST['action']==='like'){
 		check_session();
 		toggle_like();
@@ -703,6 +716,7 @@ function prepare_stylesheets(string $class): void
 	$styles['default'] .= 'input:focus,select:focus,textarea:focus,button:focus,a:focus{outline:2px solid #68b7ff;outline-offset:2px} ';
 	$styles['default'] .= 'table{border-collapse:separate;border-spacing:0 0.35rem} th,td{padding:0.35rem 0.5rem} ';
 	$styles['default'] .= '.msg,.staffitem,.roleitem,.roomitem{border:1px solid #405064;border-radius:0.55rem;padding:0.55rem 0.75rem;margin:0.45rem 0;background:rgba(35,51,70,.35)} ';
+	$styles['default'] .= '.quote{display:inline-block;border-left:2px solid #71869b;padding-left:0.45em;font-style:italic}.markdown-code{font-family:monospace;white-space:pre-wrap;background:rgba(35,51,70,.6)}.markdown-heading{font-size:1.1em} ';
 	$styles['default'] .= '.msgactions{display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.35rem}.msgactions form{display:inline} ';
 	$styles['default'] .= '.messageid{font-weight:700;color:#9fb3c8;margin-right:0.2rem}.replyref{font-size:smaller;margin-right:0.35rem}.reportbutton{color:#ffd27a}.staffnav{display:flex;flex-wrap:wrap;gap:0.45rem;justify-content:center;margin:0.5rem} ';
 	$styles['default'] .= '@media(max-width:600px){body{padding:0.35rem}input[type=text],input[type=password],select,textarea{max-width:100%}.msg{max-height:none}} ';
@@ -725,6 +739,9 @@ function prepare_stylesheets(string $class): void
 			$styles[ 'frameset' ] .= "#frameset-bot{position:fixed;bottom:0;left:0;right:0;height:$postheight;margin:0;padding:0;overflow:hidden;border-top:1px solid}";
 		}
 	}
+	if($class==='pm_window'){
+		$styles['pm_window']='body{height:100vh;overflow:hidden}#pmview{display:block;width:100%;height:65vh;border:0}#pmpost{display:block;width:100%;height:25vh;border:0;border-top:1px solid #536274}';
+	}
 	if($class === 'filter'){
 		$styles['filter'] = 'table table{width:100%} ';
 		$styles['filter'] .= 'table table td:nth-child(1){width:8em;font-weight:bold} ';
@@ -741,7 +758,7 @@ function prepare_stylesheets(string $class): void
 	if($class === 'post'){
 		$styles['post'] = '.spacer{width:10px} #firstline{vertical-align:top}';
 	}
-	if($class === 'messages'){
+	if($class === 'messages' || $class === 'pm_messages'){
 		$styles['messages'] = '.nicklink{text-decoration:none}.channellink{text-decoration:underline}';
 		$styles['messages'] .= '#chatters{max-height:100px;overflow-y:auto} #chatters, #chatters table{border-spacing:0px} ';
 		$styles['messages'] .= '#manualrefresh{display:block;position:fixed;text-align:center;left:25%;width:50%;top:-200%;animation:timeout_messages ';
@@ -2294,6 +2311,66 @@ function send_frameset(): void
 	exit;
 }
 
+function send_pm_window(): void
+{
+	global $U, $language;
+	if(isset($_REQUEST['room_id'])){
+		$room_id=selected_room_id();
+	}else{
+		$rooms=get_accessible_rooms();
+		if(!$rooms){
+			send_access_denied();
+		}
+		$room_id=(int) $rooms[0]['id'];
+	}
+	$script=htmlspecialchars($_SERVER['SCRIPT_NAME'], ENT_QUOTES, 'UTF-8');
+	$session=rawurlencode($U['session']);
+	$lang=rawurlencode($language);
+	$room='&amp;room_id='.$room_id;
+	print_start('pm_window');
+	echo '<h1>'._('Private messages').'</h1>';
+	echo '<iframe id="pmview" name="pm_view" title="'._('Private messages').'" src="'.$script.'?action=pm_view&amp;session='.$session.'&amp;lang='.$lang.$room.'">'.noframe_html().'</iframe>';
+	echo '<iframe id="pmpost" name="pm_post" title="'._('Send a private message').'" src="'.$script.'?action=pm_post&amp;session='.$session.'&amp;lang='.$lang.$room.'">'.noframe_html().'</iframe>';
+	print_end();
+}
+
+function send_pm_messages(): void
+{
+	global $U, $db, $language;
+	$room_id=selected_room_id();
+	$dateformat=get_setting('dateformat');
+	$timestamps=$U['timestamps'] && !empty($dateformat);
+	$remove_embed=!$U['embed'] && get_setting('imgembed');
+	$direction=$U['sortupdown'] ? 'ASC' : 'DESC';
+	$entry=$U['status']>1 ? 0 : $U['entry'];
+	$refresh=(int) $U['refresh'];
+	$nocache=$U['nocache'] ? '&nc='.substr(time(), -6) : '';
+	$sort=$U['sortupdown'] ? '#bottom' : '';
+	$url=$_SERVER['SCRIPT_NAME'].'?action=pm_view&session='.rawurlencode($U['session']).'&lang='.rawurlencode($language).'&room_id='.$room_id.$nocache.$sort;
+	print_start('pm_messages', $refresh, $url);
+	echo '<h2>'._('Private messages').'</h2>';
+	echo '<div id="manualrefresh">'.form('pm_view').hidden('room_id', (string) $room_id).submit(_('Reload messages')).'</form></div>';
+	echo '<div id="messages">';
+	$stmt=$db->prepare('SELECT id, postdate, poster, recipient, text FROM ' . PREFIX . 'messages WHERE poststatus=9 AND ((poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?)) OR recipient=?) AND postdate>=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ORDER BY id '.$direction.';');
+	$stmt->execute([$U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname']]);
+	$found=false;
+	while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
+		$found=true;
+		prepare_message_print($message, (bool) $remove_embed);
+		echo '<div class="msg" id="message-'.(int) $message['id'].'">';
+		echo '<span class="messageid">['.(int) $message['id'].']</span> ';
+		if($timestamps){
+			echo '<small>'.date($dateformat, $message['postdate']).' - </small>';
+		}
+		echo $message['text'].'</div>';
+	}
+	if(!$found){
+		echo '<p>'._('No private messages yet.').'</p>';
+	}
+	echo '</div><a id="bottom"></a>';
+	print_end();
+}
+
 function noframe_html() : string {
 	return _('This chat uses <b>frames</b>. Please enable frames in your browser or use a suitable one!').form_target('_parent', '').submit(_('Back to the login page.'), 'class="backbutton"').'</form>';
 }
@@ -2962,6 +3039,46 @@ function send_post(string $rejected=''): void
 	print_end();
 }
 
+function send_pm_post(string $rejected=''): void
+{
+	global $U, $db;
+	print_start('pm_post');
+	echo '<h2>'._('Send a private message').'</h2>';
+	if(get_setting('disablepm') || ($U['status']==1 && get_setting('noguestpm'))){
+		echo '<p>'._('Private messages are disabled for your account.').'</p>';
+		print_end();
+	}
+	$sendto_input=$_REQUEST['sendto'] ?? '';
+	$sendto=is_string($sendto_input) ? $sendto_input : '';
+	$reply_to=get_valid_reply_id($_REQUEST['reply_to'] ?? 0);
+	if($reply_to>0 && $sendto===''){
+		$sendto=get_reply_sendto($reply_to);
+	}
+	echo form('pm_post').hidden('postid', $U['postid']).hidden('multi', 'on').hidden('room_id', (string) selected_room_id());
+	if($reply_to>0){
+		echo hidden('reply_to', (string) $reply_to);
+		echo '<p class="replyref">'.sprintf(_('Replying to message #%d'), $reply_to).'</p>';
+	}
+	echo '<label>'._('To').': <select name="sendto" required><option value="">'.htmlspecialchars(_('Choose a recipient')).'</option>';
+	$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, exiting, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 0, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?) ORDER BY LOWER(nickname);');
+	$stmt->execute([$U['status'], $U['nickname'], $U['nickname']]);
+	while($recipient=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if($recipient['nickname']===$U['nickname']){
+			continue;
+		}
+		$label=$recipient['nickname'];
+		if($recipient['offline']){
+			$label.=' '._('(offline)');
+		}elseif($recipient['exiting']){
+			$label.=' '._('(logging out)');
+		}
+		echo '<option value="'.htmlspecialchars($recipient['nickname'], ENT_QUOTES, 'UTF-8').'"'.($sendto===$recipient['nickname'] ? ' selected' : '').'>'.htmlspecialchars($label, ENT_QUOTES, 'UTF-8').'</option>';
+	}
+	echo '</select></label><p><label>'._('Message').':<br><textarea name="message" rows="3" cols="50" maxlength="'.(int) get_setting('maxmessage').'" required autofocus>'.$rejected.'</textarea></label></p>';
+	echo submit(_('Send private message')).'</form>';
+	print_end();
+}
+
 function send_greeting(): void
 {
 	global $U, $language;
@@ -3229,7 +3346,7 @@ function send_profile(string $arg=''): void
 
 function send_controls(): void
 {
-	global $U;
+	global $U, $language;
 	print_start('controls');
 	$personalnotes=(bool) get_setting('personalnotes');
 	$publicnotes=(bool) get_setting('publicnotes');
@@ -3269,6 +3386,10 @@ function send_controls(): void
 		if(!$hide_clone) {
 			echo '<td>' . form_target( '_blank', 'login' ) . submit( _('Clone') ) . '</form></td>';
 		}
+	}
+	if(!get_setting('disablepm') && !($U['status']==1 && get_setting('noguestpm'))){
+		$pm_url=htmlspecialchars($_SERVER['SCRIPT_NAME'], ENT_QUOTES, 'UTF-8').'?window=pm&amp;session='.rawurlencode($U['session']).'&amp;lang='.rawurlencode($language);
+		echo '<td><a href="'.$pm_url.'" target="_blank" rel="noopener noreferrer">'._('Private messages window').'</a></td>';
 	}
 	if(!isset($_GET['sort'])){
 		$sort=0;
@@ -5023,6 +5144,7 @@ function validate_input() : string {
 		$message=preg_replace("~^/me\s?~iu", '', $message);
 	}
 	$message=apply_filter($message, $poststatus, $U['nickname']);
+	$message=format_message_markup($message);
 	$message=create_hotlinks($message);
 	$message=apply_linkfilter($message);
 	if(isset($_FILES['file']) && get_setting('enfileupload')>0 && get_setting('enfileupload')<=$U['status']){
@@ -5035,6 +5157,7 @@ function validate_input() : string {
 	$reply_to=get_valid_reply_id($_POST['reply_to'] ?? 0);
 	$room_id=selected_room_id();
 	if(add_message($message, $recipient, $U['nickname'], (int) $U['status'], $poststatus, $displaysend, $U['style'], $reply_to, $room_id)){
+		unset($_REQUEST['reply_to']);
 		$U['lastpost']=time();
 		try {
 			$U[ 'postid' ] = bin2hex( random_bytes( 3 ) );
@@ -5077,6 +5200,144 @@ function validate_input() : string {
 		}
 	}
 	return $rejected;
+}
+
+function safe_markup_url(string $raw_url): string
+{
+	$url=html_entity_decode(trim($raw_url), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+	if($url==='' || preg_match('/[\x00-\x20\x7f]/', $url) || strpos($url, '\\')!==false){
+		return '';
+	}
+	$parts=parse_url($url);
+	if($parts===false){
+		return '';
+	}
+	$scheme=strtolower((string) ($parts['scheme'] ?? ''));
+	if($scheme==='mailto'){
+		if(filter_var(substr($url, 7), FILTER_VALIDATE_EMAIL)===false){
+			return '';
+		}
+	}elseif(in_array($scheme, ['http', 'https'], true)){
+		if(empty($parts['host']) || isset($parts['user']) || isset($parts['pass'])){
+			return '';
+		}
+	}else{
+		return '';
+	}
+	return htmlspecialchars($url, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+function format_message_markup(string $message): string
+{
+	try {
+		$prefix="\x1A".bin2hex(random_bytes(8))."_";
+	} catch(Throwable $e) {
+		throw new RuntimeException('Unable to prepare message formatting.', 0, $e);
+	}
+	$protected=[];
+	$tokens=[];
+	$protect=function(string $html) use (&$protected, &$tokens, $prefix): string {
+		if(isset($tokens[$html])){
+			return $tokens[$html];
+		}
+		$placeholder=$prefix.count($protected)."\x1A";
+		$tokens[$html]=$placeholder;
+		$protected[$placeholder]=$html;
+		return $placeholder;
+	};
+	$message=preg_replace_callback('/<[^>]*>/', function($matches) use ($protect){
+		return $protect($matches[0]);
+	}, $message);
+	$message=preg_replace_callback('/\[code\](.*?)\[\/code\]/isu', function($matches) use ($protect, &$protected){
+		return $protect('<code>'.strtr($matches[1], $protected).'</code>');
+	}, $message);
+	$bbcode_tags=[
+		'b'=>'strong',
+		'strong'=>'strong',
+		'i'=>'em',
+		'em'=>'em',
+		'u'=>'u',
+		's'=>'del',
+		'strike'=>'del',
+		'del'=>'del',
+		'quote'=>'span class="quote"',
+	];
+	foreach($bbcode_tags as $bbcode=>$tag){
+		$message=preg_replace_callback('~\['.$bbcode.'\](.*?)\[/'.$bbcode.'\]~isu', function($matches) use ($protect, $tag){
+			return $protect('<'.$tag.'>').$matches[1].$protect('</'.(strpos($tag, ' ')===false ? $tag : 'span').'>');
+		}, $message);
+	}
+	$message=preg_replace_callback('~\[url=([^\]]+)\](.*?)\[/url\]~isu', function($matches) use ($protect){
+		$url=safe_markup_url($matches[1]);
+		if($url===''){
+			return $matches[2];
+		}
+		return $protect('<a href="'.$url.'" target="_blank" rel="noreferrer noopener">').$matches[2].$protect('</a>');
+	}, $message);
+	$message=preg_replace_callback('~\[url\](.*?)\[/url\]~isu', function($matches) use ($protect){
+		$url=safe_markup_url($matches[1]);
+		if($url===''){
+			return $matches[1];
+		}
+		return $protect('<a href="'.$url.'" target="_blank" rel="noreferrer noopener">').$matches[1].$protect('</a>');
+	}, $message);
+	$br=$protect('<br>');
+	$lines=explode($br, $message);
+	$formatted=[];
+	$in_fence=false;
+	foreach($lines as $line){
+		if(preg_match('/^\s*```(?:[A-Za-z0-9_-]+)?\s*$/u', $line)){
+			if($in_fence){
+				$formatted[]=$protect('</code>');
+				$in_fence=false;
+			}else{
+				$formatted[]=$protect('<code class="markdown-code">');
+				$in_fence=true;
+			}
+			continue;
+		}
+		if($in_fence){
+			$formatted[]=$line;
+			continue;
+		}
+		if(preg_match('/^#{1,6}[ \t]+(.+)$/u', $line, $matches)){
+			$line=$protect('<strong class="markdown-heading">').$matches[1].$protect('</strong>');
+		}elseif(preg_match('/^&gt;[ \t]?(.*)$/u', $line, $matches)){
+			$line=$protect('<span class="quote">').$matches[1].$protect('</span>');
+		}elseif(preg_match('/^[-*+][ \t]+(.+)$/u', $line, $matches)){
+			$line='&bull; '.$matches[1];
+		}elseif(preg_match('/^([0-9]+)\.[ \t]+(.+)$/u', $line, $matches)){
+			$line=$matches[1].'. '.$matches[2];
+		}
+		$line=preg_replace_callback('~\[([^\]]+)\]\(([^)]+)\)~u', function($matches) use ($protect){
+			$url=safe_markup_url($matches[2]);
+			if($url===''){
+				return $matches[1];
+			}
+			return $protect('<a href="'.$url.'" target="_blank" rel="noreferrer noopener">').$matches[1].$protect('</a>');
+		}, $line);
+		$line=preg_replace_callback('/`([^`]+)`/u', function($matches) use ($protect, &$protected){
+			return $protect('<code>'.strtr($matches[1], $protected).'</code>');
+		}, $line);
+		$emphasis=[
+			'~(?<!\*)\*\*(?!\s)(.+?)(?<!\s)\*\*(?!\*)~u'=>'strong',
+			'~(?<!_)__(?!\s)(.+?)(?<!\s)__(?!_)~u'=>'strong',
+			'#(?<!~)~~(?!\s)(.+?)(?<!\s)~~(?!~)#u'=>'del',
+			'~(?<!\*)\*(?!\s)([^*]+?)(?<!\s)\*(?!\*)~u'=>'em',
+			'~(?<!\w)_(?!\s)([^_]+?)(?<!\s)_(?!\w)~u'=>'em',
+		];
+		foreach($emphasis as $pattern=>$tag){
+			$line=preg_replace_callback($pattern, function($matches) use ($protect, $tag){
+				return $protect('<'.$tag.'>').$matches[1].$protect('</'.$tag.'>');
+			}, $line);
+		}
+		$formatted[]=$line;
+	}
+	if($in_fence){
+		$formatted[]=$protect('</code>');
+	}
+	$message=implode($br, $formatted);
+	return strtr($message, $protected);
 }
 
 function apply_filter(string $message, int $poststatus, string $nickname) : string {
@@ -6925,7 +7186,7 @@ function load_config(): void
 	define('VERSION', '2.0.2'); // Script version
 	define('DBVERSION', 56); // Database layout version
 	define('MSGENCRYPTED', true); // (ENABLED BY DEFAULT) Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
-	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Set a unique secret. Encryption key for messages and notes
+	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Preserve this value to keep existing encrypted data readable
 	define('AES_IV_PASS', '012345678912'); // Legacy AES IV used only to decrypt existing data
 	define('DBHOST', 'localhost'); // Database host
 	define('DBUSER', 'www-data'); // Database user
@@ -6953,7 +7214,7 @@ function load_config(): void
 	define('COOKIENAME', PREFIX . 'chat_session'); // Cookie name storing the session information
 	define('LANG', 'en'); // Default language
 	if (MSGENCRYPTED){
-		if (version_compare(PHP_VERSION, '7.2.0') < 0) {
+		if (version_compare(PHP_VERSION, '8.0.0') < 0) {
 			die("You need at least PHP >= 7.2.x");
 		}
 		define_encryption_constants();

@@ -1,5 +1,6 @@
 General Information:
 --------------------
+**WARNING: WE DO NOT RECOMMEND UPGRADING FROM v1.x.x TO v2.x.x AS IT HAS NOT BEEN TESTED. TRY AT YOUR OWN RISK. WE ARE NOT RESPONSIBLE FOR ANY DAMAGE CAUSED.**
 
 This is a PHP Chat based on LE CHAT v.1.14. An up-to-date copy of this script can be downloaded at https://github.com/DanWin/le-chat-php
 The original perl LE CHAT script by Lucky Eddie can be downloaded at [this github fork](https://github.com/virtualghetto/lechat).
@@ -49,9 +50,13 @@ Administration:
 
 After upgrading, visit the Setup page once to apply the database updates. Admins can create custom roles and assign them to members; custom permissions supplement the existing built-in roles. Staff with room-management permission can create rooms restricted by built-in role and, optionally, a custom role. Members can report messages for review in the staff inbox. PGP login and password recovery require a PGP public key; email login and password reset require a verified email address.
 
-Members can optionally add an email address in their profile. The address must be verified before it can be used for email login, password reset, or email two-factor authentication, and it is encrypted before it is stored in the database. Configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURITY` (`tls`, `ssl`, or `none`), `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_FROM`, and `SMTP_FROM_NAME` in `chat.php` to send email codes. Use TLS or SSL and protect the configuration file because it may contain SMTP credentials. When both PGP and email are configured for two-factor authentication, PGP is used for password logins; passwordless login and password reset let the member choose either configured method. Backup files include decrypted email addresses and must be kept secure.
+Members can optionally add an email address in their profile. The address must be verified before it can be used for email login, password reset, or email two-factor authentication, and it is encrypted before it is stored in the database. Configure SMTP and database credentials in the configuration section at the bottom of `chat.php`. Use TLS or SSL for SMTP and protect the script because it contains credentials. When both PGP and email are configured for two-factor authentication, PGP is used for password logins; passwordless login and password reset let the member choose either configured method. Backup files include decrypted email addresses and must be kept secure.
 
 Database note encryption and optional message encryption require `libsodium`. New encrypted data uses XChaCha20-Poly1305 with a fresh random nonce per value; the updater migrates legacy AES-GCM data while retaining read compatibility for old ciphertext. Set `ENCRYPTKEY_PASS` to a unique, high-entropy secret before relying on database encryption, and preserve that secret in a secure backup. Encryption protects database contents at rest, not data from a compromised application server.
+
+To configure the application, edit the database, encryption, and SMTP constants in the configuration section at the bottom of `chat.php`. `SMTP_PORT` defaults to `587`, and `SMTP_SECURITY` accepts `tls`, `ssl`, or `none`. Set unique encryption keys for a new installation. When upgrading an existing deployment, retain its current `ENCRYPTKEY_PASS` and `AES_IV_PASS` values so encrypted data remains readable.
+
+Messages support safe inline BBCode (`[b]`, `[i]`, `[u]`, `[s]`, `[quote]`, `[code]`, and `[url]`) and common Markdown emphasis, links, headings, quotes, lists, and code. Open a separate JavaScript-free PM window at `chat.php?window=pm` while logged in.
 
 Installation Instructions:
 --------------------------
@@ -66,7 +71,7 @@ Optionally, you can install:
 - a MySQL or PostgreSQL server to use as an external database instead of SQLite
 - the `libsodium` extension (PHP >= 7.2) for encrypted notes, encrypted email addresses, and optional message encryption
 When you have everything installed and use MySQL or PostgreSQL, you'll have to create a database and a user for the chat.
-Then edit the configuration at the bottom of the script to reflect the appropriate database settings and to modify the chat settings the way you like them.
+Edit the database credentials and encryption secrets in the configuration section at the bottom of the script. Protect the script file because it contains these settings.
 Then copy the script to your web-server directory and call the script in your browser with a parameter like this:
 	http://(server)/(script-name).php?action=setup
 Now you can create the Superadmin account. With this account you can administer the chat and add new members and set the guest access.
