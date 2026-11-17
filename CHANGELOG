@@ -1,3 +1,30 @@
+Version 2.0.2 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
+Remove the .env file requirement; configure SMTP, database and encryption secrets in chat.php (who needs Git when you have a tarball?)
+Add BBCode and Markdown message formatting
+Add standalone, JavaScript-free private-message window
+Added important warning about upgrading from 1.x.x to 2.x.x
+Started preparations for upcoming bot API and Dead Man's Switch
+
+Version 2.0.1 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
+Load SMTP, database and encryption secrets from .env
+
+
+Version 2.0.0 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
+!! MAJOR UPDATE AND OVERHAUL OF LE CHAT PHP !!
+Add staff message reports and audit log
+Add encrypted optional email addresses with verification
+Add passwordless email login, email password resets and email 2FA
+Add SMTP configuration and code delivery
+Add PGP-protected self-service password resets
+Add custom permission roles and access-controlled chatrooms
+Add emoji reactions and clickable reply references
+Modernize the chat interface and remove all JavaScript output
+Set encryption enabled by default
+Show message numbers for reply references
+Add passwordless PGP login
+Encrypt shared notes at rest
+Use XChaCha20-Poly1305 with random nonces and migrate legacy ciphertext
+
 Version 1.24.1 - Oct. 17, 2020
 Add Turkish translation
 Security hardening
