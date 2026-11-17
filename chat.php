@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - Main program
 *
-* Copyright (C) 2015-2025 Daniel Winzen <daniel@danwin1210.me>
+* Copyright (C) 2015-2026 Daniel Winzen <daniel@danwin1210.me>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,6 @@ $memcached = null;// Memcached connection
 $language = LANG;// user selected language
 $locale = LANGUAGES[LANG]['locale'];// user selected locale
 $dir = LANGUAGES[LANG]['dir'];// user selected language direction
-$scripts = []; //js enhancements
 $styles = []; //css styles
 $session = $_REQUEST['session'] ?? ''; //requested session
 // set session variable to cookie if cookies are enabled
@@ -103,6 +102,34 @@ function route(): void
 		check_session();
 		toggle_like();
 		send_messages();
+	}elseif($_REQUEST['action']==='react'){
+		check_session();
+		toggle_reaction();
+		send_messages();
+	}elseif($_REQUEST['action']==='report'){
+		check_session();
+		report_message();
+		send_messages();
+	}elseif($_REQUEST['action']==='staff_inbox'){
+		check_session();
+		send_staff_inbox();
+	}elseif($_REQUEST['action']==='staff_log'){
+		check_session();
+		send_staff_log();
+	}elseif($_REQUEST['action']==='rooms'){
+		check_session();
+		$notice='';
+		if(isset($_POST['do'])){
+			$notice=manage_rooms();
+		}
+		send_manage_rooms($notice);
+	}elseif($_REQUEST['action']==='roles'){
+		check_session();
+		$notice='';
+		if(isset($_POST['do'])){
+			$notice=manage_roles();
+		}
+		send_manage_roles($notice);
 	}elseif($_REQUEST['action']==='redirect' && !empty($_GET['url'])){
 		send_redirect($_GET['url']);
 	}elseif($_REQUEST['action']==='wait'){
@@ -123,11 +150,21 @@ function route(): void
 		}
 		send_post();
 	}elseif($_REQUEST['action']==='login'){
-		check_login();
+		if(isset($_POST['pgp_login'])){
+			start_pgp_login();
+		}elseif(isset($_POST['email_login'])){
+			start_email_login();
+		}else{
+			check_login();
+		}
 		show_fails();
 		send_frameset();
 	}elseif($_REQUEST['action']==='pgp2fa'){
 		check_pgp2fa();
+		show_fails();
+		send_frameset();
+	}elseif($_REQUEST['action']==='email_auth'){
+		check_email_authentication();
 		show_fails();
 		send_frameset();
 	}elseif($_REQUEST['action']==='controls'){
@@ -155,6 +192,8 @@ function route(): void
 		if(!isset($_POST['do'])){
 		}elseif($_POST['do']==='save'){
 			$arg=save_profile();
+		}elseif($_POST['do']==='verify_email'){
+			$arg=verify_profile_email();
 		}elseif($_POST['do']==='delete'){
 			if(isset($_POST['confirm'])){
 				delete_account();
@@ -211,6 +250,8 @@ function route(): void
 		route_setup();
 	}elseif($_REQUEST['action']==='sa_password_reset'){
 		send_sa_password_reset();
+	}elseif($_REQUEST['action']==='password_reset'){
+		send_password_reset();
 	}else{
 		send_login();
 	}
@@ -271,6 +312,7 @@ function route_admin() : string {
 		if(isset($_POST['guestaccess']) && preg_match('/^[0123]$/', $_POST['guestaccess'])){
 			update_setting('guestaccess', $_POST['guestaccess']);
 			change_guest_access(intval($_POST['guestaccess']));
+			write_staff_log('guest_access_changed', 'chat', 'Set to '.$_POST['guestaccess'].' by '.$U['nickname']);
 		}
 	}elseif($_POST['do']==='filter'){
 		send_filter(manage_filter());
@@ -279,11 +321,234 @@ function route_admin() : string {
 	}elseif($_POST['do']==='topic'){
 		if(isset($_POST['topic'])){
 			update_setting('topic', htmlspecialchars($_POST['topic']));
+			write_staff_log('topic_changed', 'chat', 'Changed by '.$U['nickname']);
 		}
 	}elseif($_POST['do']==='passreset'){
 		return passreset($_POST['name'], $_POST['pass']);
 	}
 	return '';
+}
+
+function manage_rooms(): string
+{
+	global $U, $db;
+	if(!has_staff_permission('manage_rooms')){
+		send_access_denied();
+	}
+	if(($_POST['do'] ?? '')!=='create'){
+		return '';
+	}
+	$name_input=$_POST['room_name'] ?? '';
+	$name=is_string($name_input) ? trim($name_input) : '';
+	$min_status=(int) ($_POST['min_status'] ?? 1);
+	$role_id=(int) ($_POST['role_id'] ?? 0);
+	if($name==='' || mb_strlen($name)>40 || !in_array($min_status, [1, 3, 5, 7], true)){
+		return _('Invalid room name or access level.');
+	}
+	$check=$db->prepare('SELECT null FROM ' . PREFIX . 'rooms WHERE name=?;');
+	$check->execute([$name]);
+	if($check->fetch(PDO::FETCH_NUM)){
+		return _('A room with that name already exists.');
+	}
+	if($role_id>0){
+		$check=$db->prepare('SELECT null FROM ' . PREFIX . 'roles WHERE id=?;');
+		$check->execute([$role_id]);
+		if(!$check->fetch(PDO::FETCH_NUM)){
+			return _('The selected role does not exist.');
+		}
+	}
+	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'rooms (name, min_status) VALUES (?, ?);');
+	$stmt->execute([$name, $min_status]);
+	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'rooms WHERE name=?;');
+	$stmt->execute([$name]);
+	$room_id=(int) $stmt->fetchColumn();
+	if($role_id>0){
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'room_roles (room_id, role_id) VALUES (?, ?);');
+		$stmt->execute([$room_id, $role_id]);
+	}
+	write_staff_log('room_created', $name, 'Created by '.$U['nickname']);
+	return _('Room created.');
+}
+
+function send_manage_rooms(string $notice=''): void
+{
+	global $U, $db;
+	if(!has_staff_permission('manage_rooms')){
+		send_access_denied();
+	}
+	print_start('admin');
+	echo '<h1>'._('Manage chatrooms').'</h1>';
+	if($notice!==''){
+		echo '<p role="status">'.htmlspecialchars($notice).'</p>';
+	}
+	echo '<h2>'._('Create a room').'</h2>'.form('rooms', 'create');
+	echo '<p><label>'._('Room name').': <input type="text" name="room_name" maxlength="40" required></label></p>';
+	echo '<p><label>'._('Minimum built-in role').': <select name="min_status"><option value="1">'._('Guest').'</option><option value="3">'._('Member').'</option><option value="5">'._('Moderator').'</option><option value="7">'._('Admin').'</option></select></label></p>';
+	echo '<p><label>'._('Restrict to custom role').': <select name="role_id"><option value="0">'._('No additional restriction').'</option>';
+	$result=$db->query('SELECT id, name FROM ' . PREFIX . 'roles ORDER BY name;');
+	while($role=$result->fetch(PDO::FETCH_ASSOC)){
+		echo '<option value="'.(int) $role['id'].'">'.htmlspecialchars($role['name']).'</option>';
+	}
+	echo '</select></label></p>'.submit(_('Create room')).'</form>';
+	echo '<h2>'._('Existing rooms').'</h2>';
+	$result=$db->query('SELECT id, name, min_status FROM ' . PREFIX . 'rooms ORDER BY id;');
+	while($room=$result->fetch(PDO::FETCH_ASSOC)){
+		$role_stmt=$db->prepare('SELECT r.name FROM ' . PREFIX . 'roles r INNER JOIN ' . PREFIX . 'room_roles rr ON rr.role_id=r.id WHERE rr.room_id=? ORDER BY r.name;');
+		$role_stmt->execute([$room['id']]);
+		$roles=$role_stmt->fetchAll(PDO::FETCH_COLUMN);
+		echo '<div class="roomitem"><strong>'.htmlspecialchars($room['name']).'</strong> — '._('Minimum built-in role').': '.(int) $room['min_status'];
+		if($roles){
+			echo ' — '._('Custom roles').': '.htmlspecialchars(implode(', ', $roles));
+		}
+		echo '</div>';
+	}
+	echo '<p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=view&amp;session='.rawurlencode($U['session']).'">'._('Return to chat').'</a></p>';
+	print_end();
+}
+
+function manage_roles(): string
+{
+	global $U, $db;
+	if(!has_staff_permission('manage_roles')){
+		send_access_denied();
+	}
+	$allowed_permissions=['review_reports', 'view_staff_log', 'manage_rooms'];
+	$action=$_POST['do'] ?? '';
+	if($action==='create'){
+		$name_input=$_POST['role_name'] ?? '';
+		$name=is_string($name_input) ? trim($name_input) : '';
+		$permissions=$_POST['permissions'] ?? [];
+		if($name==='' || mb_strlen($name)>40 || !is_array($permissions)){
+			return _('Invalid role name or permissions.');
+		}
+		$permissions=array_values(array_filter($permissions, 'is_string'));
+		$permissions=array_values(array_intersect($permissions, $allowed_permissions));
+		$check=$db->prepare('SELECT null FROM ' . PREFIX . 'roles WHERE name=?;');
+		$check->execute([$name]);
+		if($check->fetch(PDO::FETCH_NUM)){
+			return _('A role with that name already exists.');
+		}
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'roles (name, permissions) VALUES (?, ?);');
+		$stmt->execute([$name, ','.implode(',', $permissions).',']);
+		write_staff_log('role_created', $name, 'Created by '.$U['nickname']);
+		return _('Role created.');
+	}
+	if($action==='update'){
+		$role_id=(int) ($_POST['role_id'] ?? 0);
+		$name_input=$_POST['role_name'] ?? '';
+		$name=is_string($name_input) ? trim($name_input) : '';
+		$permissions=$_POST['permissions'] ?? [];
+		if($role_id<1 || $name==='' || mb_strlen($name)>40 || !is_array($permissions)){
+			return _('Invalid role name or permissions.');
+		}
+		$permissions=array_values(array_filter($permissions, 'is_string'));
+		$permissions=array_values(array_intersect($permissions, $allowed_permissions));
+		$check=$db->prepare('SELECT null FROM ' . PREFIX . 'roles WHERE name=? AND id!=?;');
+		$check->execute([$name, $role_id]);
+		if($check->fetch(PDO::FETCH_NUM)){
+			return _('A role with that name already exists.');
+		}
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'roles SET name=?, permissions=? WHERE id=?;');
+		$stmt->execute([$name, ','.implode(',', $permissions).',', $role_id]);
+		write_staff_log('role_updated', $name, 'Updated by '.$U['nickname']);
+		return _('Role updated.');
+	}
+	if($action==='assign' || $action==='remove'){
+		$role_id=(int) ($_POST['role_id'] ?? 0);
+		$nickname_input=$_POST['nickname'] ?? '';
+		$nickname=is_string($nickname_input) ? trim($nickname_input) : '';
+		$check=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$check->execute([$nickname]);
+		if($role_id<1 || !$check->fetch(PDO::FETCH_NUM)){
+			return _('Choose an existing member and role.');
+		}
+		$check=$db->prepare('SELECT name FROM ' . PREFIX . 'roles WHERE id=?;');
+		$check->execute([$role_id]);
+		$role_name=$check->fetchColumn();
+		if($role_name===false){
+			return _('The selected role does not exist.');
+		}
+		if($action==='assign'){
+			$check=$db->prepare('SELECT null FROM ' . PREFIX . 'member_roles WHERE nickname=? AND role_id=?;');
+			$check->execute([$nickname, $role_id]);
+			if(!$check->fetch(PDO::FETCH_NUM)){
+				$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'member_roles (nickname, role_id) VALUES (?, ?);');
+				$stmt->execute([$nickname, $role_id]);
+			}
+		}else{
+			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'member_roles WHERE nickname=? AND role_id=?;');
+			$stmt->execute([$nickname, $role_id]);
+		}
+		write_staff_log('role_'.$action, $nickname, $role_name.' by '.$U['nickname']);
+		return $action==='assign' ? _('Role assigned.') : _('Role removed.');
+	}
+	return '';
+}
+
+function send_manage_roles(string $notice=''): void
+{
+	global $U, $db;
+	if(!has_staff_permission('manage_roles')){
+		send_access_denied();
+	}
+	$permission_labels=[
+		'review_reports'=>_('Review reported messages'),
+		'view_staff_log'=>_('View the staff log'),
+		'manage_rooms'=>_('Create restricted chatrooms')
+	];
+	print_start('admin');
+	echo '<h1>'._('Manage custom roles').'</h1>';
+	if($notice!==''){
+		echo '<p role="status">'.htmlspecialchars($notice).'</p>';
+	}
+	echo '<h2>'._('Create a role').'</h2>'.form('roles', 'create');
+	echo '<label>'._('Role name').': <input type="text" name="role_name" maxlength="40" required></label><fieldset><legend>'._('Permissions').'</legend>';
+	foreach($permission_labels as $permission=>$label){
+		echo '<label><input type="checkbox" name="permissions[]" value="'.htmlspecialchars($permission).'"> '.htmlspecialchars($label).'</label> ';
+	}
+	echo '</fieldset>'.submit(_('Create role')).'</form>';
+	echo '<h2>'._('Existing roles').'</h2>';
+	$result=$db->query('SELECT id, name, permissions FROM ' . PREFIX . 'roles ORDER BY name;');
+	while($role=$result->fetch(PDO::FETCH_ASSOC)){
+		echo '<div class="roleitem">'.form('roles', 'update').hidden('role_id', (string) $role['id']);
+		echo '<label>'._('Role name').': <input type="text" name="role_name" maxlength="40" value="'.htmlspecialchars($role['name'], ENT_QUOTES, 'UTF-8').'" required></label><fieldset><legend>'._('Permissions').'</legend>';
+		foreach($permission_labels as $permission=>$label){
+			$checked=strpos($role['permissions'], ','.$permission.',')!==false ? ' checked' : '';
+			echo '<label><input type="checkbox" name="permissions[]" value="'.htmlspecialchars($permission).'"'.$checked.'> '.htmlspecialchars($label).'</label> ';
+		}
+		echo '</fieldset>'.submit(_('Save role')).'</form></div>';
+	}
+	echo '<h2>'._('Assign a role').'</h2>'.form('roles', 'assign');
+	echo '<label>'._('Member').': <select name="nickname">';
+	$result=$db->query('SELECT nickname FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
+	while($member=$result->fetch(PDO::FETCH_ASSOC)){
+		echo '<option value="'.htmlspecialchars($member['nickname'], ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($member['nickname']).'</option>';
+	}
+	echo '</select></label> <label>'._('Role').': <select name="role_id">';
+	$result=$db->query('SELECT id, name FROM ' . PREFIX . 'roles ORDER BY name;');
+	while($role=$result->fetch(PDO::FETCH_ASSOC)){
+		echo '<option value="'.(int) $role['id'].'">'.htmlspecialchars($role['name']).'</option>';
+	}
+	echo '</select></label> '.submit(_('Assign')).'</form>';
+	echo form('roles', 'remove').'<label>'._('Member').': <select name="nickname">';
+	$result=$db->query('SELECT nickname FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
+	while($member=$result->fetch(PDO::FETCH_ASSOC)){
+		echo '<option value="'.htmlspecialchars($member['nickname'], ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($member['nickname']).'</option>';
+	}
+	echo '</select></label> <label>'._('Role').': <select name="role_id">';
+	$result=$db->query('SELECT id, name FROM ' . PREFIX . 'roles ORDER BY name;');
+	while($role=$result->fetch(PDO::FETCH_ASSOC)){
+		echo '<option value="'.(int) $role['id'].'">'.htmlspecialchars($role['name']).'</option>';
+	}
+	echo '</select></label> '.submit(_('Remove role')).'</form>';
+	echo '<h2>'._('Current role assignments').'</h2><table><tr><th>'._('Member').'</th><th>'._('Role').'</th></tr>';
+	$result=$db->query('SELECT mr.nickname, r.name FROM ' . PREFIX . 'member_roles mr INNER JOIN ' . PREFIX . 'roles r ON r.id=mr.role_id ORDER BY LOWER(mr.nickname), r.name;');
+	while($assignment=$result->fetch(PDO::FETCH_ASSOC)){
+		echo '<tr><td>'.htmlspecialchars($assignment['nickname']).'</td><td>'.htmlspecialchars($assignment['name']).'</td></tr>';
+	}
+	echo '</table>';
+	echo '<p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=view&amp;session='.rawurlencode($U['session']).'">'._('Return to chat').'</a></p>';
+	print_end();
 }
 
 function route_setup(): void
@@ -322,7 +587,6 @@ function route_setup(): void
 		'hide_rearrange' => _('Hide rearrange button'),
 		'hide_help' => _('Hide help button'),
 		'postbox_delete_globally' => _('Apply postbox delete button globally'),
-		'allow_js' => _('Allow enhancing functionality with JavaScript'),
 	];
 	$C['colour_settings']=[
 		'colbg' => _('Background colour'),
@@ -416,7 +680,7 @@ function route_setup(): void
 //  html output subs
 function prepare_stylesheets(string $class): void
 {
-	global $U, $db, $scripts, $styles;
+	global $U, $db, $styles;
 	if($class === 'fatal_error') {
 		$styles[ 'fatal_error' ] = 'body{background-color:#000000;color:#FF0033}';
 	}
@@ -432,6 +696,16 @@ function prepare_stylesheets(string $class): void
 	$styles['default'] .= '.approve_waiting #action td:only-child,.help #backcredit,.login td:only-child,.alogin td:only-child,.init td:only-child{text-align:center} .sessions td,.sessions th,.approve_waiting td,.approve_waiting th{padding: 5px} ';
 	$styles['default'] .= '.sessions td td{padding: 1px} .notes textarea{height:80vh;width:80%} ';
 	$styles['default'] .= '.post table,.controls table,.login table{border-spacing:0px;margin-left:auto;margin-right:auto} .login table{border:2px solid} .controls{overflow-y:none} ';
+	$styles['default'] .= 'body{box-sizing:border-box;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;padding:0.6rem} ';
+	$styles['default'] .= 'input,select,textarea,button{box-sizing:border-box;border:1px solid #536274;border-radius:0.45rem;padding:0.45rem 0.65rem;font:inherit} ';
+	$styles['default'] .= 'input[type=submit],button{cursor:pointer;background:#24364a;color:inherit} input[type=submit]:hover,button:hover{background:#34516d} ';
+	$styles['default'] .= 'input[type=submit].delbutton{background:#660000} input[type=submit].backbutton{background:#004400} ';
+	$styles['default'] .= 'input:focus,select:focus,textarea:focus,button:focus,a:focus{outline:2px solid #68b7ff;outline-offset:2px} ';
+	$styles['default'] .= 'table{border-collapse:separate;border-spacing:0 0.35rem} th,td{padding:0.35rem 0.5rem} ';
+	$styles['default'] .= '.msg,.staffitem,.roleitem,.roomitem{border:1px solid #405064;border-radius:0.55rem;padding:0.55rem 0.75rem;margin:0.45rem 0;background:rgba(35,51,70,.35)} ';
+	$styles['default'] .= '.msgactions{display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.35rem}.msgactions form{display:inline} ';
+	$styles['default'] .= '.messageid{font-weight:700;color:#9fb3c8;margin-right:0.2rem}.replyref{font-size:smaller;margin-right:0.35rem}.reportbutton{color:#ffd27a}.staffnav{display:flex;flex-wrap:wrap;gap:0.45rem;justify-content:center;margin:0.5rem} ';
+	$styles['default'] .= '@media(max-width:600px){body{padding:0.35rem}input[type=text],input[type=password],select,textarea{max-width:100%}.msg{max-height:none}} ';
 	if($class === 'init' || ! $db instanceof PDO){
 		return;
 	}
@@ -487,30 +761,11 @@ function prepare_stylesheets(string $class): void
 		$colbg=get_setting('colbg');
 	}
 	$styles['custom'] = preg_replace("/(\r?\n|\r\n?)/u", '', "body,iframe{background-color:#$colbg;color:#$coltxt} $css");
-	$allow_js = (bool) get_setting('allow_js');
-	if($allow_js){
-		$scripts['default'] = 'if(window.history.replaceState){window.history.replaceState(null,"");}';
-		if($class === 'frameset') {
-			$scripts[ 'frameset' ] = 'window.addEventListener("message", (e)=>{
-				if(e.data === "post_box_loaded"){
-					let autofocus = document.querySelector("iframe[name=post").contentDocument.querySelector("input[autofocus]");
-					if(autofocus){
-						autofocus.focus();
-					}
-				}
-			});';
-		}
-		if($class === 'post') {
-			$scripts[ 'post' ] = 'window.addEventListener("load", _=>{
-				window.top.postMessage("post_box_loaded", window.location.origin);
-			})';
-		}
-	}
 }
 
 function print_stylesheet(string $class): void
 {
-	global $scripts, $styles;
+	global $styles;
 	//default css
 	echo "<style>$styles[default]</style>";
 	if ( $class === 'init' ) {
@@ -521,13 +776,6 @@ function print_stylesheet(string $class): void
 	}
 	//overwrite with custom css
 	echo "<style>$styles[custom]</style>";
-	$allow_js = (bool) get_setting( 'allow_js' );
-	if ( $allow_js ) {
-		echo "<script>$scripts[default]</script>";
-		if(isset($scripts[$class])) {
-			echo "<script>$scripts[$class]</script>";
-		}
-	}
 }
 
 function print_end(): void
@@ -1245,8 +1493,26 @@ function restore_backup(array $C): void
 	}
 	if(isset($_POST['members']) && isset($code['members'])){
 		$db->exec('DELETE FROM ' . PREFIX . 'inbox;');
+		$db->exec('DELETE FROM ' . PREFIX . 'member_roles;');
 		$db->exec('DELETE FROM ' . PREFIX . 'members;');
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, lastlogin, loginfails, timestamps, embed, incognito, style, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
+		if(isset($code['roles']) && is_array($code['roles'])){
+			$role_check=$db->prepare('SELECT id FROM ' . PREFIX . 'roles WHERE name=?;');
+			$role_insert=$db->prepare('INSERT INTO ' . PREFIX . 'roles (name, permissions) VALUES (?, ?);');
+			$role_update=$db->prepare('UPDATE ' . PREFIX . 'roles SET permissions=? WHERE id=?;');
+			foreach($code['roles'] as $role){
+				if(!isset($role['name'], $role['permissions']) || !is_string($role['name']) || !is_string($role['permissions'])){
+					continue;
+				}
+				$role_check->execute([$role['name']]);
+				$existing_role_id=$role_check->fetchColumn();
+				if($existing_role_id===false){
+					$role_insert->execute([$role['name'], $role['permissions']]);
+				}else{
+					$role_update->execute([$role['permissions'], $existing_role_id]);
+				}
+			}
+		}
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, lastlogin, loginfails, timestamps, embed, incognito, style, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old, pgpkey, email, emailverified, email2fa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 		foreach($code['members'] as $member){
 			$new_settings=['nocache', 'tz', 'eninbox', 'sortupdown', 'hidechatters', 'nocache_old'];
 			foreach($new_settings as $setting){
@@ -1254,7 +1520,39 @@ function restore_backup(array $C): void
 					$member[$setting]=0;
 				}
 			}
-			$stmt->execute([$member['nickname'], $member['passhash'], $member['status'], $member['refresh'], $member['bgcolour'], $member['regedby'], $member['lastlogin'], $member['loginfails'], $member['timestamps'], $member['embed'], $member['incognito'], $member['style'], $member['nocache'], $member['tz'], $member['eninbox'], $member['sortupdown'], $member['hidechatters'], $member['nocache_old']]);
+			$member['pgpkey']=$member['pgpkey'] ?? '';
+			$member['loginfails']=$member['loginfails'] ?? 0;
+			$email=isset($member['email']) && is_string($member['email']) ? trim($member['email']) : '';
+			$email_verified=(int) ($member['emailverified'] ?? 0)===1;
+			$email_2fa=(int) ($member['email2fa'] ?? 0)===1;
+			if($email!=='' && filter_var($email, FILTER_VALIDATE_EMAIL) && strlen($email)<=254 && !preg_match('/[\r\n]/', $email)){
+				try {
+					$email=encrypt_database_value($email);
+				} catch(Throwable $e) {
+					send_error($e->getMessage());
+				}
+			}else{
+				$email='';
+				$email_verified=false;
+				$email_2fa=false;
+			}
+			$stmt->execute([$member['nickname'], $member['passhash'], $member['status'], $member['refresh'], $member['bgcolour'], $member['regedby'], $member['lastlogin'], $member['loginfails'], $member['timestamps'], $member['embed'], $member['incognito'], $member['style'], $member['nocache'], $member['tz'], $member['eninbox'], $member['sortupdown'], $member['hidechatters'], $member['nocache_old'], $member['pgpkey'], $email, (int) $email_verified, (int) ($email_verified && $email_2fa)]);
+		}
+		if(isset($code['member_roles']) && is_array($code['member_roles'])){
+			$member_check=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=?;');
+			$role_check=$db->prepare('SELECT id FROM ' . PREFIX . 'roles WHERE name=?;');
+			$role_assign=$db->prepare('INSERT INTO ' . PREFIX . 'member_roles (nickname, role_id) VALUES (?, ?);');
+			foreach($code['member_roles'] as $assignment){
+				if(!isset($assignment['nickname'], $assignment['role']) || !is_string($assignment['nickname']) || !is_string($assignment['role'])){
+					continue;
+				}
+				$member_check->execute([$assignment['nickname']]);
+				$role_check->execute([$assignment['role']]);
+				$role_id=$role_check->fetchColumn();
+				if($member_check->fetch(PDO::FETCH_NUM) && $role_id!==false){
+					$role_assign->execute([$assignment['nickname'], $role_id]);
+				}
+			}
 		}
 	}
 	if(isset($_POST['notes']) && isset($code['notes'])){
@@ -1268,12 +1566,10 @@ function restore_backup(array $C): void
 			}elseif($note['type']==='public'){
 				$note['type']=3;
 			}
-			if(MSGENCRYPTED){
-				try {
-					$note['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($note['text'], '', AES_IV, ENCRYPTKEY));
-				} catch (SodiumException $e){
-					send_error($e->getMessage());
-				}
+			try {
+				$note['text']=encrypt_database_value((string) $note['text']);
+			} catch (Throwable $e){
+				send_error($e->getMessage());
 			}
 			$stmt->execute([$note['type'], $note['lastedited'], $note['editedby'], $note['text']]);
 		}
@@ -1303,18 +1599,35 @@ function send_backup(array $C): void
 		if(isset($_POST['members'])){
 			$result=$db->query('SELECT * FROM ' . PREFIX . 'members;');
 			while($member=$result->fetch(PDO::FETCH_ASSOC)){
+				$member['email']=$member['email'] ?? '';
+				if($member['email']!==''){
+					try {
+						$member['email']=decrypt_database_value((string) $member['email']);
+					} catch(Throwable $e) {
+						send_error($e->getMessage());
+					}
+				}
+				$member['emailchallengehash']='';
+				$member['emailchallengeexpires']=0;
+				$member['emailchallengepurpose']='';
 				$code['members'][]=$member;
+			}
+			$result=$db->query('SELECT name, permissions FROM ' . PREFIX . 'roles ORDER BY name;');
+			while($role=$result->fetch(PDO::FETCH_ASSOC)){
+				$code['roles'][]=$role;
+			}
+			$result=$db->query('SELECT mr.nickname, r.name AS role FROM ' . PREFIX . 'member_roles mr INNER JOIN ' . PREFIX . 'roles r ON r.id=mr.role_id ORDER BY mr.nickname, r.name;');
+			while($assignment=$result->fetch(PDO::FETCH_ASSOC)){
+				$code['member_roles'][]=$assignment;
 			}
 		}
 		if(isset($_POST['notes'])){
 			$result=$db->query('SELECT * FROM ' . PREFIX . "notes;");
 			while($note=$result->fetch(PDO::FETCH_ASSOC)){
-				if(MSGENCRYPTED){
-					try {
-						$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
-					} catch (SodiumException $e){
-						send_error($e->getMessage());
-					}
+				try {
+					$note['text']=decrypt_database_value((string) $note['text']);
+				} catch (Throwable $e){
+					send_error($e->getMessage());
 				}
 				$code['notes'][]=$note;
 			}
@@ -1987,7 +2300,8 @@ function noframe_html() : string {
 
 function send_messages(): void
 {
-	global $U, $language;
+	global $U, $language, $db;
+	$room_id=selected_room_id();
 	if($U['nocache']){
 		$nocache='&nc='.substr(time(), -6);
 	}else{
@@ -1998,10 +2312,32 @@ function send_messages(): void
 	}else{
 		$sort='';
 	}
-	print_start('messages', (int) $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language$nocache$sort");
+	print_start('messages', (int) $U['refresh'], "$_SERVER[SCRIPT_NAME]?action=view&session=$U[session]&lang=$language&room_id=$room_id$nocache$sort");
 	echo '<a id="top"></a>';
 	echo '<a id="bottom_link" href="#bottom">'._('Bottom').'</a>';
-	echo '<div id="manualrefresh"><br>'._('Manual refresh required').'<br>'.form('view').submit(_('Reload')).'</form><br></div>';
+	echo '<div id="manualrefresh"><br>'._('Manual refresh required').'<br>'.form('view').hidden('room_id', (string) $room_id).submit(_('Reload')).'</form><br></div>';
+	echo '<div class="roomnav"><strong>'.htmlspecialchars(get_room_name($room_id)).'</strong> ';
+	echo form('view').'<label>'._('Chatroom').': <select name="room_id">';
+	foreach(get_accessible_rooms() as $room){
+		echo '<option value="'.(int) $room['id'].'"'.((int) $room['id']===$room_id ? ' selected' : '').'>'.htmlspecialchars($room['name']).'</option>';
+	}
+	echo '</select></label> '.submit(_('Open room')).'</form></div>';
+	if(has_staff_permission('review_reports') || $U['status']>=5 || has_staff_permission('view_staff_log') || has_staff_permission('manage_rooms')){
+		echo '<nav class="staffnav">';
+		if(has_staff_permission('review_reports')){
+			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=staff_inbox&amp;session='.rawurlencode($U['session']).'">'._('Staff inbox').'</a> ';
+		}
+		if(has_staff_permission('view_staff_log')){
+			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=staff_log&amp;session='.rawurlencode($U['session']).'">'._('Staff log').'</a> ';
+		}
+		if(has_staff_permission('manage_rooms')){
+			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=rooms&amp;session='.rawurlencode($U['session']).'">'._('Manage rooms').'</a> ';
+		}
+		if($U['status']>=7){
+			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=roles&amp;session='.rawurlencode($U['session']).'">'._('Manage roles').'</a>';
+		}
+		echo '</nav>';
+	}
 	if(!$U['sortupdown']){
 		echo '<div id="topic">';
 		echo get_setting('topic');
@@ -2108,12 +2444,10 @@ function send_notes(int $type): void
 			}
 		}
 		if($save){
-			if(MSGENCRYPTED){
-				try {
-					$_POST['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($_POST['text'], '', AES_IV, ENCRYPTKEY));
-				} catch (SodiumException $e){
-					send_error($e->getMessage());
-				}
+			try {
+				$_POST['text']=encrypt_database_value((string) $_POST['text']);
+			} catch (Throwable $e){
+				send_error($e->getMessage());
 			}
 			$time=time();
 			$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'notes (type, lastedited, editedby, text) VALUES (?, ?, ?, ?);');
@@ -2148,10 +2482,10 @@ function send_notes(int $type): void
 	}else{
 		$note['text']='';
 	}
-	if(MSGENCRYPTED){
+	if(!empty($note['text'])){
 		try {
-			$note['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($note['text']), null, AES_IV, ENCRYPTKEY);
-		} catch (SodiumException $e){
+			$note['text']=decrypt_database_value((string) $note['text']);
+		} catch (Throwable $e){
 			send_error($e->getMessage());
 		}
 	}
@@ -2192,6 +2526,166 @@ function send_notes(int $type): void
 		echo '</tr></table>';
 	}
 	print_end();
+}
+
+function define_encryption_constants(): void
+{
+	if(!defined('ENCRYPTKEY')){
+		if(strlen(ENCRYPTKEY_PASS)!==SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES){
+			define('ENCRYPTKEY', substr(hash('sha512/256', ENCRYPTKEY_PASS), 0, SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES));
+		}else{
+			define('ENCRYPTKEY', ENCRYPTKEY_PASS);
+		}
+	}
+	if(!defined('ENCRYPTKEY_V2')){
+		define('ENCRYPTKEY_V2', hash_hmac('sha256', 'le-chat-php:db:v2', ENCRYPTKEY, true));
+	}
+	if(!defined('AES_IV')){
+		if(strlen(AES_IV_PASS)!==12){
+			define('AES_IV', substr(hash('sha512/256', AES_IV_PASS), 0, 12));
+		}else{
+			define('AES_IV', AES_IV_PASS);
+		}
+	}
+}
+
+function encrypt_database_value(string $plaintext): string
+{
+	if(!extension_loaded('sodium')){
+		throw new RuntimeException(_('The sodium extension is required to encrypt database content.'));
+	}
+	define_encryption_constants();
+	$nonce=random_bytes(SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES);
+	$cipher=sodium_crypto_aead_xchacha20poly1305_ietf_encrypt($plaintext, 'le-chat-php:db:v2', $nonce, ENCRYPTKEY_V2);
+	return 'LCENC2:'.base64_encode($nonce.$cipher);
+}
+
+function decrypt_database_value(string $payload): string
+{
+	if(!extension_loaded('sodium')){
+		throw new RuntimeException(_('The sodium extension is required to decrypt database content.'));
+	}
+	define_encryption_constants();
+	if(strpos($payload, 'LCENC2:')===0){
+		$decoded=base64_decode(substr($payload, 7), true);
+		if($decoded===false){
+			throw new RuntimeException(_('Invalid encrypted database content.'));
+		}
+		$nonce_length=SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES;
+		$tag_length=SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_ABYTES;
+		if(strlen($decoded)<$nonce_length+$tag_length){
+			throw new RuntimeException(_('Invalid encrypted database content.'));
+		}
+		$nonce=substr($decoded, 0, $nonce_length);
+		$cipher=substr($decoded, $nonce_length);
+		$plaintext=sodium_crypto_aead_xchacha20poly1305_ietf_decrypt($cipher, 'le-chat-php:db:v2', $nonce, ENCRYPTKEY_V2);
+	}else{
+		$cipher=base64_decode($payload, true);
+		if($cipher===false){
+			throw new RuntimeException(_('Invalid encrypted database content.'));
+		}
+		if(function_exists('sodium_crypto_aead_aes256gcm_decrypt') && function_exists('sodium_crypto_aead_aes256gcm_is_available') && sodium_crypto_aead_aes256gcm_is_available()){
+			$plaintext=sodium_crypto_aead_aes256gcm_decrypt($cipher, null, AES_IV, ENCRYPTKEY);
+		}elseif(function_exists('openssl_decrypt') && strlen($cipher)>=16){
+			$tag=substr($cipher, -16);
+			$ciphertext=substr($cipher, 0, -16);
+			$plaintext=openssl_decrypt($ciphertext, 'aes-256-gcm', ENCRYPTKEY, OPENSSL_RAW_DATA, AES_IV, $tag);
+		}else{
+			throw new RuntimeException(_('This PHP installation cannot decrypt legacy AES-GCM data.'));
+		}
+	}
+	if($plaintext===false){
+		throw new RuntimeException(_('Could not authenticate encrypted database content.'));
+	}
+	return $plaintext;
+}
+
+function transform_encrypted_table(string $table, string $column, string $mode): void
+{
+	global $db;
+	$result=$db->query('SELECT id, ' . $column . ' FROM ' . PREFIX . $table . ';');
+	$stmt=$db->prepare('UPDATE ' . PREFIX . $table . ' SET ' . $column . '=? WHERE id=?;');
+	while($row=$result->fetch(PDO::FETCH_ASSOC)){
+		$value=(string) $row[$column];
+		if($mode==='decrypt'){
+			$value=decrypt_database_value($value);
+		}elseif($mode==='reencrypt'){
+			$value=encrypt_database_value(decrypt_database_value($value));
+		}elseif($mode==='encrypt'){
+			$value=encrypt_database_value($value);
+		}else{
+			throw new InvalidArgumentException('Unsupported encryption migration mode.');
+		}
+		$stmt->execute([$value, $row['id']]);
+	}
+}
+
+function migrate_encryption_format(bool $stored_encrypted): bool
+{
+	global $db, $memcached;
+	if(!extension_loaded('sodium')){
+		send_fatal_error(_('The sodium extension is required to encrypt stored notes.'));
+		return false;
+	}
+	try {
+		$db->beginTransaction();
+		$result=$db->query('SELECT id, text FROM ' . PREFIX . 'notes;');
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET text=? WHERE id=?;');
+		while($note=$result->fetch(PDO::FETCH_ASSOC)){
+			$text=(string) $note['text'];
+			if($stored_encrypted){
+				$text=decrypt_database_value($text);
+			}
+			$stmt->execute([encrypt_database_value($text), $note['id']]);
+		}
+		if($stored_encrypted && MSGENCRYPTED){
+			transform_encrypted_table('messages', 'text', 'reencrypt');
+			transform_encrypted_table('inbox', 'text', 'reencrypt');
+			transform_encrypted_table('reports', 'message_text', 'reencrypt');
+		}
+		$setting=$db->prepare('UPDATE ' . PREFIX . 'settings SET value=? WHERE setting=?;');
+		$setting->execute(['2', 'dataencryptionversion']);
+		$db->commit();
+		if(MEMCACHED){
+			$memcached->set(DBNAME . '-' . PREFIX . 'settings-dataencryptionversion', '2');
+		}
+		return true;
+	} catch (Throwable $e){
+		if($db->inTransaction()){
+			$db->rollBack();
+		}
+		send_fatal_error(sprintf(_('Could not migrate database encryption: %s'), $e->getMessage()));
+		return false;
+	}
+}
+
+function migrate_message_encryption(bool $target_encrypted): bool
+{
+	global $db, $memcached;
+	if(!extension_loaded('sodium')){
+		send_fatal_error(_('The sodium extension is required for message encryption.'));
+		return false;
+	}
+	try {
+		$db->beginTransaction();
+		$mode=$target_encrypted ? 'encrypt' : 'decrypt';
+		transform_encrypted_table('messages', 'text', $mode);
+		transform_encrypted_table('inbox', 'text', $mode);
+		transform_encrypted_table('reports', 'message_text', $mode);
+		$setting=$db->prepare('UPDATE ' . PREFIX . 'settings SET value=? WHERE setting=?;');
+		$setting->execute([(int) $target_encrypted, 'msgencrypted']);
+		$db->commit();
+		if(MEMCACHED){
+			$memcached->set(DBNAME . '-' . PREFIX . 'settings-msgencrypted', (int) $target_encrypted);
+		}
+		return true;
+	} catch (Throwable $e){
+		if($db->inTransaction()){
+			$db->rollBack();
+		}
+		send_fatal_error(sprintf(_('Could not migrate message encryption: %s'), $e->getMessage()));
+		return false;
+	}
 }
 
 function encrypt_personal_note(string $text, string $password): string
@@ -2351,6 +2845,7 @@ function send_del_confirm(): void
 function send_post(string $rejected=''): void
 {
 	global $U, $db;
+	$room_id=selected_room_id();
 	print_start('post');
 	if(!isset($_REQUEST['sendto'])){
 		$_REQUEST['sendto']='';
@@ -2363,6 +2858,12 @@ function send_post(string $rejected=''): void
 	echo hidden('postid', $U['postid']);
 	if($reply_to>0){
 		echo hidden('reply_to', (string) $reply_to);
+		$reply_stmt=$db->prepare('SELECT room_id FROM ' . PREFIX . 'messages WHERE id=?;');
+		$reply_stmt->execute([$reply_to]);
+		$reply_room_id=(int) $reply_stmt->fetchColumn();
+		if($reply_room_id>0){
+			$room_id=$reply_room_id;
+		}
 		echo '<div class="replyref">'.sprintf(_('Replying to message #%d'), $reply_to).'</div>';
 	}
 	if(isset($_POST['multi'])){
@@ -2374,7 +2875,11 @@ function send_post(string $rejected=''): void
 	}else{
 		echo "<td><input type=\"text\" name=\"message\" value=\"$rejected\" size=\"40\" style=\"$U[style]\" autofocus></td>";
 	}
-	echo '<td>'.submit(_('Send to')).'</td><td><select name="sendto" size="1">';
+	echo '<td>'.submit(_('Send to')).'</td><td><label>'._('Chatroom').': <select name="room_id">';
+	foreach(get_accessible_rooms() as $room){
+		echo '<option value="'.(int) $room['id'].'"'.((int) $room['id']===$room_id ? ' selected' : '').'>'.htmlspecialchars($room['name']).'</option>';
+	}
+	echo '</select></label> <select name="sendto" size="1">';
 	echo '<option ';
 	if($_REQUEST['sendto']==='s *'){
 		echo 'selected ';
@@ -2505,12 +3010,10 @@ function view_publicnotes(): void
 	$query = $db->query('SELECT lastedited, editedby, text FROM ' . PREFIX . 'notes INNER JOIN (SELECT MAX(id) AS latest FROM ' . PREFIX . 'notes WHERE type=3 GROUP BY editedby) AS t ON t.latest = id;');
 	while($result = $query->fetch(PDO::FETCH_OBJ)){
 		if (!empty($result->text)) {
-			if(MSGENCRYPTED){
-				try {
-					$result->text = sodium_crypto_aead_aes256gcm_decrypt(base64_decode($result->text), null, AES_IV, ENCRYPTKEY);
-				} catch (SodiumException $e){
-					send_error($e->getMessage());
-				}
+			try {
+				$result->text=decrypt_database_value((string) $result->text);
+			} catch (Throwable $e){
+				send_error($e->getMessage());
 			}
 			echo '<hr>';
 			printf(_('Last edited by %1$s at %2$s'), htmlspecialchars($result->editedby), date($dateformat, $result->lastedited));
@@ -2535,11 +3038,24 @@ function send_profile(string $arg=''): void
 		$ignored[]=htmlspecialchars($tmp['ign']);
 	}
 	$pgpkey='';
+	$email='';
+	$email_verified=false;
+	$email_2fa=false;
 	if($U['status']>=2){
-		$stmt=$db->prepare('SELECT pgpkey FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt=$db->prepare('SELECT pgpkey, email, emailverified, email2fa FROM ' . PREFIX . 'members WHERE nickname=?;');
 		$stmt->execute([$U['nickname']]);
-		if($tmp=$stmt->fetch(PDO::FETCH_NUM)){
-			$pgpkey=$tmp[0] ?? '';
+		if($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+			$pgpkey=$tmp['pgpkey'] ?? '';
+			$email_cipher=(string) ($tmp['email'] ?? '');
+			if($email_cipher!==''){
+				try {
+					$email=decrypt_database_value($email_cipher);
+				} catch(Throwable $e) {
+					send_error($e->getMessage());
+				}
+			}
+			$email_verified=(int) ($tmp['emailverified'] ?? 0)===1;
+			$email_2fa=(int) ($tmp['email2fa'] ?? 0)===1;
 		}
 	}
 	if(count($ignored)>0){
@@ -2672,12 +3188,34 @@ function send_profile(string $arg=''): void
 		echo '<tr><td><label><input type="checkbox" name="clearpgpkey" value="on"> '._('Remove PGP two-factor authentication').'</label></td></tr>';
 		echo '</table></td></tr>';
 		thr();
+		echo '<tr><td><table id="account-email"><tr><th>'._('Email account options').'</th></tr>';
+		echo '<tr><td><label>'._('Optional email address:').' <input type="email" name="email" maxlength="254" autocomplete="email" value="'.htmlspecialchars($email, ENT_QUOTES, 'UTF-8').'"></label></td></tr>';
+		if($email!==''){
+			echo '<tr><td>'.($email_verified ? _('Email address verified.') : _('Email address not verified.')).'</td></tr>';
+			if(!$email_verified){
+				echo '<tr><td>'.submit(_('Send verification code'), 'name="send_email_verification"').'</td></tr>';
+			}else{
+				echo '<tr><td><label><input type="checkbox" name="email2fa" value="on"'.($email_2fa ? ' checked' : '').'> '._('Enable email two-factor authentication when no PGP key is configured').'</label></td></tr>';
+				if(trim((string) $pgpkey)!==''){
+					echo '<tr><td><small>'._('PGP is always used for two-factor authentication when a PGP key is configured.').'</small></td></tr>';
+				}
+				echo '<tr><td><small>'._('A verified email can also be used for passwordless login and password reset.').'</small></td></tr>';
+			}
+		}else{
+			echo '<tr><td><small>'._('Verify an email address before using email login, password reset, or email two-factor authentication.').'</small></td></tr>';
+		}
+		echo '</table></td></tr>';
+		thr();
 		echo '<tr><td><table id="changenick"><tr><th>'._('Change Nickname').'</th><td><table>';
 		echo '<tr><td>&nbsp;</td><td>'._('New nickname:').'</td><td><input type="text" name="newnickname" size="20" autocomplete="username">';
 		echo '</table></td></tr></table></td></tr>';
 		thr();
 	}
 	echo '<tr><td>'.submit(_('Save changes')).'</td></tr></table></form>';
+	if($U['status']>=2 && $email!=='' && !$email_verified){
+		echo form('profile', 'verify_email');
+		echo '<label>'._('Email verification code:').' <input type="text" name="emailcode" autocomplete="one-time-code" required></label> '.submit(_('Verify email address')).'</form>';
+	}
 	if($U['status']>1 && $U['status']<8){
 		echo '<br>'.form('profile', 'delete').submit(_('Delete account'), 'class="delbutton"').'</form>';
 	}
@@ -2800,7 +3338,7 @@ function send_pgp2fa(string $nickname, string $encrypted_challenge): void
 {
 	print_start('pgp2fa');
 	echo '<h1 id="chatname">'.get_setting('chatname').'</h1>';
-	echo '<h2>'._('PGP two-factor authentication').'</h2>';
+	echo '<h2>'._('PGP authentication').'</h2>';
 	echo '<p>'._('Decrypt this message with your PGP private key, then enter the verification code.').'</p>';
 	echo '<textarea rows="12" cols="72" readonly>'.htmlspecialchars($encrypted_challenge).'</textarea>';
 	echo form_target('_parent', 'pgp2fa');
@@ -2814,6 +3352,7 @@ function send_pgp2fa(string $nickname, string $encrypted_challenge): void
 
 function send_login(): void
 {
+	global $language;
 	$ga=(int) get_setting('guestaccess');
 	if($ga===4){
 		send_chat_disabled();
@@ -2843,7 +3382,10 @@ function send_login(): void
 		}else{
 			echo '<tr><td colspan="2">'._('Sorry, currently members only!').'</td></tr>';
 		}
-		echo '<tr><td colspan="2">'.submit(_('Enter Chat')).'</td></tr></table></form>';
+		echo '<tr><td colspan="2">'.submit(_('Enter Chat')).'</td></tr></table>';
+		echo '<p class="loginor">'._('- OR -').'</p><p>'.submit(_('Log in with PGP'), 'name="pgp_login"').'</p>';
+		echo '<p class="loginor">'._('- OR -').'</p><p>'.submit(_('Log in with email'), 'name="email_login"').'</p></form>';
+		echo '<p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=password_reset&amp;lang='.htmlspecialchars($language).'">'._('Forgot password? Reset with PGP or email').'</a></p>';
 		get_nowchatting();
 		echo '<br><div id="topic">';
 		echo get_setting('topic');
@@ -2982,6 +3524,8 @@ function create_session(bool $setup, string $nickname, string $password): void
 		}
 		if(!$setup && !empty(trim($U['pgpkey'] ?? ''))){
 			start_pgp2fa();
+		}elseif(!$setup && !empty($U['email2fa'])){
+			start_email_two_factor();
 		}
 		$U['entry']=$U['lastpost']=time();
 	}else{
@@ -3154,9 +3698,288 @@ function start_pgp2fa(): void
 	}
 	$message=sprintf(_("Your verification code for %s is: %s"), get_setting('chatname'), $code);
 	$encrypted=pgp_encrypt_message($U['pgpkey'], $message);
-	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=? WHERE nickname=?;');
-	$stmt->execute([hash('sha256', $code), time()+300, $U['nickname']]);
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=? WHERE nickname=?;');
+	$stmt->execute([hash('sha256', $code), time()+300, 'login', $U['nickname']]);
 	send_pgp2fa($U['nickname'], $encrypted);
+}
+
+function start_pgp_login(): void
+{
+	global $db;
+	if((int) get_setting('guestaccess')===4){
+		send_chat_disabled();
+	}
+	if(get_setting('englobalpass')==1 && (!isset($_POST['globalpass']) || $_POST['globalpass']!=get_setting('globalpass'))){
+		send_error(_('Wrong global Password!'));
+	}
+	if(get_setting('dismemcaptcha')==0){
+		check_captcha($_POST['challenge'] ?? '', $_POST['captcha'] ?? '');
+	}
+	$nick_input=$_POST['nick'] ?? '';
+	$nickname=is_string($nick_input) ? preg_replace('/\s/', '', $nick_input) : '';
+	if($nickname===''){
+		send_error(_('Enter a nickname to log in with PGP.'));
+	}
+	$stmt=$db->prepare('SELECT pgpkey FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$nickname]);
+	$public_key=$stmt->fetchColumn();
+	if($public_key===false || trim((string) $public_key)===''){
+		send_error(_('This account does not have PGP authentication configured.'));
+	}
+	try {
+		$code=strtoupper(bin2hex(random_bytes(16)));
+	} catch(Exception $e) {
+		send_error($e->getMessage());
+	}
+	$message=sprintf(_('Your PGP login code for %s is: %s'), get_setting('chatname'), $code);
+	$encrypted=pgp_encrypt_message((string) $public_key, $message);
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=? WHERE nickname=?;');
+	$stmt->execute([hash('sha256', $code), time()+300, 'pgp_login', $nickname]);
+	send_pgp2fa($nickname, $encrypted);
+}
+
+function email_challenge_is_valid(array $member, string $purpose, string $code): bool
+{
+	$hash=(string) ($member['emailchallengehash'] ?? '');
+	$expires=(int) ($member['emailchallengeexpires'] ?? 0);
+	$actual_purpose=(string) ($member['emailchallengepurpose'] ?? '');
+	return preg_match('/^[0-9A-F]{32}$/', $code)===1 && $actual_purpose===$purpose &&
+		$hash!=='' && $expires>=time() && hash_equals($hash, hash('sha256', $code));
+}
+
+function send_email_challenge(string $nickname, string $email, string $purpose, string $type): void
+{
+	global $db;
+	if(strlen($email)>254 || !filter_var($email, FILTER_VALIDATE_EMAIL) || preg_match('/[\r\n<>]/', $email) ||
+		!in_array($type, ['email verification', 'login', 'two-factor authentication', 'password reset'], true)){
+		throw new RuntimeException('Invalid email address.');
+	}
+	$stmt=$db->prepare('SELECT emailchallengeexpires, emailchallengepurpose FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$nickname]);
+	$previous=$stmt->fetch(PDO::FETCH_ASSOC);
+	if($previous && $previous['emailchallengepurpose']===$purpose && (int) $previous['emailchallengeexpires']>=time() &&
+		time()-((int) $previous['emailchallengeexpires']-300)<30){
+		throw new RuntimeException('Please wait before requesting another email code.');
+	}
+	try {
+		$code=strtoupper(bin2hex(random_bytes(16)));
+	} catch(Throwable $e) {
+		throw new RuntimeException('Unable to generate an email verification code.', 0, $e);
+	}
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=? WHERE nickname=?;');
+	$stmt->execute([hash('sha256', $code), time()+300, $purpose, $nickname]);
+	$chatname=trim(str_replace(["\r", "\n"], ' ', get_setting('chatname')));
+	$body='Your '.$type.' code for '.$chatname.' is '.$code.'. If you didn\'t expect this email, you can safely ignore it';
+	send_smtp_email($email, $body);
+}
+
+function smtp_expect($socket, array $expected): int
+{
+	while(($line=fgets($socket, 515))!==false){
+		if(!preg_match('/^([0-9]{3})([ -])/', $line, $matches)){
+			throw new RuntimeException('Invalid response from SMTP server.');
+		}
+		$code=(int) $matches[1];
+		if($matches[2]===' '){
+			if(!in_array($code, $expected, true)){
+				throw new RuntimeException('SMTP server returned response code '.$code.'.');
+			}
+			return $code;
+		}
+	}
+	throw new RuntimeException('No response from SMTP server.');
+}
+
+function smtp_write($socket, string $message): void
+{
+	$offset=0;
+	$length=strlen($message);
+	while($offset<$length){
+		$written=fwrite($socket, substr($message, $offset));
+		if($written===false || $written===0){
+			throw new RuntimeException('Unable to write to SMTP server.');
+		}
+		$offset+=$written;
+	}
+}
+
+function smtp_command($socket, string $command, array $expected): int
+{
+	smtp_write($socket, $command."\r\n");
+	return smtp_expect($socket, $expected);
+}
+
+function send_smtp_email(string $recipient, string $body): void
+{
+	$host=(string) SMTP_HOST;
+	$port=(int) SMTP_PORT;
+	$timeout=(int) SMTP_TIMEOUT;
+	$ipv6=filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)!==false;
+	if($host==='' || (!$ipv6 && !preg_match('/^[A-Za-z0-9.-]+$/', $host)) || $port<1 || $port>65535 || $timeout<1 ||
+		!defined('SMTP_FROM') || !filter_var(SMTP_FROM, FILTER_VALIDATE_EMAIL) ||
+		preg_match('/[\r\n<>]/', SMTP_FROM) || strlen($recipient)>254 ||
+		!filter_var($recipient, FILTER_VALIDATE_EMAIL) || preg_match('/[\r\n<>]/', $recipient)){
+		throw new RuntimeException('SMTP host or sender configuration is invalid.');
+	}
+	$security=strtolower((string) SMTP_SECURITY);
+	if(!in_array($security, ['tls', 'ssl', 'none'], true) || ($security==='none' && SMTP_USERNAME!=='')){
+		throw new RuntimeException('SMTP security configuration is invalid.');
+	}
+	if(strpbrk((string) SMTP_FROM_NAME, "\r\n")!==false){
+		throw new RuntimeException('SMTP sender name contains invalid characters.');
+	}
+	$context=stream_context_create(['ssl'=>['verify_peer'=>true, 'verify_peer_name'=>true, 'peer_name'=>$host]]);
+	$transport=$security==='ssl' ? 'ssl://' : 'tcp://';
+	$socket_host=$ipv6 ? '['.$host.']' : $host;
+	$errno=0;
+	$error='';
+	$socket=@stream_socket_client($transport.$socket_host.':'.$port, $errno, $error, $timeout, STREAM_CLIENT_CONNECT, $context);
+	if($socket===false){
+		throw new RuntimeException('Unable to connect to the configured SMTP server.');
+	}
+	stream_set_timeout($socket, $timeout);
+	try {
+		smtp_expect($socket, [220]);
+		$helo=gethostname();
+		if(!is_string($helo) || !preg_match('/^[A-Za-z0-9.-]+$/', $helo)){
+			$helo='localhost';
+		}
+		smtp_command($socket, 'EHLO '.$helo, [250]);
+		if($security==='tls'){
+			smtp_command($socket, 'STARTTLS', [220]);
+			if(!stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)){
+				throw new RuntimeException('Unable to establish TLS with the SMTP server.');
+			}
+			smtp_command($socket, 'EHLO '.$helo, [250]);
+		}
+		if(SMTP_USERNAME!==''){
+			if(SMTP_PASSWORD===''){
+				throw new RuntimeException('SMTP password is required when SMTP authentication is enabled.');
+			}
+			smtp_command($socket, 'AUTH LOGIN', [334]);
+			smtp_command($socket, base64_encode((string) SMTP_USERNAME), [334]);
+			smtp_command($socket, base64_encode((string) SMTP_PASSWORD), [235]);
+		}
+		smtp_command($socket, 'MAIL FROM:<'.SMTP_FROM.'>', [250]);
+		smtp_command($socket, 'RCPT TO:<'.$recipient.'>', [250, 251]);
+		smtp_command($socket, 'DATA', [354]);
+		$from_name='=?UTF-8?B?'.base64_encode((string) SMTP_FROM_NAME).'?=';
+		$headers='From: '.$from_name.' <'.SMTP_FROM.">\r\n".
+			'To: <'.$recipient.">\r\n".
+			'Subject: Chat authentication code'."\r\n".
+			'Date: '.gmdate('D, d M Y H:i:s O')."\r\n".
+			"MIME-Version: 1.0\r\n".
+			"Content-Type: text/plain; charset=UTF-8\r\n".
+			"Content-Transfer-Encoding: 8bit\r\n\r\n";
+		$body=str_replace(["\r\n", "\r"], "\n", $body);
+		$lines=explode("\n", $body);
+		foreach($lines as &$line){
+			if(isset($line[0]) && $line[0]==='.'){
+				$line='.'.$line;
+			}
+		}
+		unset($line);
+		smtp_write($socket, $headers.implode("\r\n", $lines)."\r\n.\r\n");
+		smtp_expect($socket, [250]);
+		@fwrite($socket, "QUIT\r\n");
+	} finally {
+		fclose($socket);
+	}
+}
+
+function send_email_auth_prompt(string $nickname, string $message): void
+{
+	print_start('email_auth');
+	echo '<h1 id="chatname">'.get_setting('chatname').'</h1>';
+	echo '<h2>'._('Email authentication').'</h2><p>'.htmlspecialchars($message).'</p>';
+	echo form_target('_parent', 'email_auth', 'verify').hidden('nick', htmlspecialchars($nickname, ENT_QUOTES, 'UTF-8'));
+	echo '<label>'._('Email verification code:').' <input type="text" name="emailcode" autocomplete="one-time-code" required autofocus></label> '.submit(_('Enter Chat')).'</form>';
+	echo form_target('_parent', '').submit(_('Back to the login page.'), 'class="backbutton"').'</form>';
+	print_end();
+}
+
+function start_email_login(): void
+{
+	global $db;
+	if((int) get_setting('guestaccess')===4){
+		send_chat_disabled();
+	}
+	if(get_setting('englobalpass')==1 && (!isset($_POST['globalpass']) || $_POST['globalpass']!=get_setting('globalpass'))){
+		send_error(_('Wrong global Password!'));
+	}
+	if(get_setting('dismemcaptcha')==0){
+		check_captcha($_POST['challenge'] ?? '', $_POST['captcha'] ?? '');
+	}
+	$nick_input=$_POST['nick'] ?? '';
+	$nickname=is_string($nick_input) ? preg_replace('/\s/', '', $nick_input) : '';
+	$stmt=$db->prepare('SELECT email, emailverified FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$nickname]);
+	$member=$stmt->fetch(PDO::FETCH_ASSOC);
+	if($member && (int) $member['emailverified']===1 && !empty($member['email'])){
+		try {
+			$email=decrypt_database_value((string) $member['email']);
+			send_email_challenge($nickname, $email, 'email_login', 'login');
+		} catch(Throwable $e) {
+			error_log('Email login challenge could not be sent: '.$e->getMessage());
+		}
+	}
+	send_email_auth_prompt($nickname, _('If an account with a verified email address exists, a login code has been sent.'));
+}
+
+function start_email_two_factor(): void
+{
+	global $U;
+	if((int) ($U['emailverified'] ?? 0)!==1 || empty($U['email'])){
+		send_error(_('Email two-factor authentication requires a verified email address.'));
+	}
+	try {
+		$email=decrypt_database_value((string) $U['email']);
+		send_email_challenge($U['nickname'], $email, 'email_2fa', 'two-factor authentication');
+	} catch(Throwable $e) {
+		error_log('Email two-factor challenge could not be sent: '.$e->getMessage());
+		send_error(_('Unable to send the email authentication code. Please try again later.'));
+	}
+	send_email_auth_prompt($U['nickname'], _('A two-factor authentication code has been sent to your verified email address.'));
+}
+
+function check_email_authentication(): void
+{
+	global $U, $db;
+	$nick_input=$_POST['nick'] ?? '';
+	$code_input=$_POST['emailcode'] ?? '';
+	$nickname=is_string($nick_input) ? preg_replace('/\s/', '', $nick_input) : '';
+	$code=is_string($code_input) ? strtoupper(preg_replace('/[^0-9A-F]/i', '', $code_input)) : '';
+	$stmt=$db->prepare('SELECT * FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$nickname]);
+	$member=$stmt->fetch(PDO::FETCH_ASSOC);
+	$purpose=(string) ($member['emailchallengepurpose'] ?? '');
+	$valid=$member && (int) ($member['emailverified'] ?? 0)===1 &&
+		in_array($purpose, ['email_login', 'email_2fa'], true) &&
+		email_challenge_is_valid($member, $purpose, $code);
+	if($valid && $purpose==='email_2fa'){
+		$valid=(int) ($member['email2fa'] ?? 0)===1 && trim((string) ($member['pgpkey'] ?? ''))==='';
+	}
+	if(!$valid){
+		if($member){
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
+			$stmt->execute([(int) $member['loginfails']+1, $nickname]);
+		}
+		send_error(_('Invalid or expired email authentication code.'));
+	}
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=?, lastlogin=?, loginfails=0 WHERE nickname=?;');
+	$stmt->execute(['', 0, '', time(), $nickname]);
+	$U=$member;
+	$U['entry']=$U['lastpost']=time();
+	$U['exiting']=0;
+	try {
+		$U['postid']=bin2hex(random_bytes(3));
+	} catch(Throwable $e) {
+		send_error($e->getMessage());
+	}
+	write_new_session('', true);
+	if($U['status']==1 && in_array((int) get_setting('guestaccess'), [2, 3], true)){
+		send_waiting_room();
+	}
 }
 
 function check_pgp2fa(): void
@@ -3173,14 +3996,15 @@ function check_pgp2fa(): void
 	}
 	$hash=$member['pgpchallengehash'] ?? '';
 	$expires=(int) ($member['pgpchallengeexpires'] ?? 0);
+	$purpose=$member['pgpchallengepurpose'] ?? 'login';
 	$code=strtoupper(preg_replace('/[^0-9A-F]/i', '', $_POST['pgpcode']));
-	if($hash==='' || $expires<time() || !hash_equals($hash, hash('sha256', $code))){
+	if(!in_array($purpose, ['login', 'pgp_login'], true) || $hash==='' || $expires<time() || !hash_equals($hash, hash('sha256', $code))){
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET loginfails=? WHERE nickname=?;');
 		$stmt->execute([$member['loginfails']+1, $member['nickname']]);
 		send_error(_('Invalid or expired PGP two-factor authentication code.'));
 	}
-	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=?, lastlogin=? WHERE nickname=?;');
-	$stmt->execute(['', 0, time(), $member['nickname']]);
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, lastlogin=? WHERE nickname=?;');
+	$stmt->execute(['', 0, '', time(), $member['nickname']]);
 	$U=$member;
 	$U['entry']=$U['lastpost']=time();
 	$U['exiting']=0;
@@ -3193,6 +4017,129 @@ function check_pgp2fa(): void
 	if($U['status']==1 && in_array((int) get_setting('guestaccess'), [2, 3], true)){
 		send_waiting_room();
 	}
+}
+
+function send_password_reset(): void
+{
+	global $db, $language;
+	$notice='';
+	$nick_input=$_POST['nick'] ?? '';
+	$nickname=is_string($nick_input) ? preg_replace('/\s/', '', trim($nick_input)) : '';
+	$challenge='';
+	$email_reset_pending=false;
+	if(($_POST['do'] ?? '')==='request'){
+		$stmt=$db->prepare('SELECT pgpkey FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute([$nickname]);
+		$pgpkey=$stmt->fetchColumn();
+		if($pgpkey===false || trim((string) $pgpkey)===''){
+			$notice=_('If this account has PGP authentication configured, a reset challenge can be requested.');
+			$nickname='';
+		}else{
+			try {
+				$code=strtoupper(bin2hex(random_bytes(16)));
+			} catch(Exception $e) {
+				send_error($e->getMessage());
+			}
+			$challenge=pgp_encrypt_message((string) $pgpkey, sprintf(_('Your password reset code for %s is: %s'), get_setting('chatname'), $code));
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=? WHERE nickname=?;');
+			$stmt->execute([hash('sha256', $code), time()+300, 'password_reset', $nickname]);
+			$notice=_('Decrypt the challenge with your PGP key, then enter the code and your new password below.');
+		}
+	}elseif(($_POST['do'] ?? '')==='email_request'){
+		$email_reset_pending=true;
+		$stmt=$db->prepare('SELECT email, emailverified FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute([$nickname]);
+		$member=$stmt->fetch(PDO::FETCH_ASSOC);
+		if($member && (int) $member['emailverified']===1 && !empty($member['email'])){
+			try {
+				$email=decrypt_database_value((string) $member['email']);
+				send_email_challenge($nickname, $email, 'email_password_reset', 'password reset');
+			} catch(Throwable $e) {
+				error_log('Email password reset challenge could not be sent: '.$e->getMessage());
+			}
+		}
+		$notice=_('If an account with a verified email address exists, a password reset code has been sent.');
+	}elseif(($_POST['do'] ?? '')==='verify'){
+		$challenge_input=$_POST['challenge'] ?? '';
+		$pass_input=$_POST['newpass'] ?? '';
+		$confirm_input=$_POST['confirmpass'] ?? '';
+		$code_input=$_POST['pgpcode'] ?? '';
+		$challenge=is_string($challenge_input) ? $challenge_input : '';
+		$pass=is_string($pass_input) ? $pass_input : '';
+		$confirm=is_string($confirm_input) ? $confirm_input : '';
+		$code=strtoupper(preg_replace('/[^0-9A-F]/i', '', is_string($code_input) ? $code_input : ''));
+		$stmt=$db->prepare('SELECT pgpchallengehash, pgpchallengeexpires, pgpchallengepurpose FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute([$nickname]);
+		$member=$stmt->fetch(PDO::FETCH_ASSOC);
+		$valid=$member && $member['pgpchallengepurpose']==='password_reset' && $member['pgpchallengeexpires']>=time() &&
+			$member['pgpchallengehash']!=='' && hash_equals($member['pgpchallengehash'], hash('sha256', $code));
+		if(!$valid){
+			$notice=_('Invalid or expired PGP password reset challenge.');
+		}elseif($pass!==$confirm){
+			$notice=_('Password confirmation does not match!');
+		}elseif(!valid_pass($pass)){
+			$notice=sprintf(_('Invalid password (At least %1$d characters and has to match the regular expression "%2$s")'), get_setting('minpass'), get_setting('passregex'));
+		}else{
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=?, loginfails=0 WHERE nickname=?;');
+			$stmt->execute([password_hash($pass, PASSWORD_DEFAULT), '', 0, '', '', 0, '', $nickname]);
+			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
+			$stmt->execute([$nickname]);
+			$notice=_('Password reset successfully. You can now sign in with your new password.');
+			$challenge='';
+			$nickname='';
+		}
+	}elseif(($_POST['do'] ?? '')==='email_verify'){
+		$email_reset_pending=true;
+		$pass_input=$_POST['newpass'] ?? '';
+		$confirm_input=$_POST['confirmpass'] ?? '';
+		$code_input=$_POST['emailcode'] ?? '';
+		$pass=is_string($pass_input) ? $pass_input : '';
+		$confirm=is_string($confirm_input) ? $confirm_input : '';
+		$code=is_string($code_input) ? strtoupper(preg_replace('/[^0-9A-F]/i', '', $code_input)) : '';
+		$stmt=$db->prepare('SELECT email, emailverified, emailchallengehash, emailchallengeexpires, emailchallengepurpose FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute([$nickname]);
+		$member=$stmt->fetch(PDO::FETCH_ASSOC);
+		if(!$member || (int) $member['emailverified']!==1 || empty($member['email']) || !email_challenge_is_valid($member, 'email_password_reset', $code)){
+			$notice=_('Invalid or expired email password reset code.');
+		}elseif($pass!==$confirm){
+			$notice=_('Password confirmation does not match!');
+		}elseif(!valid_pass($pass)){
+			$notice=sprintf(_('Invalid password (At least %1$d characters and has to match the regular expression "%2$s")'), get_setting('minpass'), get_setting('passregex'));
+		}else{
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=?, loginfails=0 WHERE nickname=?;');
+			$stmt->execute([password_hash($pass, PASSWORD_DEFAULT), '', 0, '', '', 0, '', $nickname]);
+			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
+			$stmt->execute([$nickname]);
+			$notice=_('Password reset successfully. You can now sign in with your new password.');
+			$email_reset_pending=false;
+			$nickname='';
+		}
+	}else{
+		$nickname='';
+	}
+	print_start('password_reset');
+	echo '<h1>'._('Reset password').'</h1>';
+	if($notice!==''){
+		echo '<p role="status">'.htmlspecialchars($notice).'</p>';
+	}
+	echo form('password_reset', 'request').'<label>'._('Nickname').': <input type="text" name="nick" value="'.htmlspecialchars($nickname, ENT_QUOTES, 'UTF-8').'" autocomplete="username" required></label> '.submit(_('Request PGP challenge')).'</form>';
+	echo form('password_reset', 'email_request').'<label>'._('Nickname').': <input type="text" name="nick" value="'.htmlspecialchars($nickname, ENT_QUOTES, 'UTF-8').'" autocomplete="username" required></label> '.submit(_('Send email reset code')).'</form>';
+	if($challenge!==''){
+		echo '<h2>'._('Encrypted PGP challenge').'</h2><textarea rows="12" cols="72" readonly>'.htmlspecialchars($challenge).'</textarea>';
+		echo form('password_reset', 'verify').hidden('nick', htmlspecialchars($nickname, ENT_QUOTES, 'UTF-8')).hidden('challenge', htmlspecialchars($challenge, ENT_QUOTES, 'UTF-8'));
+		echo '<p><label>'._('PGP verification code').': <input type="text" name="pgpcode" autocomplete="one-time-code" required></label></p>';
+		echo '<p><label>'._('New password').': <input type="password" name="newpass" autocomplete="new-password" required></label></p>';
+		echo '<p><label>'._('Confirm new password').': <input type="password" name="confirmpass" autocomplete="new-password" required></label></p>'.submit(_('Reset password')).'</form>';
+	}
+	if($email_reset_pending){
+		echo '<h2>'._('Reset password with email').'</h2>';
+		echo form('password_reset', 'email_verify').hidden('nick', htmlspecialchars($nickname, ENT_QUOTES, 'UTF-8'));
+		echo '<p><label>'._('Email verification code').': <input type="text" name="emailcode" autocomplete="one-time-code" required></label></p>';
+		echo '<p><label>'._('New password').': <input type="password" name="newpass" autocomplete="new-password" required></label></p>';
+		echo '<p><label>'._('Confirm new password').': <input type="password" name="confirmpass" autocomplete="new-password" required></label></p>'.submit(_('Reset password')).'</form>';
+	}
+	echo '<p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?lang='.htmlspecialchars($language).'">'._('Back to login').'</a></p>';
+	print_end();
 }
 
 function check_captcha(string $challenge, string $captcha_code): void
@@ -3313,31 +4260,39 @@ function show_fails(): void
 
 function approve_session(): void
 {
-	global $db;
+	global $db, $U;
+	$acted=0;
 	if(isset($_POST['what'])){
 		if($_POST['what']==='allowchecked' && isset($_POST['csid'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
 			foreach($_POST['csid'] as $nick){
 				$stmt->execute([$nick]);
+				$acted+=$stmt->rowCount();
 			}
 		}elseif($_POST['what']==='allowall' && isset($_POST['alls'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
 			foreach($_POST['alls'] as $nick){
 				$stmt->execute([$nick]);
+				$acted+=$stmt->rowCount();
 			}
 		}elseif($_POST['what']==='denychecked' && isset($_POST['csid'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
 			foreach($_POST['csid'] as $nick){
 				$stmt->execute([$time, $_POST['kickmessage'], $nick]);
+				$acted+=$stmt->rowCount();
 			}
 		}elseif($_POST['what']==='denyall' && isset($_POST['alls'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
 			foreach($_POST['alls'] as $nick){
 				$stmt->execute([$time, $_POST['kickmessage'], $nick]);
+				$acted+=$stmt->rowCount();
 			}
 		}
+	}
+	if($acted>0){
+		write_staff_log('waiting_room_review', (string) $acted, 'Action '.$_POST['what'].' by '.$U['nickname']);
 	}
 }
 
@@ -3438,6 +4393,7 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 				add_system_message(sprintf(get_setting('msgkick'), $lonick, $mes), $U['nickname']);
 			}
 		}
+		write_staff_log('user_kicked', substr(implode(', ', $names), 0, 255), ($purge ? 'Purged messages. ' : '').substr($mes, 0, 200));
 		return true;
 	}
 	return false;
@@ -3454,8 +4410,13 @@ function logout_chatter(array $names): void
 			$names[]=$name[0];
 		}
 	}
+	$logged_out=0;
 	foreach($names as $name){
 		$stmt->execute([$name, $U['status']]);
+		$logged_out+=$stmt->rowCount();
+	}
+	if($logged_out>0){
+		write_staff_log('sessions_logged_out', substr(implode(', ', $names), 0, 255), 'Logged out by '.$U['nickname']);
 	}
 }
 
@@ -3560,6 +4521,8 @@ function delete_account(): void
 {
 	global $U, $db;
 	if($U['status']<8){
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'member_roles WHERE nickname=?;');
+		$stmt->execute([$U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
 		$stmt->execute([$U['nickname']]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
@@ -3595,6 +4558,7 @@ function register_guest(int $status, string $nick) : string {
 	}else{
 		add_system_message(sprintf(get_setting('msgsureg'), style_this(htmlspecialchars($reg['nickname']), $reg['style'])), $U['nickname']);
 	}
+	write_staff_log('member_registered', $reg['nickname'], 'Registered by '.$U['nickname']);
 	return sprintf(_('%s successfully registered.'), style_this(htmlspecialchars($reg['nickname']), $reg['style']));
 }
 
@@ -3640,6 +4604,7 @@ function register_new(string $nick, string $pass) : string {
 	];
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, regedby, timestamps, style, embed, incognito, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 	$stmt->execute([$reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['regedby'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']]);
+	write_staff_log('member_registered', $reg['nickname'], 'Registered by '.$U['nickname']);
 	return sprintf(_('%s successfully registered.'), htmlspecialchars($reg['nickname']));
 }
 
@@ -3656,6 +4621,8 @@ function change_status(string $nick, string $status) : string {
 		return sprintf(_("Can't change status of %s"), htmlspecialchars($nick));
 	}
 	if($status==='-'){
+		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'member_roles WHERE nickname=?;');
+		$stmt->execute([$nick]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'members WHERE nickname=?;');
 		$stmt->execute([$nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=1, incognito=0 WHERE nickname=?;');
@@ -3664,6 +4631,7 @@ function change_status(string $nick, string $status) : string {
 		$stmt->execute([$nick]);
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'notes WHERE (type=2 OR type=3) AND editedby=?;');
 		$stmt->execute([$nick]);
+		write_staff_log('member_deleted', $nick, 'Deleted by '.$U['nickname']);
 		return sprintf(_('%s successfully deleted from database.'), style_this(htmlspecialchars($nick), $old[1]));
 	}else{
 		if($status<5){
@@ -3673,6 +4641,7 @@ function change_status(string $nick, string $status) : string {
 		$stmt->execute([$status, $old[0], $nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET status=?, incognito=? WHERE nickname=?;');
 		$stmt->execute([$status, $old[0], $nick]);
+		write_staff_log('status_changed', $nick, 'Set to '.$status.' by '.$U['nickname']);
 		return sprintf(_('Status of %s successfully changed.'), style_this(htmlspecialchars($nick), $old[1]));
 	}
 }
@@ -3686,10 +4655,11 @@ function passreset(string $nick, string $pass) : string {
 	$stmt->execute([$nick, $U['status']]);
 	if($stmt->fetch(PDO::FETCH_ASSOC)){
 		$passhash=password_hash($pass, PASSWORD_DEFAULT);
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
-		$stmt->execute([$passhash, $nick]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=? WHERE nickname=?;');
+		$stmt->execute([$passhash, '', 0, '', '', 0, '', $nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE nickname=?;');
 		$stmt->execute([$passhash, $nick]);
+		write_staff_log('password_reset_admin', $nick, 'Reset by '.$U['nickname']);
 		return sprintf(_('Successfully reset password for %s'), htmlspecialchars($nick));
 	}else{
 		return sprintf(_("Can't reset password for %s"), htmlspecialchars($nick));
@@ -3758,6 +4728,17 @@ function amend_profile(): void
 
 function save_profile() : string {
 	global $U, $db;
+	$email='';
+	if($U['status']>=2){
+		$email_input=$_POST['email'] ?? '';
+		if(!is_string($email_input)){
+			return _('Invalid email address.');
+		}
+		$email=trim($email_input);
+		if($email!=='' && (strlen($email)>254 || !filter_var($email, FILTER_VALIDATE_EMAIL) || preg_match('/[\r\n]/', $email))){
+			return _('Invalid email address.');
+		}
+	}
 	amend_profile();
 	$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET refresh=?, style=?, bgcolour=?, timestamps=?, embed=?, incognito=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=? WHERE session=?;');
 	$stmt->execute([$U['refresh'], $U['style'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $U['session']]);
@@ -3772,8 +4753,8 @@ function save_profile() : string {
 				return $e->getMessage();
 			}
 		}
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET refresh=?, bgcolour=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=?, pgpkey=?, pgpchallengehash=?, pgpchallengeexpires=? WHERE nickname=?;');
-		$stmt->execute([$U['refresh'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $pgpkey, '', 0, $U['nickname']]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET refresh=?, bgcolour=?, timestamps=?, embed=?, incognito=?, style=?, nocache=?, tz=?, eninbox=?, sortupdown=?, hidechatters=?, pgpkey=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=? WHERE nickname=?;');
+		$stmt->execute([$U['refresh'], $U['bgcolour'], $U['timestamps'], $U['embed'], $U['incognito'], $U['style'], $U['nocache'], $U['tz'], $U['eninbox'], $U['sortupdown'], $U['hidechatters'], $pgpkey, '', 0, '', $U['nickname']]);
 	}
 	if(!empty($_POST['unignore'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'ignored WHERE ign=? AND ignby=?;');
@@ -3808,8 +4789,8 @@ function save_profile() : string {
 		$U['passhash']=$U['newhash'];
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE session=?;');
 		$stmt->execute([$U['passhash'], $U['session']]);
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
-		$stmt->execute([$U['passhash'], $U['nickname']]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=? WHERE nickname=?;');
+		$stmt->execute([$U['passhash'], '', 0, '', '', 0, '', $U['nickname']]);
 	}
 	if($U['status']>1 && !empty($_POST['newnickname'])){
 		$msg=set_new_nickname();
@@ -3817,7 +4798,75 @@ function save_profile() : string {
 			return $msg;
 		}
 	}
+	if($U['status']>=2){
+		$stmt=$db->prepare('SELECT email, emailverified, email2fa, emailchallengehash, emailchallengeexpires, emailchallengepurpose FROM ' . PREFIX . 'members WHERE nickname=?;');
+		$stmt->execute([$U['nickname']]);
+		$member=$stmt->fetch(PDO::FETCH_ASSOC);
+		if(!$member){
+			return _('Could not load your account email settings.');
+		}
+		$stored_email=(string) ($member['email'] ?? '');
+		$old_email='';
+		if($stored_email!==''){
+			try {
+				$old_email=decrypt_database_value($stored_email);
+			} catch(Throwable $e) {
+				return $e->getMessage();
+			}
+		}
+		$email_changed=$email!==$old_email;
+		$email_verified=$email_changed ? 0 : (int) $member['emailverified'];
+		$email_2fa=(!$email_changed && $email_verified && isset($_POST['email2fa']) && $_POST['email2fa']==='on') ? 1 : 0;
+		if($email_changed){
+			try {
+				$stored_email=$email==='' ? '' : encrypt_database_value($email);
+			} catch(Throwable $e) {
+				return $e->getMessage();
+			}
+			$member['emailchallengehash']='';
+			$member['emailchallengeexpires']=0;
+			$member['emailchallengepurpose']='';
+		}
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET email=?, emailverified=?, email2fa=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=? WHERE nickname=?;');
+		$stmt->execute([$stored_email, $email_verified, $email_2fa, $member['emailchallengehash'], $member['emailchallengeexpires'], $member['emailchallengepurpose'], $U['nickname']]);
+		if($email!=='' && !$email_verified && ($email_changed || isset($_POST['send_email_verification']))){
+			try {
+				send_email_challenge($U['nickname'], $email, 'email_verify', 'email verification');
+			} catch(Throwable $e) {
+				return _('The email address was saved, but the verification code could not be sent. Check the SMTP configuration and try again.');
+			}
+			return _('The email address was saved. A verification code has been sent.');
+		}
+		if($email_changed && $email===''){
+			return _('The email address was removed.');
+		}
+		if(!$email_changed && isset($_POST['send_email_verification']) && $email_verified){
+			return _('This email address is already verified.');
+		}
+		if($email_changed && $email!==''){
+			return _('The email address was saved. Verify it before using email account options.');
+		}
+	}
 	return _('Your profile has successfully been saved.');
+}
+
+function verify_profile_email(): string
+{
+	global $U, $db;
+	if($U['status']<2){
+		return _('Only registered members can verify an email address.');
+	}
+	$code_input=$_POST['emailcode'] ?? '';
+	$code=is_string($code_input) ? strtoupper(preg_replace('/[^0-9A-F]/i', '', $code_input)) : '';
+	$stmt=$db->prepare('SELECT email, emailchallengehash, emailchallengeexpires, emailchallengepurpose FROM ' . PREFIX . 'members WHERE nickname=?;');
+	$stmt->execute([$U['nickname']]);
+	$member=$stmt->fetch(PDO::FETCH_ASSOC);
+	if(!$member || empty($member['email']) || !email_challenge_is_valid($member, 'email_verify', $code)){
+		return _('Invalid or expired email verification code.');
+	}
+	$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET emailverified=1, email2fa=0, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=? WHERE nickname=?;');
+	$stmt->execute(['', 0, '', $U['nickname']]);
+	return _('Email address verified. You can now enable email two-factor authentication in your profile.');
 }
 
 function set_new_nickname() : string {
@@ -3840,6 +4889,8 @@ function set_new_nickname() : string {
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET nickname=? WHERE nickname=?;');
 		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET nickname=? WHERE nickname=?;');
+		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'member_roles SET nickname=? WHERE nickname=?;');
 		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET poster=? WHERE poster=?;');
 		$stmt->execute([$_POST['newnickname'], $U['nickname']]);
@@ -3982,7 +5033,8 @@ function validate_input() : string {
 		}
 	}
 	$reply_to=get_valid_reply_id($_POST['reply_to'] ?? 0);
-	if(add_message($message, $recipient, $U['nickname'], (int) $U['status'], $poststatus, $displaysend, $U['style'], $reply_to)){
+	$room_id=selected_room_id();
+	if(add_message($message, $recipient, $U['nickname'], (int) $U['status'], $poststatus, $displaysend, $U['style'], $reply_to, $room_id)){
 		$U['lastpost']=time();
 		try {
 			$U[ 'postid' ] = bin2hex( random_bytes( 3 ) );
@@ -4003,8 +5055,8 @@ function validate_input() : string {
 			];
 			if(MSGENCRYPTED){
 				try {
-					$newmessage[ 'text' ] = base64_encode( sodium_crypto_aead_aes256gcm_encrypt( $newmessage[ 'text' ], '', AES_IV, ENCRYPTKEY ) );
-				} catch (SodiumException $e){
+					$newmessage['text']=encrypt_database_value($newmessage['text']);
+				} catch (Throwable $e){
 					send_error($e->getMessage());
 				}
 			}
@@ -4155,10 +5207,17 @@ function apply_mention(string $message) : string {
 	}, $message);
 }
 
-function add_message(string $message, string $recipient, string $poster, int $delstatus, int $poststatus, string $displaysend, string $style, int $reply_to=0) : bool {
+function add_message(string $message, string $recipient, string $poster, int $delstatus, int $poststatus, string $displaysend, string $style, int $reply_to=0, int $room_id=1) : bool {
 	global $db;
-	if($message===''){
+	if($message==='' || !can_access_room($room_id)){
 		return false;
+	}
+	if($reply_to>0){
+		$reply_stmt=$db->prepare('SELECT room_id FROM ' . PREFIX . 'messages WHERE id=?;');
+		$reply_stmt->execute([$reply_to]);
+		if((int) $reply_stmt->fetchColumn()!==$room_id){
+			return false;
+		}
 	}
 	$newmessage=[
 		'postdate'	=>time(),
@@ -4167,11 +5226,12 @@ function add_message(string $message, string $recipient, string $poster, int $de
 		'recipient'	=>$recipient,
 		'text'		=>"<span class=\"usermsg\">$displaysend".style_this($message, $style).'</span>',
 		'delstatus'	=>$delstatus,
-		'reply_to'	=>$reply_to
+		'reply_to'	=>$reply_to,
+		'room_id'	=>$room_id
 	];
 	//prevent posting the same message twice, if no other message was posted in-between.
-	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poststatus=? AND poster=? AND recipient=? AND text=? AND reply_to=? AND id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages ORDER BY id DESC LIMIT 1) AS t);');
-	$stmt->execute([$newmessage['poststatus'], $newmessage['poster'], $newmessage['recipient'], $newmessage['text'], $newmessage['reply_to']]);
+	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'messages WHERE poststatus=? AND poster=? AND recipient=? AND text=? AND reply_to=? AND room_id=? AND id IN (SELECT * FROM (SELECT id FROM ' . PREFIX . 'messages ORDER BY id DESC LIMIT 1) AS t);');
+	$stmt->execute([$newmessage['poststatus'], $newmessage['poster'], $newmessage['recipient'], $newmessage['text'], $newmessage['reply_to'], $newmessage['room_id']]);
 	if($stmt->fetch(PDO::FETCH_NUM)){
 		return false;
 	}
@@ -4242,16 +5302,19 @@ function write_message(array $message): void
 	global $db;
 	if(MSGENCRYPTED){
 		try {
-			$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
-		} catch (SodiumException $e){
+			$message['text']=encrypt_database_value((string) $message['text']);
+		} catch (Throwable $e){
 			send_error($e->getMessage());
 		}
 	}
 	if(!isset($message['reply_to'])){
 		$message['reply_to']=0;
 	}
-	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus, reply_to) VALUES (?, ?, ?, ?, ?, ?, ?);');
-	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus'], $message['reply_to']]);
+	if(!isset($message['room_id'])){
+		$message['room_id']=1;
+	}
+	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'messages (postdate, poststatus, poster, recipient, text, delstatus, reply_to, room_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?);');
+	$stmt->execute([$message['postdate'], $message['poststatus'], $message['poster'], $message['recipient'], $message['text'], $message['delstatus'], $message['reply_to'], $message['room_id']]);
 	if($message['poststatus']<9 && get_setting('sendmail')){
 		$subject='New Chat message';
 		$headers='From: '.get_setting('mailsender')."\r\nX-Mailer: PHP/".phpversion()."\r\nContent-Type: text/html; charset=UTF-8\r\n";
@@ -4264,16 +5327,22 @@ function clean_room(): void
 {
 	global $U, $db;
 	$db->query('DELETE FROM ' . PREFIX . 'messages;');
+	write_staff_log('room_cleaned', get_setting('chatname'), 'Cleaned by '.$U['nickname']);
 	add_system_message(sprintf(get_setting('msgclean'), get_setting('chatname')), $U['nickname']);
 }
 
 function clean_selected(int $status, string $nick): void
 {
-	global $db;
+	global $db, $U;
 	if(isset($_POST['mid'])){
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR (poststatus<? AND delstatus<?));');
+		$removed=0;
 		foreach($_POST['mid'] as $mid){
 			$stmt->execute([$mid, $nick, $nick, $status, $status]);
+			$removed+=$stmt->rowCount();
+		}
+		if($removed>0 && $U['status']>=5){
+			write_staff_log('messages_deleted', (string) $removed, 'Selected messages deleted by '.$U['nickname']);
 		}
 	}
 }
@@ -4334,6 +5403,7 @@ function del_last_message(): void
 function print_messages(int $delstatus=0): void
 {
 	global $U, $db;
+	$room_id=selected_room_id();
 	$dateformat=get_setting('dateformat');
 	if(!$U['embed'] && get_setting('imgembed')){
 		$removeEmbed=true;
@@ -4358,24 +5428,25 @@ function print_messages(int $delstatus=0): void
 	echo '<div id="messages">';
 	if($delstatus>0){
 		$stmt=$db->prepare('SELECT postdate, id, text, reply_to FROM ' . PREFIX . 'messages WHERE '.
-		"(poststatus<? AND delstatus<?) OR ((poster=? OR recipient=?) AND postdate>=?) ORDER BY id $direction;");
-		$stmt->execute([$U['status'], $delstatus, $U['nickname'], $U['nickname'], $entry]);
+		"((poststatus<? AND delstatus<?) OR ((poster=? OR recipient=?) AND postdate>=?)) AND (room_id=? OR poststatus=9) ORDER BY id $direction;");
+		$stmt->execute([$U['status'], $delstatus, $U['nickname'], $U['nickname'], $entry, $room_id]);
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 			prepare_message_print($message, $removeEmbed);
-			echo "<div class=\"msg\"><label><input type=\"checkbox\" name=\"mid[]\" value=\"$message[id]\">";
+			echo '<div class="msg" id="message-'.(int) $message['id'].'"><span class="messageid">['.(int) $message['id'].']</span> <label><input type="checkbox" name="mid[]" value="'.(int) $message['id'].'">';
 			if($timestamps){
 				echo ' <small>'.date($dateformat, $message['postdate']).' - </small>';
 			}
 			echo " $message[text]</label></div>";
 		}
 	}else{
-		$stmt=$db->prepare('SELECT id, postdate, poststatus, poster, recipient, text, reply_to FROM ' . PREFIX . 'messages WHERE (poststatus<=? OR poststatus=4 OR '.
+		$stmt=$db->prepare('SELECT id, postdate, poststatus, poster, recipient, text, reply_to, room_id FROM ' . PREFIX . 'messages WHERE (poststatus<=? OR poststatus=4 OR '.
 		'(poststatus=9 AND ( (poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ) OR recipient=?) AND postdate>=?)'.
-		') AND poster NOT IN (SELECT ign FROM ' . PREFIX . "ignored WHERE ignby=?) ORDER BY id $direction;");
-		$stmt->execute([$U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname']]);
+		') AND poster NOT IN (SELECT ign FROM ' . PREFIX . "ignored WHERE ignby=?) AND (room_id=? OR poststatus=9) ORDER BY id $direction;");
+		$stmt->execute([$U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname'], $room_id]);
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
 			prepare_message_print($message, $removeEmbed);
-			echo '<div class="msg">';
+			echo '<div class="msg" id="message-'.(int) $message['id'].'">';
+			echo '<span class="messageid">['.(int) $message['id'].']</span> ';
 			if($timestamps){
 				echo '<small>'.date($dateformat, $message['postdate']).' - </small>';
 			}
@@ -4394,27 +5465,28 @@ function print_messages(int $delstatus=0): void
 
 function print_reply_reference(int $reply_to): void
 {
-	global $db;
 	if($reply_to<1 || !can_view_message($reply_to)){
 		return;
 	}
-	$stmt=$db->prepare('SELECT poster FROM ' . PREFIX . 'messages WHERE id=?;');
-	$stmt->execute([$reply_to]);
-	if($message=$stmt->fetch(PDO::FETCH_ASSOC)){
-		echo '<div class="replyref">'.sprintf(_('Reply to #%1$d by %2$s'), $reply_to, htmlspecialchars($message['poster'])).'</div>';
-	}
+	echo '<span class="replyref"><a href="#message-'.(int) $reply_to.'">&gt;&gt;['.(int) $reply_to.']</a></span> ';
 }
 
 function print_message_actions(array $message): void
 {
 	global $U;
-	$liked=is_message_liked((int) $message['id']);
-	$likes=count_message_likes((int) $message['id']);
+	$summary=get_message_reaction_summary((int) $message['id']);
 	echo '<div class="msgactions">';
-	echo form('like').hidden('mid', (string) $message['id']);
-	echo submit(($liked ? _('Unlike') : _('Like'))." ($likes)").'</form> ';
+	foreach(['❤️', '😂', '👌', '👍', '👎', '😡'] as $reaction){
+		$count=$summary['counts'][$reaction] ?? 0;
+		$selected=$summary['selected']===$reaction;
+		echo form('react').hidden('mid', (string) $message['id']).hidden('room_id', (string) selected_room_id());
+		echo '<button type="submit" name="reaction" value="'.htmlspecialchars($reaction, ENT_QUOTES, 'UTF-8').'" aria-label="'.htmlspecialchars($reaction, ENT_QUOTES, 'UTF-8').($selected ? ' (selected)' : '').'">'.$reaction.' '.$count.'</button></form> ';
+	}
+	echo form('report').hidden('mid', (string) $message['id']).hidden('room_id', (string) selected_room_id());
+	echo '<button class="reportbutton" type="submit" aria-label="'._('Report message').'">🚩</button></form> ';
 	echo form_target('post', 'post');
 	echo hidden('reply_to', (string) $message['id']);
+	echo hidden('room_id', (string) ((int) $message['room_id']));
 	echo hidden('sendto', htmlspecialchars(get_reply_sendto((int) $message['id'])));
 	if($U['sortupdown']){
 		echo hidden('sort', '1');
@@ -4427,8 +5499,8 @@ function prepare_message_print(array &$message, bool $removeEmbed): void
 {
 	if(MSGENCRYPTED){
 		try {
-			$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
-		} catch (SodiumException $e){
+			$message['text']=decrypt_database_value((string) $message['text']);
+		} catch (Throwable $e){
 			send_error($e->getMessage());
 		}
 	}
@@ -4443,36 +5515,50 @@ function prepare_message_print(array &$message, bool $removeEmbed): void
 
 function toggle_like(): void
 {
+	$_POST['reaction']='❤️';
+	toggle_reaction();
+}
+
+function toggle_reaction(): void
+{
 	global $U, $db;
 	$message_id=(int) ($_POST['mid'] ?? 0);
 	if($message_id<1 || !can_view_message($message_id)){
 		return;
 	}
-	$stmt=$db->prepare('SELECT id FROM ' . PREFIX . 'likes WHERE message_id=? AND nickname=?;');
+	$reaction=$_POST['reaction'] ?? '';
+	if(!in_array($reaction, ['❤️', '😂', '👌', '👍', '👎', '😡'], true)){
+		return;
+	}
+	$stmt=$db->prepare('SELECT id, reaction FROM ' . PREFIX . 'likes WHERE message_id=? AND nickname=?;');
 	$stmt->execute([$message_id, $U['nickname']]);
 	if($like=$stmt->fetch(PDO::FETCH_ASSOC)){
-		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'likes WHERE id=?;');
-		$stmt->execute([$like['id']]);
+		if($like['reaction']===$reaction){
+			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'likes WHERE id=?;');
+			$stmt->execute([$like['id']]);
+		}else{
+			$stmt=$db->prepare('UPDATE ' . PREFIX . 'likes SET reaction=? WHERE id=?;');
+			$stmt->execute([$reaction, $like['id']]);
+		}
 	}else{
-		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'likes (message_id, nickname) VALUES (?, ?);');
-		$stmt->execute([$message_id, $U['nickname']]);
+		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'likes (message_id, nickname, reaction) VALUES (?, ?, ?);');
+		$stmt->execute([$message_id, $U['nickname'], $reaction]);
 	}
 }
 
-function count_message_likes(int $message_id): int
-{
-	global $db;
-	$stmt=$db->prepare('SELECT COUNT(*) FROM ' . PREFIX . 'likes WHERE message_id=?;');
-	$stmt->execute([$message_id]);
-	return (int) $stmt->fetchColumn();
-}
-
-function is_message_liked(int $message_id): bool
+function get_message_reaction_summary(int $message_id): array
 {
 	global $U, $db;
-	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'likes WHERE message_id=? AND nickname=?;');
+	$counts=[];
+	$stmt=$db->prepare('SELECT reaction, COUNT(*) AS reaction_count FROM ' . PREFIX . 'likes WHERE message_id=? GROUP BY reaction;');
+	$stmt->execute([$message_id]);
+	while($row=$stmt->fetch(PDO::FETCH_ASSOC)){
+		$counts[$row['reaction']]=(int) $row['reaction_count'];
+	}
+	$stmt=$db->prepare('SELECT reaction FROM ' . PREFIX . 'likes WHERE message_id=? AND nickname=?;');
 	$stmt->execute([$message_id, $U['nickname']]);
-	return (bool) $stmt->fetch(PDO::FETCH_NUM);
+	$selected=$stmt->fetchColumn();
+	return ['counts'=>$counts, 'selected'=>$selected===false ? '' : $selected];
 }
 
 function get_valid_reply_id($reply_to): int
@@ -4504,18 +5590,207 @@ function can_view_message(int $message_id): bool
 		return false;
 	}
 	$entry=$U['status']>1 ? 0 : $U['entry'];
-	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'messages WHERE id=? AND (poststatus<=? OR poststatus=4 OR '.
+	$stmt=$db->prepare('SELECT poststatus, room_id FROM ' . PREFIX . 'messages WHERE id=? AND (poststatus<=? OR poststatus=4 OR '.
 	'(poststatus=9 AND ( (poster=? AND recipient NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ) OR recipient=?) AND postdate>=?)'.
 	') AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
 	$stmt->execute([$message_id, $U['status'], $U['nickname'], $U['nickname'], $U['nickname'], $entry, $U['nickname']]);
+	$message=$stmt->fetch(PDO::FETCH_ASSOC);
+	return $message && ((int) $message['poststatus']===9 || can_access_room((int) $message['room_id']));
+}
+
+function has_staff_permission(string $permission): bool
+{
+	global $U, $db;
+	$legacy=[
+		'review_reports'=>5,
+		'view_staff_log'=>5,
+		'manage_rooms'=>7
+	];
+	if($permission==='manage_roles'){
+		return $U['status']>=7;
+	}
+	if(isset($legacy[$permission]) && $U['status']>=$legacy[$permission]){
+		return true;
+	}
+	$stmt=$db->prepare('SELECT r.permissions FROM ' . PREFIX . 'roles r INNER JOIN ' . PREFIX . 'member_roles mr ON mr.role_id=r.id WHERE mr.nickname=?;');
+	$stmt->execute([$U['nickname']]);
+	while($row=$stmt->fetch(PDO::FETCH_ASSOC)){
+		if(strpos($row['permissions'], ','.$permission.',')!==false){
+			return true;
+		}
+	}
+	return false;
+}
+
+function has_role_id(int $role_id): bool
+{
+	global $U, $db;
+	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'member_roles WHERE nickname=? AND role_id=?;');
+	$stmt->execute([$U['nickname'], $role_id]);
 	return (bool) $stmt->fetch(PDO::FETCH_NUM);
+}
+
+function can_access_room(int $room_id): bool
+{
+	global $U, $db;
+	$stmt=$db->prepare('SELECT min_status FROM ' . PREFIX . 'rooms WHERE id=?;');
+	$stmt->execute([$room_id]);
+	$min_status=$stmt->fetchColumn();
+	if($min_status===false){
+		return false;
+	}
+	if($U['status']>=7){
+		return true;
+	}
+	if($U['status']<(int) $min_status){
+		return false;
+	}
+	$stmt=$db->prepare('SELECT role_id FROM ' . PREFIX . 'room_roles WHERE room_id=?;');
+	$stmt->execute([$room_id]);
+	$restricted=false;
+	while($row=$stmt->fetch(PDO::FETCH_ASSOC)){
+		$restricted=true;
+		if(has_role_id((int) $row['role_id'])){
+			return true;
+		}
+	}
+	return !$restricted;
+}
+
+function get_accessible_rooms(): array
+{
+	global $db;
+	$rooms=[];
+	$result=$db->query('SELECT id, name FROM ' . PREFIX . 'rooms ORDER BY id;');
+	while($room=$result->fetch(PDO::FETCH_ASSOC)){
+		if(can_access_room((int) $room['id'])){
+			$rooms[]=$room;
+		}
+	}
+	return $rooms;
+}
+
+function selected_room_id(): int
+{
+	$room_id=(int) ($_REQUEST['room_id'] ?? 1);
+	if(!can_access_room($room_id)){
+		send_access_denied();
+	}
+	return $room_id;
+}
+
+function get_room_name(int $room_id): string
+{
+	global $db;
+	$stmt=$db->prepare('SELECT name FROM ' . PREFIX . 'rooms WHERE id=?;');
+	$stmt->execute([$room_id]);
+	$name=$stmt->fetchColumn();
+	return $name===false ? _('Chatroom') : (string) $name;
+}
+
+function report_message(): void
+{
+	global $U, $db;
+	$message_id_input=$_POST['mid'] ?? 0;
+	$message_id=is_scalar($message_id_input) ? (int) $message_id_input : 0;
+	if($message_id<1 || !can_view_message($message_id)){
+		return;
+	}
+	$stmt=$db->prepare('SELECT poster, postdate, text FROM ' . PREFIX . 'messages WHERE id=?;');
+	$stmt->execute([$message_id]);
+	if(!$message=$stmt->fetch(PDO::FETCH_ASSOC)){
+		return;
+	}
+	$check=$db->prepare('SELECT null FROM ' . PREFIX . 'reports WHERE message_id=? AND reporter=? AND poster=? AND message_date=? AND status=0;');
+	$check->execute([$message_id, $U['nickname'], $message['poster'], $message['postdate']]);
+	if($check->fetch(PDO::FETCH_NUM)){
+		return;
+	}
+	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'reports (message_id, reporter, poster, message_date, message_text, status, created_at) VALUES (?, ?, ?, ?, ?, 0, ?);');
+	$stmt->execute([$message_id, $U['nickname'], $message['poster'], $message['postdate'], $message['text'], time()]);
+	write_staff_log('message_reported', (string) $message_id, 'Reported by '.$U['nickname']);
+}
+
+function send_staff_inbox(): void
+{
+	global $U, $db;
+	if(!has_staff_permission('review_reports')){
+		send_access_denied();
+	}
+	if(isset($_POST['report_id'], $_POST['disposition']) && is_string($_POST['disposition']) && in_array($_POST['disposition'], ['dismiss', 'remove'], true)){
+		$report_id=is_scalar($_POST['report_id']) ? (int) $_POST['report_id'] : 0;
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'reports SET status=?, reviewed_by=?, reviewed_at=? WHERE id=? AND status=0;');
+		$stmt->execute([$_POST['disposition']==='remove' ? 2 : 1, $U['nickname'], time(), $report_id]);
+		if($stmt->rowCount()>0){
+			$removed=false;
+			if($_POST['disposition']==='remove'){
+				$lookup=$db->prepare('SELECT message_id, poster, message_date, message_text FROM ' . PREFIX . 'reports WHERE id=?;');
+				$lookup->execute([$report_id]);
+				if($reported=$lookup->fetch(PDO::FETCH_ASSOC)){
+					$message_id=(int) $reported['message_id'];
+					$delete=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND poster=? AND postdate=? AND text=?;');
+					$delete->execute([$message_id, $reported['poster'], $reported['message_date'], $reported['message_text']]);
+					$removed=$delete->rowCount()>0;
+					if($removed){
+						$delete=$db->prepare('DELETE FROM ' . PREFIX . 'likes WHERE message_id=?;');
+						$delete->execute([$message_id]);
+					}
+				}
+			}
+			$action=$_POST['disposition']==='remove' ? 'report_action_remove' : 'report_dismissed';
+			$details='Reviewed by '.$U['nickname'];
+			if($_POST['disposition']==='remove'){
+				$details.=$removed ? '; message removed' : '; message no longer matches the report snapshot';
+			}
+			write_staff_log($action, (string) $report_id, $details);
+		}
+	}
+	print_start('staff_inbox');
+	echo '<h1>'._('Staff inbox').'</h1>';
+	echo '<p>'._('Reported messages are visible only to staff with report-review access.').'</p>';
+	$stmt=$db->query('SELECT id, message_id, reporter, poster, message_date, message_text, created_at FROM ' . PREFIX . 'reports WHERE status=0 ORDER BY created_at ASC LIMIT 100;');
+	while($report=$stmt->fetch(PDO::FETCH_ASSOC)){
+		$message=['text'=>$report['message_text']];
+		prepare_message_print($message, true);
+		echo '<article class="staffitem"><p><strong>'._('Report').'</strong> #'.(int) $report['id'].' · '._('Message')." #".(int) $report['message_id'].'</p>';
+		echo '<p>'.sprintf(_('Reported by %1$s · Posted by %2$s · %3$s'), htmlspecialchars($report['reporter']), htmlspecialchars($report['poster']), date(get_setting('dateformat'), (int) $report['message_date'])).'</p>';
+		echo '<div class="msg">'.($message['text'] ?? '').'</div>';
+		echo form('staff_inbox').hidden('report_id', (string) $report['id']).'<button name="disposition" value="dismiss">'._('Dismiss report').'</button> ';
+		echo '<button class="delbutton" name="disposition" value="remove">'._('Remove message').'</button></form></article>';
+	}
+	echo '<p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=view&amp;session='.rawurlencode($U['session']).'">'._('Return to chat').'</a></p>';
+	print_end();
+}
+
+function write_staff_log(string $action, string $target, string $details): void
+{
+	global $U, $db;
+	$actor=$U['nickname'] ?? _('System');
+	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'staff_log (created_at, actor, action, target, details) VALUES (?, ?, ?, ?, ?);');
+	$stmt->execute([time(), $actor, $action, $target, $details]);
+}
+
+function send_staff_log(): void
+{
+	global $U, $db;
+	if(!has_staff_permission('view_staff_log')){
+		send_access_denied();
+	}
+	print_start('staff_log');
+	echo '<h1>'._('Staff log').'</h1><table><tr><th>'._('Time').'</th><th>'._('Staff member').'</th><th>'._('Action').'</th><th>'._('Target').'</th><th>'._('Details').'</th></tr>';
+	$stmt=$db->query('SELECT created_at, actor, action, target, details FROM ' . PREFIX . 'staff_log ORDER BY id DESC LIMIT 200;');
+	while($entry=$stmt->fetch(PDO::FETCH_ASSOC)){
+		echo '<tr><td>'.date(get_setting('dateformat'), (int) $entry['created_at']).'</td><td>'.htmlspecialchars($entry['actor']).'</td><td>'.htmlspecialchars($entry['action']).'</td><td>'.htmlspecialchars($entry['target']).'</td><td>'.htmlspecialchars($entry['details']).'</td></tr>';
+	}
+	echo '</table><p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=view&amp;session='.rawurlencode($U['session']).'">'._('Return to chat').'</a></p>';
+	print_end();
 }
 
 // this and that
 
 function send_headers(): void
 {
-	global $U, $scripts, $styles;
+	global $U, $styles;
 	header('Content-Type: text/html; charset=UTF-8');
 	header('Pragma: no-cache');
 	header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, private');
@@ -4531,11 +5806,7 @@ function send_headers(): void
 	foreach($styles as $style) {
 		$style_hashes .= " 'sha256-".base64_encode(hash('sha256', $style, true))."'";
 	}
-	$script_hashes = '';
-	foreach($scripts as $script) {
-		$script_hashes .= " 'sha256-".base64_encode(hash('sha256', $script, true))."'";
-	}
-	header("Content-Security-Policy: base-uri 'self'; default-src 'none'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline';" . (empty($script_hashes) ? '' : " script-src $script_hashes;")); // $style_hashes"); //we can add computed hashes as soon as all inline css is moved to default css
+	header("Content-Security-Policy: base-uri 'self'; default-src 'none'; script-src 'none'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; frame-src 'self'; img-src * data:; media-src * data:; style-src 'self' 'unsafe-inline';");
 	header('X-Content-Type-Options: nosniff');
 	header('X-Frame-Options: sameorigin');
 	header('X-XSS-Protection: 1; mode=block');
@@ -4847,11 +6118,18 @@ function destroy_chat(array $C): void
 	$db->exec('DROP TABLE ' . PREFIX . 'ignored;');
 	$db->exec('DROP TABLE ' . PREFIX . 'inbox;');
 	$db->exec('DROP TABLE ' . PREFIX . 'linkfilter;');
+	$db->exec('DROP TABLE ' . PREFIX . 'likes;');
 	$db->exec('DROP TABLE ' . PREFIX . 'members;');
+	$db->exec('DROP TABLE ' . PREFIX . 'member_roles;');
 	$db->exec('DROP TABLE ' . PREFIX . 'messages;');
 	$db->exec('DROP TABLE ' . PREFIX . 'notes;');
+	$db->exec('DROP TABLE ' . PREFIX . 'reports;');
+	$db->exec('DROP TABLE ' . PREFIX . 'roles;');
+	$db->exec('DROP TABLE ' . PREFIX . 'room_roles;');
+	$db->exec('DROP TABLE ' . PREFIX . 'rooms;');
 	$db->exec('DROP TABLE ' . PREFIX . 'sessions;');
 	$db->exec('DROP TABLE ' . PREFIX . 'settings;');
+	$db->exec('DROP TABLE ' . PREFIX . 'staff_log;');
 	if(MEMCACHED){
 		$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
 		$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
@@ -4911,21 +6189,32 @@ function init_chat(): void
 		$db->exec('CREATE TABLE ' . PREFIX . "ignored (id $primary, ign varchar(50) NOT NULL, ignby varchar(50) NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'ign ON ' . PREFIX . 'ignored(ign);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'ignby ON ' . PREFIX . 'ignored(ignby);');
-		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash varchar(255) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, loginfails integer unsigned NOT NULL DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL, pgpkey text, pgpchallengehash varchar(64) NOT NULL DEFAULT '', pgpchallengeexpires integer NOT NULL DEFAULT 0)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "members (id $primary, nickname varchar(50) NOT NULL UNIQUE, passhash varchar(255) NOT NULL, status smallint NOT NULL, refresh smallint NOT NULL, bgcolour char(6) NOT NULL, regedby varchar(50) DEFAULT '', lastlogin integer DEFAULT 0, loginfails integer unsigned NOT NULL DEFAULT 0, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, style varchar(255) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL, pgpkey text, pgpchallengehash varchar(64) NOT NULL DEFAULT '', pgpchallengeexpires integer NOT NULL DEFAULT 0, pgpchallengepurpose varchar(32) NOT NULL DEFAULT '', email text, emailverified smallint NOT NULL DEFAULT 0, email2fa smallint NOT NULL DEFAULT 0, emailchallengehash varchar(64) NOT NULL DEFAULT '', emailchallengeexpires integer NOT NULL DEFAULT 0, emailchallengepurpose varchar(32) NOT NULL DEFAULT '')$diskengine$charset;");
 		$db->exec('CREATE TABLE ' . PREFIX . "inbox (id $primary, postdate integer NOT NULL, postid integer NOT NULL UNIQUE, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, FOREIGN KEY (recipient) REFERENCES " . PREFIX . "members(nickname) ON DELETE CASCADE ON UPDATE CASCADE)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_poster ON ' . PREFIX . 'inbox(poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'inbox_recipient ON ' . PREFIX . 'inbox(recipient);');
 		$db->exec('CREATE TABLE ' . PREFIX . "linkfilter (id $primary, filtermatch varchar(255) NOT NULL, filterreplace varchar(255) NOT NULL, regex smallint NOT NULL)$diskengine$charset;");
-		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL, reply_to integer NOT NULL DEFAULT 0)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "messages (id $primary, postdate integer NOT NULL, poststatus smallint NOT NULL, poster varchar(50) NOT NULL, recipient varchar(50) NOT NULL, text text NOT NULL, delstatus smallint NOT NULL, reply_to integer NOT NULL DEFAULT 0, room_id integer NOT NULL DEFAULT 1)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'poster ON ' . PREFIX . 'messages (poster);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'recipient ON ' . PREFIX . 'messages(recipient);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'postdate ON ' . PREFIX . 'messages(postdate);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'poststatus ON ' . PREFIX . 'messages(poststatus);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'reply_to ON ' . PREFIX . 'messages(reply_to);');
-		$db->exec('CREATE TABLE ' . PREFIX . "likes (id $primary, message_id integer NOT NULL, nickname varchar(50) NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "likes (id $primary, message_id integer NOT NULL, nickname varchar(50) NOT NULL, reaction varchar(16) NOT NULL DEFAULT '❤️')$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'likes_message_id ON ' . PREFIX . 'likes(message_id);');
 		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'likes_message_nickname ON ' . PREFIX . 'likes(message_id, nickname);');
-		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "rooms (id $primary, name varchar(40) NOT NULL UNIQUE, min_status smallint NOT NULL)$diskengine$charset;");
+		$db->exec('INSERT INTO ' . PREFIX . "rooms (name, min_status) VALUES ('General', 1);");
+		$db->exec('CREATE TABLE ' . PREFIX . "roles (id $primary, name varchar(40) NOT NULL UNIQUE, permissions text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "member_roles (id $primary, nickname varchar(50) NOT NULL, role_id integer NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'member_roles_member_role ON ' . PREFIX . 'member_roles(nickname, role_id);');
+		$db->exec('CREATE TABLE ' . PREFIX . "room_roles (id $primary, room_id integer NOT NULL, role_id integer NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'room_roles_room_role ON ' . PREFIX . 'room_roles(room_id, role_id);');
+		$db->exec('CREATE TABLE ' . PREFIX . "reports (id $primary, message_id integer NOT NULL, reporter varchar(50) NOT NULL, poster varchar(50) NOT NULL, message_date integer NOT NULL, message_text $longtext NOT NULL, status smallint NOT NULL DEFAULT 0, created_at integer NOT NULL, reviewed_by varchar(50) NOT NULL DEFAULT '', reviewed_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'reports_status_created ON ' . PREFIX . 'reports(status, created_at);');
+		$db->exec('CREATE TABLE ' . PREFIX . "staff_log (id $primary, created_at integer NOT NULL, actor varchar(50) NOT NULL, action varchar(50) NOT NULL, target varchar(255) NOT NULL, details text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'staff_log_created ON ' . PREFIX . 'staff_log(created_at);');
+		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text $longtext NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_editedby ON ' . PREFIX . 'notes(editedby);');
 		$db->exec('CREATE TABLE ' . PREFIX . "sessions (id $primary, session char(32) NOT NULL UNIQUE, nickname varchar(50) NOT NULL UNIQUE, status smallint NOT NULL, refresh smallint NOT NULL, style varchar(255) NOT NULL, lastpost integer NOT NULL, passhash varchar(255) NOT NULL, postid char(6) NOT NULL DEFAULT '000000', useragent varchar(255) NOT NULL, kickmessage varchar(255) DEFAULT '', bgcolour char(6) NOT NULL, entry integer NOT NULL, exiting smallint NOT NULL, timestamps smallint NOT NULL, embed smallint NOT NULL, incognito smallint NOT NULL, ip varchar(45) NOT NULL, nocache smallint NOT NULL, tz varchar(255) NOT NULL, eninbox smallint NOT NULL, sortupdown smallint NOT NULL, hidechatters smallint NOT NULL, nocache_old smallint NOT NULL)$memengine$charset;");
@@ -4943,6 +6232,7 @@ function init_chat(): void
 			['rulestxt', ''],
 			['msgencrypted', '0'],
 			['dbversion', DBVERSION],
+			['dataencryptionversion', '2'],
 			['css', ''],
 			['memberexpire', '60'],
 			['guestexpire', '15'],
@@ -5025,7 +6315,6 @@ function init_chat(): void
 			['max_refresh_rate', '150'],
 			['min_refresh_rate', '5'],
 			['postbox_delete_globally', '0'],
-			['allow_js', '1'],
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'settings (setting, value) VALUES (?, ?);');
 		foreach($settings as $pair){
@@ -5063,7 +6352,8 @@ function update_db(): void
 	global $db, $memcached;
 	$dbversion=(int) get_setting('dbversion');
 	$msgencrypted=(bool) get_setting('msgencrypted');
-	if($dbversion>=DBVERSION && $msgencrypted===MSGENCRYPTED){
+	$dataencryptionversion=(int) get_setting('dataencryptionversion');
+	if($dbversion>=DBVERSION && $msgencrypted===MSGENCRYPTED && $dataencryptionversion>=2){
 		return;
 	}
 	ignore_user_abort(true);
@@ -5400,7 +6690,7 @@ function update_db(): void
 		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN loginfails integer unsigned NOT NULL DEFAULT 0;');
 	}
 	if($dbversion<47){
-		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('hide_reload_post_box', '0'), ('hide_reload_messages', '0'),('hide_profile', '0'),('hide_admin', '0'),('hide_notes', '0'),('hide_clone', '0'),('hide_rearrange', '0'),('hide_help', '0'),('max_refresh_rate', '150'),('min_refresh_rate', '5'),('postbox_delete_globally', '0'),('allow_js', '1');");
+		$db->exec('INSERT INTO ' . PREFIX . "settings (setting,value) VALUES ('hide_reload_post_box', '0'), ('hide_reload_messages', '0'),('hide_profile', '0'),('hide_admin', '0'),('hide_notes', '0'),('hide_clone', '0'),('hide_rearrange', '0'),('hide_help', '0'),('max_refresh_rate', '150'),('min_refresh_rate', '5'),('postbox_delete_globally', '0');");
 	}
 	if($dbversion<48){
 		$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('exitwait', '180'), ('exitingtxt', ' &#128682');"); // door emoji
@@ -5427,40 +6717,44 @@ function update_db(): void
 		$db->exec('CREATE INDEX ' . PREFIX . 'likes_message_id ON ' . PREFIX . 'likes(message_id);');
 		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'likes_message_nickname ON ' . PREFIX . 'likes(message_id, nickname);');
 	}
+	if($dbversion<54){
+		$db->exec('ALTER TABLE ' . PREFIX . "members ADD COLUMN pgpchallengepurpose varchar(32) NOT NULL DEFAULT '';");
+		$db->exec('ALTER TABLE ' . PREFIX . 'messages ADD COLUMN room_id integer NOT NULL DEFAULT 1;');
+		$db->exec('ALTER TABLE ' . PREFIX . "likes ADD COLUMN reaction varchar(16) NOT NULL DEFAULT '❤️';");
+		$db->exec('CREATE TABLE ' . PREFIX . "rooms (id $primary, name varchar(40) NOT NULL UNIQUE, min_status smallint NOT NULL)$diskengine$charset;");
+		$db->exec('INSERT INTO ' . PREFIX . "rooms (name, min_status) VALUES ('General', 1);");
+		$db->exec('CREATE TABLE ' . PREFIX . "roles (id $primary, name varchar(40) NOT NULL UNIQUE, permissions text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "member_roles (id $primary, nickname varchar(50) NOT NULL, role_id integer NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'member_roles_member_role ON ' . PREFIX . 'member_roles(nickname, role_id);');
+		$db->exec('CREATE TABLE ' . PREFIX . "room_roles (id $primary, room_id integer NOT NULL, role_id integer NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'room_roles_room_role ON ' . PREFIX . 'room_roles(room_id, role_id);');
+		$db->exec('CREATE TABLE ' . PREFIX . "reports (id $primary, message_id integer NOT NULL, reporter varchar(50) NOT NULL, poster varchar(50) NOT NULL, message_date integer NOT NULL, message_text $longtext NOT NULL, status smallint NOT NULL DEFAULT 0, created_at integer NOT NULL, reviewed_by varchar(50) NOT NULL DEFAULT '', reviewed_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'reports_status_created ON ' . PREFIX . 'reports(status, created_at);');
+		$db->exec('CREATE TABLE ' . PREFIX . "staff_log (id $primary, created_at integer NOT NULL, actor varchar(50) NOT NULL, action varchar(50) NOT NULL, target varchar(255) NOT NULL, details text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'staff_log_created ON ' . PREFIX . 'staff_log(created_at);');
+	}
+	if($dbversion<55){
+		if(DBDRIVER===0){
+			$db->exec('ALTER TABLE ' . PREFIX . 'notes MODIFY `text` longtext NOT NULL;');
+		}
+		if(get_setting('dataencryptionversion')===''){
+			$db->exec('INSERT INTO ' . PREFIX . "settings (setting, value) VALUES ('dataencryptionversion', '0');");
+		}
+	}
+	if($dbversion<56){
+		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN email text;');
+		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN emailverified smallint NOT NULL DEFAULT 0;');
+		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN email2fa smallint NOT NULL DEFAULT 0;');
+		$db->exec('ALTER TABLE ' . PREFIX . "members ADD COLUMN emailchallengehash varchar(64) NOT NULL DEFAULT '';");
+		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN emailchallengeexpires integer NOT NULL DEFAULT 0;');
+		$db->exec('ALTER TABLE ' . PREFIX . "members ADD COLUMN emailchallengepurpose varchar(32) NOT NULL DEFAULT '';");
+	}
 	update_setting('dbversion', DBVERSION);
-	if($msgencrypted!==MSGENCRYPTED){
-		if(!extension_loaded('sodium')){
-			send_fatal_error(sprintf(_('The %s extension of PHP is required for the encryption feature. Please install it first or set the encrypted setting back to false.'), 'sodium'));
-		}
-		$result=$db->query('SELECT id, text FROM ' . PREFIX . 'messages;');
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'messages SET text=? WHERE id=?;');
-		while($message=$result->fetch(PDO::FETCH_ASSOC)){
-			try {
-				if(MSGENCRYPTED){
-					$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
-				}else{
-					$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
-				}
-			} catch (SodiumException $e){
-				send_error($e->getMessage());
-			}
-			$stmt->execute([$message['text'], $message['id']]);
-		}
-		$result=$db->query('SELECT id, text FROM ' . PREFIX . 'notes;');
-		$stmt=$db->prepare('UPDATE ' . PREFIX . 'notes SET text=? WHERE id=?;');
-		while($message=$result->fetch(PDO::FETCH_ASSOC)){
-			try {
-				if(MSGENCRYPTED){
-					$message['text']=base64_encode(sodium_crypto_aead_aes256gcm_encrypt($message['text'], '', AES_IV, ENCRYPTKEY));
-				}else{
-					$message['text']=sodium_crypto_aead_aes256gcm_decrypt(base64_decode($message['text']), null, AES_IV, ENCRYPTKEY);
-				}
-			} catch (SodiumException $e){
-				send_error($e->getMessage());
-			}
-			$stmt->execute([$message['text'], $message['id']]);
-		}
-		update_setting('msgencrypted', (int) MSGENCRYPTED);
+	if((int) get_setting('dataencryptionversion')<2 && !migrate_encryption_format($msgencrypted)){
+		return;
+	}
+	if($msgencrypted!==MSGENCRYPTED && !migrate_message_encryption(MSGENCRYPTED)){
+		return;
 	}
 	send_update($msg);
 }
@@ -5628,15 +6922,23 @@ function load_lang(): void
 
 function load_config(): void
 {
-	define('VERSION', '1.24.1'); // Script version
-	define('DBVERSION', 53); // Database layout version
-	define('MSGENCRYPTED', false); // Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
-	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Recommended length: 32. Encryption key for messages
-	define('AES_IV_PASS', '012345678912'); // Recommended length: 12. AES Encryption IV
+	define('VERSION', '2.0.2'); // Script version
+	define('DBVERSION', 56); // Database layout version
+	define('MSGENCRYPTED', true); // (ENABLED BY DEFAULT) Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
+	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Set a unique secret. Encryption key for messages and notes
+	define('AES_IV_PASS', '012345678912'); // Legacy AES IV used only to decrypt existing data
 	define('DBHOST', 'localhost'); // Database host
 	define('DBUSER', 'www-data'); // Database user
 	define('DBPASS', 'YOUR_DB_PASS'); // Database password
 	define('DBNAME', 'public_chat'); // Database
+	define('SMTP_HOST', ''); // SMTP server hostname
+	define('SMTP_PORT', 587); // SMTP server port
+	define('SMTP_SECURITY', 'tls'); // Connection security: tls, ssl, or none
+	define('SMTP_USERNAME', ''); // Optional SMTP authentication username
+	define('SMTP_PASSWORD', ''); // Optional SMTP authentication password
+	define('SMTP_FROM', ''); // Sender email address
+	define('SMTP_FROM_NAME', 'LE CHAT'); // Sender display name
+	define('SMTP_TIMEOUT', 15); // SMTP connection and response timeout in seconds
 	define('PERSISTENT', true); // Use persistent database conection true/false
 	define('PREFIX', ''); // Prefix - Set this to a unique value for every chat, if you have more than 1 chats on the same database or domain - use only alpha-numeric values (A-Z, a-z, 0-9, or _) other symbols might break the queries
 	define('MEMCACHED', false); // Enable/disable memcached caching true/false - needs memcached extension and a memcached server.
@@ -5654,17 +6956,7 @@ function load_config(): void
 		if (version_compare(PHP_VERSION, '7.2.0') < 0) {
 			die("You need at least PHP >= 7.2.x");
 		}
-		//Do not touch: Compute real keys needed by encryption functions
-		if (strlen(ENCRYPTKEY_PASS) !== SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES){
-			define('ENCRYPTKEY', substr(hash("sha512/256",ENCRYPTKEY_PASS),0, SODIUM_CRYPTO_AEAD_AES256GCM_KEYBYTES));
-		}else{
-			define('ENCRYPTKEY', ENCRYPTKEY_PASS);
-		}
-		if (strlen(AES_IV_PASS) !== SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES){
-			define('AES_IV', substr(hash("sha512/256",AES_IV_PASS), 0, SODIUM_CRYPTO_AEAD_AES256GCM_NPUBBYTES));
-		}else{
-			define('AES_IV', AES_IV_PASS);
-		}
+		define_encryption_constants();
 	}
 	//define('RESET_SUPERADMIN_PASSWORD', 'changeme'); //Use this to reset your superadmin password in case you forgot it
 }
