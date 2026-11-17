@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - Main program
 *
-* Copyright (C) 2015-2026 Daniel Winzen <daniel@danwin1210.me>
+* Copyright (C) 2015-2026 Daniel Winzen <daniel@danwin1210.de>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -7215,7 +7215,7 @@ function load_config(): void
 	define('LANG', 'en'); // Default language
 	if (MSGENCRYPTED){
 		if (version_compare(PHP_VERSION, '8.0.0') < 0) {
-			die("You need at least PHP >= 7.2.x");
+			die("You need at least PHP >= 8.0.x");
 		}
 		define_encryption_constants();
 	}
