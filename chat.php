@@ -2,7 +2,7 @@
 /*
 * LE CHAT-PHP - a PHP Chat based on LE CHAT - Main program
 *
-* Copyright (C) 2015-2026 Daniel Winzen <daniel@danwin1210.me>
+* Copyright (C) 2015-2026 Daniel Winzen <daniel@danwin1210.de>
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -191,7 +191,7 @@ function route(): void
 		if(!isset($_POST['what'])){
 		}elseif($_POST['what']==='all'){
 			if(isset($_POST['confirm'])){
-				del_all_messages('', (int) ($U['status']==1 ? $U['entry'] : 0));
+				del_all_messages('', (int) ($U['status']==1 ? $U['entry'] : 0), $U['status']>=5);
 			}else{
 				send_del_confirm();
 			}
@@ -288,7 +288,7 @@ function route_admin() : string {
 			$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=? AND status>=?;');
 			$stmt->execute([$_POST['nickname'], $U['status']]);
 			if(!$stmt->fetch(PDO::FETCH_ASSOC)){
-				del_all_messages($_POST['nickname'], 0);
+				del_all_messages($_POST['nickname'], 0, true);
 			}
 		}
 	}elseif($_POST['do']==='kick'){
@@ -2697,6 +2697,36 @@ function transform_encrypted_table(string $table, string $column, string $mode):
 	}
 }
 
+function migrate_staff_log_encryption(): bool
+{
+	global $db;
+	if(!extension_loaded('sodium')){
+		send_fatal_error(_('The sodium extension is required to encrypt staff logs.'));
+		return false;
+	}
+	try {
+		$db->beginTransaction();
+		$result=$db->query('SELECT id, actor, action, target, details FROM ' . PREFIX . 'staff_log;');
+		$stmt=$db->prepare('UPDATE ' . PREFIX . 'staff_log SET actor=?, action=?, target=?, details=? WHERE id=?;');
+		while($entry=$result->fetch(PDO::FETCH_ASSOC)){
+			$values=[];
+			foreach(['actor', 'action', 'target', 'details'] as $column){
+				$value=(string) $entry[$column];
+				$values[] = strpos($value, 'LCENC2:')===0 ? $value : encrypt_database_value($value);
+			}
+			$stmt->execute([$values[0], $values[1], $values[2], $values[3], $entry['id']]);
+		}
+		$db->commit();
+		return true;
+	} catch (Throwable $e){
+		if($db->inTransaction()){
+			$db->rollBack();
+		}
+		send_fatal_error(sprintf(_('Could not encrypt staff logs: %s'), $e->getMessage()));
+		return false;
+	}
+}
+
 function migrate_encryption_format(bool $stored_encrypted): bool
 {
 	global $db, $memcached;
@@ -4382,38 +4412,49 @@ function show_fails(): void
 function approve_session(): void
 {
 	global $db, $U;
-	$acted=0;
+	$acted=[];
 	if(isset($_POST['what'])){
 		if($_POST['what']==='allowchecked' && isset($_POST['csid'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
 			foreach($_POST['csid'] as $nick){
 				$stmt->execute([$nick]);
-				$acted+=$stmt->rowCount();
+				if($stmt->rowCount()>0){
+					$acted[]=$nick;
+				}
 			}
 		}elseif($_POST['what']==='allowall' && isset($_POST['alls'])){
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET entry=lastpost WHERE nickname=?;');
 			foreach($_POST['alls'] as $nick){
 				$stmt->execute([$nick]);
-				$acted+=$stmt->rowCount();
+				if($stmt->rowCount()>0){
+					$acted[]=$nick;
+				}
 			}
 		}elseif($_POST['what']==='denychecked' && isset($_POST['csid'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
 			foreach($_POST['csid'] as $nick){
 				$stmt->execute([$time, $_POST['kickmessage'], $nick]);
-				$acted+=$stmt->rowCount();
+				if($stmt->rowCount()>0){
+					$acted[]=$nick;
+				}
 			}
 		}elseif($_POST['what']==='denyall' && isset($_POST['alls'])){
 			$time=60*(get_setting('kickpenalty')-get_setting('guestexpire'))+time();
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET lastpost=?, status=0, kickmessage=? WHERE nickname=? AND status=1;');
 			foreach($_POST['alls'] as $nick){
 				$stmt->execute([$time, $_POST['kickmessage'], $nick]);
-				$acted+=$stmt->rowCount();
+				if($stmt->rowCount()>0){
+					$acted[]=$nick;
+				}
 			}
 		}
 	}
-	if($acted>0){
-		write_staff_log('waiting_room_review', (string) $acted, 'Action '.$_POST['what'].' by '.$U['nickname']);
+	foreach($acted as $nickname){
+		$denied=in_array($_POST['what'], ['denychecked', 'denyall'], true);
+		$action=$denied ? 'user_kicked' : 'waiting_room_review';
+		$details=$denied ? 'Denied entry by '.$U['nickname'].': '.(string) ($_POST['kickmessage'] ?? '') : 'Action '.$_POST['what'].' by '.$U['nickname'];
+		write_staff_log($action, (string) $nickname, $details);
 	}
 }
 
@@ -4476,6 +4517,7 @@ function kill_session(): void
 function kick_chatter(array $names, string $mes, bool $purge) : bool {
 	global $U, $db;
 	$lonick='';
+	$kicked_names=[];
 	if (strlen($mes)<1){
 		$mes=_("no kick message");
 	}
@@ -4497,9 +4539,10 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 		if($temp=$check->fetch(PDO::FETCH_ASSOC)){
 			$stmt->execute([$time, $mes, $name]);
 			if($purge){
-				del_all_messages($name, (int) $temp['entry']);
+				del_all_messages($name, (int) $temp['entry'], true);
 			}
 			$lonick.=style_this(htmlspecialchars($name), $temp['style']).', ';
+			$kicked_names[]=$name;
 			++$i;
 		}
 	}
@@ -4514,7 +4557,9 @@ function kick_chatter(array $names, string $mes, bool $purge) : bool {
 				add_system_message(sprintf(get_setting('msgkick'), $lonick, $mes), $U['nickname']);
 			}
 		}
-		write_staff_log('user_kicked', substr(implode(', ', $names), 0, 255), ($purge ? 'Purged messages. ' : '').substr($mes, 0, 200));
+		foreach($kicked_names as $name){
+			write_staff_log('user_kicked', $name, ($purge ? 'Purged messages. ' : '').substr($mes, 0, 200));
+		}
 		return true;
 	}
 	return false;
@@ -5587,20 +5632,66 @@ function write_message(array $message): void
 function clean_room(): void
 {
 	global $U, $db;
-	$db->query('DELETE FROM ' . PREFIX . 'messages;');
+	$messages=$db->query('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages ORDER BY id;')->fetchAll(PDO::FETCH_ASSOC);
+	foreach($messages as &$message){
+		$message=prepare_deleted_message_for_log($message);
+	}
+	unset($message);
+	$delete=$db->prepare('DELETE FROM ' . PREFIX . 'messages;');
+	$delete->execute();
+	$deleted_count=$delete->rowCount();
+	if($deleted_count>0){
+		foreach(array_slice($messages, 0, $deleted_count) as $message){
+			write_deleted_message_log($message, 'Removed when the room was cleaned');
+		}
+	}
 	write_staff_log('room_cleaned', get_setting('chatname'), 'Cleaned by '.$U['nickname']);
 	add_system_message(sprintf(get_setting('msgclean'), get_setting('chatname')), $U['nickname']);
+}
+
+function prepare_deleted_message_for_log(array $message): array
+{
+	if(MSGENCRYPTED){
+		try {
+			$message['text']=decrypt_database_value((string) $message['text']);
+		} catch (Throwable $e){
+			send_error($e->getMessage());
+		}
+	}
+	return $message;
+}
+
+function write_deleted_message_log(array $message, string $reason): void
+{
+	global $U;
+	$target='Message #'.(int) $message['id'].' by '.(string) $message['poster'];
+	$details=$reason.' by '.$U['nickname'].'; posted '.date(get_setting('dateformat'), (int) $message['postdate']).'; plaintext contents: '.(string) $message['text'];
+	write_staff_log('message_deleted', $target, $details);
 }
 
 function clean_selected(int $status, string $nick): void
 {
 	global $db, $U;
 	if(isset($_POST['mid'])){
+		$lookup=$db->prepare('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR (poststatus<? AND delstatus<?));');
 		$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND (poster=? OR recipient=? OR (poststatus<? AND delstatus<?));');
 		$removed=0;
 		foreach($_POST['mid'] as $mid){
+			$lookup->execute([$mid, $nick, $nick, $status, $status]);
+			$message=$lookup->fetch(PDO::FETCH_ASSOC);
+			if(!$message){
+				continue;
+			}
+			if($U['status']>=5){
+				$message=prepare_deleted_message_for_log($message);
+			}
 			$stmt->execute([$mid, $nick, $nick, $status, $status]);
-			$removed+=$stmt->rowCount();
+			if($stmt->rowCount()>0){
+				++$removed;
+				if($U['status']>=5){
+					write_deleted_message_log($message, 'Selected for deletion');
+				}
+			}
 		}
 		if($removed>0 && $U['status']>=5){
 			write_staff_log('messages_deleted', (string) $removed, 'Selected messages deleted by '.$U['nickname']);
@@ -5619,21 +5710,45 @@ function clean_inbox_selected(): void
 	}
 }
 
-function del_all_messages(string $nick, int $entry): void
+function del_all_messages(string $nick, int $entry, bool $log_deletions=false): void
 {
 	global $db, $U;
 	$globally = (bool) get_setting('postbox_delete_globally');
+	$deleted_count=0;
 	if($globally && $U['status'] > 4){
+		if($log_deletions){
+			$messages=$db->query('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages ORDER BY id;')->fetchAll(PDO::FETCH_ASSOC);
+			foreach($messages as &$message){
+				$message=prepare_deleted_message_for_log($message);
+			}
+			unset($message);
+		}
 		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'messages;' );
 		$stmt->execute();
+		$deleted_count=$stmt->rowCount();
 	} else {
 		if ( $nick === '' ) {
 			$nick = $U[ 'nickname' ];
 		}
+		if($log_deletions){
+			$lookup=$db->prepare('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=? ORDER BY id;');
+			$lookup->execute([$nick, $entry]);
+			$messages=$lookup->fetchAll(PDO::FETCH_ASSOC);
+			foreach($messages as &$message){
+				$message=prepare_deleted_message_for_log($message);
+			}
+			unset($message);
+		}
 		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=?;' );
 		$stmt->execute( [ $nick, $entry ] );
+		$deleted_count=$stmt->rowCount();
 		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'inbox WHERE poster=? AND postdate>=?;' );
 		$stmt->execute( [ $nick, $entry ] );
+	}
+	if($log_deletions && $deleted_count>0){
+		foreach(array_slice($messages, 0, $deleted_count) as $message){
+			write_deleted_message_log($message, "Removed with the user's messages");
+		}
 	}
 }
 
@@ -5654,8 +5769,17 @@ function del_last_message(): void
 		$stmt->execute( [ $U[ 'nickname' ], $entry ] );
 	}
 	if ( $id = $stmt->fetch( PDO::FETCH_NUM ) ) {
+		$lookup=$db->prepare('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages WHERE id=?;');
+		$lookup->execute($id);
+		$message=$lookup->fetch(PDO::FETCH_ASSOC);
+		if($message && $U['status']>=5){
+			$message=prepare_deleted_message_for_log($message);
+		}
 		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'messages WHERE id=?;' );
 		$stmt->execute( $id );
+		if($message && $U['status']>=5 && $stmt->rowCount()>0){
+			write_deleted_message_log($message, 'Last message deleted');
+		}
 		$stmt = $db->prepare( 'DELETE FROM ' . PREFIX . 'inbox WHERE postid=?;' );
 		$stmt->execute( $id );
 	}
@@ -5978,24 +6102,53 @@ function send_staff_inbox(): void
 	if(!has_staff_permission('review_reports')){
 		send_access_denied();
 	}
+	$notice='';
+	if(isset($_POST['report_id'], $_POST['moderation']) && is_string($_POST['moderation']) && $_POST['moderation']==='kick'){
+		if($U['status']<5){
+			send_access_denied();
+		}
+		$report_id=is_scalar($_POST['report_id']) ? (int) $_POST['report_id'] : 0;
+		$lookup=$db->prepare('SELECT poster, message_id FROM ' . PREFIX . 'reports WHERE id=? AND status=0;');
+		$lookup->execute([$report_id]);
+		if($reported=$lookup->fetch(PDO::FETCH_ASSOC)){
+			$target=(string) $reported['poster'];
+			if($target!==$U['nickname'] && kick_chatter([$target], sprintf(_('Kicked from staff inbox after report #%d by %s'), (int) $report_id, $U['nickname']), false)){
+				$notice=sprintf(_('Kicked %s for %d minutes.'), $target, (int) get_setting('kickpenalty'));
+			}else{
+				$notice=_('This user could not be kicked. They may be offline or have equal or higher status.');
+			}
+		}
+	}
 	if(isset($_POST['report_id'], $_POST['disposition']) && is_string($_POST['disposition']) && in_array($_POST['disposition'], ['dismiss', 'remove'], true)){
 		$report_id=is_scalar($_POST['report_id']) ? (int) $_POST['report_id'] : 0;
+		$reported=null;
+		$deleted_message=null;
+		if($_POST['disposition']==='remove'){
+			$lookup=$db->prepare('SELECT message_id, poster, message_date, message_text FROM ' . PREFIX . 'reports WHERE id=? AND status=0;');
+			$lookup->execute([$report_id]);
+			$reported=$lookup->fetch(PDO::FETCH_ASSOC);
+			if($reported){
+				$deleted_message=prepare_deleted_message_for_log([
+					'id'=>(int) $reported['message_id'],
+					'poster'=>$reported['poster'],
+					'postdate'=>$reported['message_date'],
+					'text'=>$reported['message_text']
+				]);
+			}
+		}
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'reports SET status=?, reviewed_by=?, reviewed_at=? WHERE id=? AND status=0;');
 		$stmt->execute([$_POST['disposition']==='remove' ? 2 : 1, $U['nickname'], time(), $report_id]);
 		if($stmt->rowCount()>0){
 			$removed=false;
-			if($_POST['disposition']==='remove'){
-				$lookup=$db->prepare('SELECT message_id, poster, message_date, message_text FROM ' . PREFIX . 'reports WHERE id=?;');
-				$lookup->execute([$report_id]);
-				if($reported=$lookup->fetch(PDO::FETCH_ASSOC)){
-					$message_id=(int) $reported['message_id'];
-					$delete=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND poster=? AND postdate=? AND text=?;');
-					$delete->execute([$message_id, $reported['poster'], $reported['message_date'], $reported['message_text']]);
-					$removed=$delete->rowCount()>0;
-					if($removed){
-						$delete=$db->prepare('DELETE FROM ' . PREFIX . 'likes WHERE message_id=?;');
-						$delete->execute([$message_id]);
-					}
+			if($_POST['disposition']==='remove' && $reported && $deleted_message){
+				$message_id=(int) $reported['message_id'];
+				$delete=$db->prepare('DELETE FROM ' . PREFIX . 'messages WHERE id=? AND poster=? AND postdate=? AND text=?;');
+				$delete->execute([$message_id, $reported['poster'], $reported['message_date'], $reported['message_text']]);
+				$removed=$delete->rowCount()>0;
+				if($removed){
+					$delete=$db->prepare('DELETE FROM ' . PREFIX . 'likes WHERE message_id=?;');
+					$delete->execute([$message_id]);
+					write_deleted_message_log($deleted_message, 'Removed from report #'.(int) $report_id);
 				}
 			}
 			$action=$_POST['disposition']==='remove' ? 'report_action_remove' : 'report_dismissed';
@@ -6008,7 +6161,10 @@ function send_staff_inbox(): void
 	}
 	print_start('staff_inbox');
 	echo '<h1>'._('Staff inbox').'</h1>';
-	echo '<p>'._('Reported messages are visible only to staff with report-review access.').'</p>';
+	echo '<p>'._('Reported messages are visible only to staff with report-review access. Kicking a user applies the configured kick penalty.').'</p>';
+	if($notice!==''){
+		echo '<p class="notice">'.htmlspecialchars($notice, ENT_QUOTES, 'UTF-8').'</p>';
+	}
 	$stmt=$db->query('SELECT id, message_id, reporter, poster, message_date, message_text, created_at FROM ' . PREFIX . 'reports WHERE status=0 ORDER BY created_at ASC LIMIT 100;');
 	while($report=$stmt->fetch(PDO::FETCH_ASSOC)){
 		$message=['text'=>$report['message_text']];
@@ -6017,7 +6173,11 @@ function send_staff_inbox(): void
 		echo '<p>'.sprintf(_('Reported by %1$s · Posted by %2$s · %3$s'), htmlspecialchars($report['reporter']), htmlspecialchars($report['poster']), date(get_setting('dateformat'), (int) $report['message_date'])).'</p>';
 		echo '<div class="msg">'.($message['text'] ?? '').'</div>';
 		echo form('staff_inbox').hidden('report_id', (string) $report['id']).'<button name="disposition" value="dismiss">'._('Dismiss report').'</button> ';
-		echo '<button class="delbutton" name="disposition" value="remove">'._('Remove message').'</button></form></article>';
+		echo '<button class="delbutton" name="disposition" value="remove">'._('Remove message').'</button> ';
+		if($U['status']>=5 && $report['poster']!==$U['nickname']){
+			echo '<button class="delbutton" name="moderation" value="kick">'.sprintf(_('Kick/ban %s for %d minutes'), htmlspecialchars($report['poster'], ENT_QUOTES, 'UTF-8'), (int) get_setting('kickpenalty')).'</button> ';
+		}
+		echo '</form></article>';
 	}
 	echo '<p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=view&amp;session='.rawurlencode($U['session']).'">'._('Return to chat').'</a></p>';
 	print_end();
@@ -6027,8 +6187,29 @@ function write_staff_log(string $action, string $target, string $details): void
 {
 	global $U, $db;
 	$actor=$U['nickname'] ?? _('System');
+	try {
+		$actor=encrypt_database_value($actor);
+		$action=encrypt_database_value($action);
+		$target=encrypt_database_value($target);
+		$details=encrypt_database_value($details);
+	} catch (Throwable $e){
+		send_error($e->getMessage());
+	}
 	$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'staff_log (created_at, actor, action, target, details) VALUES (?, ?, ?, ?, ?);');
 	$stmt->execute([time(), $actor, $action, $target, $details]);
+}
+
+function decrypt_staff_log_value(string $value): string
+{
+	if(strpos($value, 'LCENC2:')!==0){
+		return $value;
+	}
+	try {
+		return decrypt_database_value($value);
+	} catch (Throwable $e){
+		send_error($e->getMessage());
+		throw $e;
+	}
 }
 
 function send_staff_log(): void
@@ -6041,7 +6222,11 @@ function send_staff_log(): void
 	echo '<h1>'._('Staff log').'</h1><table><tr><th>'._('Time').'</th><th>'._('Staff member').'</th><th>'._('Action').'</th><th>'._('Target').'</th><th>'._('Details').'</th></tr>';
 	$stmt=$db->query('SELECT created_at, actor, action, target, details FROM ' . PREFIX . 'staff_log ORDER BY id DESC LIMIT 200;');
 	while($entry=$stmt->fetch(PDO::FETCH_ASSOC)){
-		echo '<tr><td>'.date(get_setting('dateformat'), (int) $entry['created_at']).'</td><td>'.htmlspecialchars($entry['actor']).'</td><td>'.htmlspecialchars($entry['action']).'</td><td>'.htmlspecialchars($entry['target']).'</td><td>'.htmlspecialchars($entry['details']).'</td></tr>';
+		$entry['actor']=decrypt_staff_log_value((string) $entry['actor']);
+		$entry['action']=decrypt_staff_log_value((string) $entry['action']);
+		$entry['target']=decrypt_staff_log_value((string) $entry['target']);
+		$entry['details']=decrypt_staff_log_value((string) $entry['details']);
+		echo '<tr><td>'.date(get_setting('dateformat'), (int) $entry['created_at']).'</td><td>'.htmlspecialchars($entry['actor']).'</td><td>'.htmlspecialchars($entry['action']).'</td><td>'.htmlspecialchars($entry['target']).'</td><td style="white-space:pre-wrap;overflow-wrap:anywhere">'.htmlspecialchars($entry['details']).'</td></tr>';
 	}
 	echo '</table><p><a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=view&amp;session='.rawurlencode($U['session']).'">'._('Return to chat').'</a></p>';
 	print_end();
@@ -6473,7 +6658,7 @@ function init_chat(): void
 		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'room_roles_room_role ON ' . PREFIX . 'room_roles(room_id, role_id);');
 		$db->exec('CREATE TABLE ' . PREFIX . "reports (id $primary, message_id integer NOT NULL, reporter varchar(50) NOT NULL, poster varchar(50) NOT NULL, message_date integer NOT NULL, message_text $longtext NOT NULL, status smallint NOT NULL DEFAULT 0, created_at integer NOT NULL, reviewed_by varchar(50) NOT NULL DEFAULT '', reviewed_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'reports_status_created ON ' . PREFIX . 'reports(status, created_at);');
-		$db->exec('CREATE TABLE ' . PREFIX . "staff_log (id $primary, created_at integer NOT NULL, actor varchar(50) NOT NULL, action varchar(50) NOT NULL, target varchar(255) NOT NULL, details text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "staff_log (id $primary, created_at integer NOT NULL, actor text NOT NULL, action text NOT NULL, target text NOT NULL, details text NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'staff_log_created ON ' . PREFIX . 'staff_log(created_at);');
 		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text $longtext NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
@@ -6991,7 +7176,7 @@ function update_db(): void
 		$db->exec('CREATE UNIQUE INDEX ' . PREFIX . 'room_roles_room_role ON ' . PREFIX . 'room_roles(room_id, role_id);');
 		$db->exec('CREATE TABLE ' . PREFIX . "reports (id $primary, message_id integer NOT NULL, reporter varchar(50) NOT NULL, poster varchar(50) NOT NULL, message_date integer NOT NULL, message_text $longtext NOT NULL, status smallint NOT NULL DEFAULT 0, created_at integer NOT NULL, reviewed_by varchar(50) NOT NULL DEFAULT '', reviewed_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'reports_status_created ON ' . PREFIX . 'reports(status, created_at);');
-		$db->exec('CREATE TABLE ' . PREFIX . "staff_log (id $primary, created_at integer NOT NULL, actor varchar(50) NOT NULL, action varchar(50) NOT NULL, target varchar(255) NOT NULL, details text NOT NULL)$diskengine$charset;");
+		$db->exec('CREATE TABLE ' . PREFIX . "staff_log (id $primary, created_at integer NOT NULL, actor text NOT NULL, action text NOT NULL, target text NOT NULL, details text NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'staff_log_created ON ' . PREFIX . 'staff_log(created_at);');
 	}
 	if($dbversion<55){
@@ -7009,6 +7194,16 @@ function update_db(): void
 		$db->exec('ALTER TABLE ' . PREFIX . "members ADD COLUMN emailchallengehash varchar(64) NOT NULL DEFAULT '';");
 		$db->exec('ALTER TABLE ' . PREFIX . 'members ADD COLUMN emailchallengeexpires integer NOT NULL DEFAULT 0;');
 		$db->exec('ALTER TABLE ' . PREFIX . "members ADD COLUMN emailchallengepurpose varchar(32) NOT NULL DEFAULT '';");
+	}
+	if($dbversion<57){
+		if(DBDRIVER===0){
+			$db->exec('ALTER TABLE ' . PREFIX . 'staff_log MODIFY actor text NOT NULL, MODIFY action text NOT NULL, MODIFY target text NOT NULL;');
+		}elseif(DBDRIVER===1){
+			$db->exec('ALTER TABLE ' . PREFIX . 'staff_log ALTER COLUMN actor TYPE text, ALTER COLUMN action TYPE text, ALTER COLUMN target TYPE text;');
+		}
+		if(!migrate_staff_log_encryption()){
+			return;
+		}
 	}
 	update_setting('dbversion', DBVERSION);
 	if((int) get_setting('dataencryptionversion')<2 && !migrate_encryption_format($msgencrypted)){
@@ -7184,7 +7379,7 @@ function load_lang(): void
 function load_config(): void
 {
 	define('VERSION', '2.0.2'); // Script version
-	define('DBVERSION', 56); // Database layout version
+	define('DBVERSION', 57); // Database layout version
 	define('MSGENCRYPTED', true); // (ENABLED BY DEFAULT) Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Preserve this value to keep existing encrypted data readable
 	define('AES_IV_PASS', '012345678912'); // Legacy AES IV used only to decrypt existing data
@@ -7215,7 +7410,7 @@ function load_config(): void
 	define('LANG', 'en'); // Default language
 	if (MSGENCRYPTED){
 		if (version_compare(PHP_VERSION, '8.0.0') < 0) {
-			die("You need at least PHP >= 7.2.x");
+			die("Le-Chat-PHP v2 requires PHP 8.0 or higher to run. Please upgrade your PHP version.");
 		}
 		define_encryption_constants();
 	}

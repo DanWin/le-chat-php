@@ -1,3 +1,7 @@
+Version 2.0.3 by [Nix Hartogh](nixie.online) - Nov. 18, 2026
+Log kicked-user names and plaintext deleted-message contents; enable kicks from the staff inbox
+Encrypt staff-log fields at rest and migrate existing entries during setup
+
 Version 2.0.2 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
 Remove the .env file requirement; configure SMTP, database and encryption secrets in chat.php (who needs Git when you have a tarball?)
 Add BBCode and Markdown message formatting
@@ -7,7 +11,6 @@ Started preparations for upcoming bot API and Dead Man's Switch
 
 Version 2.0.1 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
 Load SMTP, database and encryption secrets from .env
-
 
 Version 2.0.0 by [Nix Hartogh](nixie.online) - Nov. 17, 2026
 !! MAJOR UPDATE AND OVERHAUL OF LE CHAT PHP !!
