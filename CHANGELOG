@@ -1,3 +1,7 @@
+Version 2.0.4 by [Nix Hartogh](nixie.online) - Nov. 18, 2026
+Removed changing SA password through the code - redundant now thanks to PGP and Email SSPR
+Add a token-authenticated JSON bot API with encrypted bot registry data, management UI, and per-bot rate limits
+
 Version 2.0.3 by [Nix Hartogh](nixie.online) - Nov. 18, 2026
 Log kicked-user names and plaintext deleted-message contents; enable kicks from the staff inbox
 Encrypt staff-log fields at rest and migrate existing entries during setup

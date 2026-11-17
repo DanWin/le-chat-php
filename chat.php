@@ -64,30 +64,32 @@ const LANGUAGES = [
 	'zh-Hans' => ['name' => '简体中文', 'locale' => 'zh_CN', 'dir' => 'ltr'],
 	'zh-Hant' => ['name' => '正體中文', 'locale' => 'zh_TW', 'dir' => 'ltr'],
 ];
-load_config();
-$U=[];// This user data
-$db = null;// Database connection
-$memcached = null;// Memcached connection
-$language = LANG;// user selected language
-$locale = LANGUAGES[LANG]['locale'];// user selected locale
-$dir = LANGUAGES[LANG]['dir'];// user selected language direction
-$styles = []; //css styles
-$session = $_REQUEST['session'] ?? ''; //requested session
-// set session variable to cookie if cookies are enabled
-if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
-	$session = $_COOKIE[COOKIENAME];
-}
-$session = preg_replace('/[^0-9a-zA-Z]/', '', $session);
-load_lang();
-foreach(['date', 'mbstring', 'pcre'] as $extension) {
-	if(!extension_loaded($extension)) {
-		send_fatal_error(sprintf(_('The %s extension of PHP is required, please install it first.'), $extension));
+if(!defined('LE_CHAT_LIBRARY_ONLY')){
+	load_config();
+	$U=[];// This user data
+	$db = null;// Database connection
+	$memcached = null;// Memcached connection
+	$language = LANG;// user selected language
+	$locale = LANGUAGES[LANG]['locale'];// user selected locale
+	$dir = LANGUAGES[LANG]['dir'];// user selected language direction
+	$styles = []; //css styles
+	$session = $_REQUEST['session'] ?? ''; //requested session
+	// set session variable to cookie if cookies are enabled
+	if(!isset($_REQUEST['session']) && isset($_COOKIE[COOKIENAME])){
+		$session = $_COOKIE[COOKIENAME];
 	}
+	$session = preg_replace('/[^0-9a-zA-Z]/', '', $session);
+	load_lang();
+	foreach(['date', 'mbstring', 'pcre'] as $extension) {
+		if(!extension_loaded($extension)) {
+			send_fatal_error(sprintf(_('The %s extension of PHP is required, please install it first.'), $extension));
+		}
+	}
+	mb_internal_encoding('UTF-8');
+	check_db();
+	cron();
+	route();
 }
-mb_internal_encoding('UTF-8');
-check_db();
-cron();
-route();
 
 //  main program: decide what to do based on queries
 function route(): void
@@ -425,7 +427,7 @@ function manage_roles(): string
 	if(!has_staff_permission('manage_roles')){
 		send_access_denied();
 	}
-	$allowed_permissions=['review_reports', 'view_staff_log', 'manage_rooms'];
+	$allowed_permissions=['review_reports', 'view_staff_log', 'manage_rooms', 'manage_bots'];
 	$action=$_POST['do'] ?? '';
 	if($action==='create'){
 		$name_input=$_POST['role_name'] ?? '';
@@ -507,7 +509,8 @@ function send_manage_roles(string $notice=''): void
 	$permission_labels=[
 		'review_reports'=>_('Review reported messages'),
 		'view_staff_log'=>_('View the staff log'),
-		'manage_rooms'=>_('Create restricted chatrooms')
+		'manage_rooms'=>_('Create restricted chatrooms'),
+		'manage_bots'=>_('Manage bots')
 	];
 	print_start('admin');
 	echo '<h1>'._('Manage custom roles').'</h1>';
@@ -2399,7 +2402,7 @@ function send_messages(): void
 		echo '<option value="'.(int) $room['id'].'"'.((int) $room['id']===$room_id ? ' selected' : '').'>'.htmlspecialchars($room['name']).'</option>';
 	}
 	echo '</select></label> '.submit(_('Open room')).'</form></div>';
-	if(has_staff_permission('review_reports') || $U['status']>=5 || has_staff_permission('view_staff_log') || has_staff_permission('manage_rooms')){
+	if(has_staff_permission('review_reports') || $U['status']>=5 || has_staff_permission('view_staff_log') || has_staff_permission('manage_rooms') || has_staff_permission('manage_bots')){
 		echo '<nav class="staffnav">';
 		if(has_staff_permission('review_reports')){
 			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=staff_inbox&amp;session='.rawurlencode($U['session']).'">'._('Staff inbox').'</a> ';
@@ -2409,6 +2412,9 @@ function send_messages(): void
 		}
 		if(has_staff_permission('manage_rooms')){
 			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=rooms&amp;session='.rawurlencode($U['session']).'">'._('Manage rooms').'</a> ';
+		}
+		if(has_staff_permission('manage_bots')){
+			echo '<a href="bots.php?session='.rawurlencode($U['session']).'">'._('Manage bots').'</a> ';
 		}
 		if($U['status']>=7){
 			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=roles&amp;session='.rawurlencode($U['session']).'">'._('Manage roles').'</a>';
@@ -3569,6 +3575,9 @@ function send_chat_disabled(): void
 
 function send_error(string $err): void
 {
+	if(defined('LE_CHAT_JSON_MODE') && function_exists('api_json_response')){
+		api_json_response(['error'=>$err], 400);
+	}
 	print_start('error');
 	echo '<h2>'.sprintf(_('Error: %s'),  $err).'</h2>'.form_target('_parent', '').submit(_('Back to the login page.'), 'class="backbutton"').'</form>';
 	print_end();
@@ -3576,6 +3585,9 @@ function send_error(string $err): void
 
 function send_fatal_error(string $err): void
 {
+	if(defined('LE_CHAT_JSON_MODE') && function_exists('api_json_response')){
+		api_json_response(['error'=>$err], 500);
+	}
 	global $language, $styles, $dir;
 	prepare_stylesheets('fatal_error');
 	send_headers();
@@ -5664,7 +5676,8 @@ function prepare_deleted_message_for_log(array $message): array
 function write_deleted_message_log(array $message, string $reason): void
 {
 	global $U;
-	$target='Message #'.(int) $message['id'].' by '.(string) $message['poster'];
+	$poster=(string) $message['poster'];
+	$target='Message #'.(int) $message['id'].' by '.resolve_bot_poster_name($poster);
 	$details=$reason.' by '.$U['nickname'].'; posted '.date(get_setting('dateformat'), (int) $message['postdate']).'; plaintext contents: '.(string) $message['text'];
 	write_staff_log('message_deleted', $target, $details);
 }
@@ -5812,7 +5825,7 @@ function print_messages(int $delstatus=0): void
 	}
 	echo '<div id="messages">';
 	if($delstatus>0){
-		$stmt=$db->prepare('SELECT postdate, id, text, reply_to FROM ' . PREFIX . 'messages WHERE '.
+		$stmt=$db->prepare('SELECT postdate, id, text, reply_to, poster FROM ' . PREFIX . 'messages WHERE '.
 		"((poststatus<? AND delstatus<?) OR ((poster=? OR recipient=?) AND postdate>=?)) AND (room_id=? OR poststatus=9) ORDER BY id $direction;");
 		$stmt->execute([$U['status'], $delstatus, $U['nickname'], $U['nickname'], $entry, $room_id]);
 		while($message=$stmt->fetch(PDO::FETCH_ASSOC)){
@@ -5889,12 +5902,44 @@ function prepare_message_print(array &$message, bool $removeEmbed): void
 			send_error($e->getMessage());
 		}
 	}
+	if(isset($message['poster']) && is_string($message['poster']) && is_bot_poster($message['poster'])){
+		$bot_name=resolve_bot_poster_name($message['poster']);
+		$message['poster']=$bot_name;
+		$bot_label=style_this(htmlspecialchars($bot_name, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 'color:#FFFFFF;');
+		$message['text']=str_replace('<span class="lechat-bot-name"></span>', $bot_label, (string) $message['text']);
+	}
 	if($removeEmbed){
 		$message['text']=preg_replace_callback('/<img src="([^"]+)" rel="noreferrer" loading="lazy"><\/a>/u',
 			function ($matched){
 				return "$matched[1]</a>";
 			}
 		, $message['text']);
+	}
+}
+
+function is_bot_poster(string $poster): bool
+{
+	return preg_match('/^LECHATBOT:[1-9][0-9]*$/', $poster)===1;
+}
+
+function resolve_bot_poster_name(string $poster): string
+{
+	global $db;
+	if(!is_bot_poster($poster)){
+		return $poster;
+	}
+	$bot_id=(int) substr($poster, strlen('LECHATBOT:'));
+	$stmt=$db->prepare('SELECT name FROM ' . PREFIX . 'bots WHERE id=?;');
+	$stmt->execute([$bot_id]);
+	$encrypted_name=$stmt->fetchColumn();
+	if($encrypted_name===false){
+		return _('Unknown bot');
+	}
+	try {
+		return decrypt_database_value((string) $encrypted_name);
+	} catch (Throwable $e){
+		send_error($e->getMessage());
+		throw $e;
 	}
 }
 
@@ -5989,7 +6034,8 @@ function has_staff_permission(string $permission): bool
 	$legacy=[
 		'review_reports'=>5,
 		'view_staff_log'=>5,
-		'manage_rooms'=>7
+		'manage_rooms'=>7,
+		'manage_bots'=>7
 	];
 	if($permission==='manage_roles'){
 		return $U['status']>=7;
@@ -6112,7 +6158,9 @@ function send_staff_inbox(): void
 		$lookup->execute([$report_id]);
 		if($reported=$lookup->fetch(PDO::FETCH_ASSOC)){
 			$target=(string) $reported['poster'];
-			if($target!==$U['nickname'] && kick_chatter([$target], sprintf(_('Kicked from staff inbox after report #%d by %s'), (int) $report_id, $U['nickname']), false)){
+			if(is_bot_poster($target)){
+				$notice=_('Bot tokens cannot be kicked. Revoke the bot token from the bot management page.');
+			}elseif($target!==$U['nickname'] && kick_chatter([$target], sprintf(_('Kicked from staff inbox after report #%d by %s'), (int) $report_id, $U['nickname']), false)){
 				$notice=sprintf(_('Kicked %s for %d minutes.'), $target, (int) get_setting('kickpenalty'));
 			}else{
 				$notice=_('This user could not be kicked. They may be offline or have equal or higher status.');
@@ -6167,15 +6215,18 @@ function send_staff_inbox(): void
 	}
 	$stmt=$db->query('SELECT id, message_id, reporter, poster, message_date, message_text, created_at FROM ' . PREFIX . 'reports WHERE status=0 ORDER BY created_at ASC LIMIT 100;');
 	while($report=$stmt->fetch(PDO::FETCH_ASSOC)){
-		$message=['text'=>$report['message_text']];
+		$message=['text'=>$report['message_text'], 'poster'=>$report['poster']];
 		prepare_message_print($message, true);
 		echo '<article class="staffitem"><p><strong>'._('Report').'</strong> #'.(int) $report['id'].' · '._('Message')." #".(int) $report['message_id'].'</p>';
-		echo '<p>'.sprintf(_('Reported by %1$s · Posted by %2$s · %3$s'), htmlspecialchars($report['reporter']), htmlspecialchars($report['poster']), date(get_setting('dateformat'), (int) $report['message_date'])).'</p>';
+		echo '<p>'.sprintf(_('Reported by %1$s · Posted by %2$s · %3$s'), htmlspecialchars($report['reporter']), htmlspecialchars((string) $message['poster']), date(get_setting('dateformat'), (int) $report['message_date'])).'</p>';
 		echo '<div class="msg">'.($message['text'] ?? '').'</div>';
 		echo form('staff_inbox').hidden('report_id', (string) $report['id']).'<button name="disposition" value="dismiss">'._('Dismiss report').'</button> ';
 		echo '<button class="delbutton" name="disposition" value="remove">'._('Remove message').'</button> ';
-		if($U['status']>=5 && $report['poster']!==$U['nickname']){
+		if($U['status']>=5 && !is_bot_poster((string) $report['poster']) && $report['poster']!==$U['nickname']){
 			echo '<button class="delbutton" name="moderation" value="kick">'.sprintf(_('Kick/ban %s for %d minutes'), htmlspecialchars($report['poster'], ENT_QUOTES, 'UTF-8'), (int) get_setting('kickpenalty')).'</button> ';
+		}
+		if(is_bot_poster((string) $report['poster']) && has_staff_permission('manage_bots')){
+			echo '<a href="bots.php?session='.rawurlencode((string) $U['session']).'">'._('Manage bot tokens').'</a> ';
 		}
 		echo '</form></article>';
 	}
@@ -6372,11 +6423,29 @@ function valid_admin() : bool {
 }
 
 function valid_nick(string $nick) : bool{
+	global $db;
 	$len=mb_strlen($nick);
-	if($len<1 || $len>get_setting('maxname')){
+	if($len<1 || $len>get_setting('maxname') || strpos($nick, 'LECHATBOT:')===0){
 		return false;
 	}
-	return preg_match('/'.get_setting('nickregex').'/u', $nick);
+	if(!preg_match('/'.get_setting('nickregex').'/u', $nick)){
+		return false;
+	}
+	if($db instanceof PDO && (int) get_setting('dbversion')>=DBVERSION){
+		$stmt=$db->query('SELECT name FROM ' . PREFIX . 'bots;');
+		while($encrypted_name=$stmt->fetchColumn()){
+			try {
+				$bot_name=decrypt_database_value((string) $encrypted_name);
+			} catch (Throwable $e){
+				send_error($e->getMessage());
+				throw $e;
+			}
+			if(mb_strtolower($bot_name)===mb_strtolower($nick)){
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 function valid_pass(string $pass) : bool {
@@ -6576,6 +6645,7 @@ function destroy_chat(array $C): void
 	$db->exec('DROP TABLE ' . PREFIX . 'sessions;');
 	$db->exec('DROP TABLE ' . PREFIX . 'settings;');
 	$db->exec('DROP TABLE ' . PREFIX . 'staff_log;');
+	$db->exec('DROP TABLE ' . PREFIX . 'bots;');
 	if(MEMCACHED){
 		$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
 		$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
@@ -6660,6 +6730,8 @@ function init_chat(): void
 		$db->exec('CREATE INDEX ' . PREFIX . 'reports_status_created ON ' . PREFIX . 'reports(status, created_at);');
 		$db->exec('CREATE TABLE ' . PREFIX . "staff_log (id $primary, created_at integer NOT NULL, actor text NOT NULL, action text NOT NULL, target text NOT NULL, details text NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'staff_log_created ON ' . PREFIX . 'staff_log(created_at);');
+		$db->exec('CREATE TABLE ' . PREFIX . "bots (id $primary, name text NOT NULL, token_cipher text NOT NULL, token_hash char(64) NOT NULL UNIQUE, created_by text NOT NULL, created_at integer NOT NULL, revoked_at integer NOT NULL DEFAULT 0, last_read_at integer NOT NULL DEFAULT 0, send1_at integer NOT NULL DEFAULT 0, send2_at integer NOT NULL DEFAULT 0, send3_at integer NOT NULL DEFAULT 0, send4_at integer NOT NULL DEFAULT 0, send5_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'bots_created ON ' . PREFIX . 'bots(created_at);');
 		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text $longtext NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_editedby ON ' . PREFIX . 'notes(editedby);');
@@ -7205,6 +7277,10 @@ function update_db(): void
 			return;
 		}
 	}
+	if($dbversion<58){
+		$db->exec('CREATE TABLE ' . PREFIX . "bots (id $primary, name text NOT NULL, token_cipher text NOT NULL, token_hash char(64) NOT NULL UNIQUE, created_by text NOT NULL, created_at integer NOT NULL, revoked_at integer NOT NULL DEFAULT 0, last_read_at integer NOT NULL DEFAULT 0, send1_at integer NOT NULL DEFAULT 0, send2_at integer NOT NULL DEFAULT 0, send3_at integer NOT NULL DEFAULT 0, send4_at integer NOT NULL DEFAULT 0, send5_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
+		$db->exec('CREATE INDEX ' . PREFIX . 'bots_created ON ' . PREFIX . 'bots(created_at);');
+	}
 	update_setting('dbversion', DBVERSION);
 	if((int) get_setting('dataencryptionversion')<2 && !migrate_encryption_format($msgencrypted)){
 		return;
@@ -7379,7 +7455,7 @@ function load_lang(): void
 function load_config(): void
 {
 	define('VERSION', '2.0.2'); // Script version
-	define('DBVERSION', 57); // Database layout version
+	define('DBVERSION', 58); // Database layout version
 	define('MSGENCRYPTED', true); // (ENABLED BY DEFAULT) Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Preserve this value to keep existing encrypted data readable
 	define('AES_IV_PASS', '012345678912'); // Legacy AES IV used only to decrypt existing data

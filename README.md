@@ -52,6 +52,8 @@ After upgrading, visit the Setup page once to apply the database updates. Admins
 
 Staff with moderation access can kick reported users from the staff inbox; this applies the configured kick penalty. Staff-log entries, including usernames and deleted-message contents, are encrypted at rest with the database encryption key and decrypted for authorized viewers. Existing log entries are encrypted when you visit the Setup page after upgrading. Because the log can contain private message content, grant staff-log access only to trusted staff and keep `ENCRYPTKEY_PASS` backed up securely.
 
+Admins and members with the `Manage bots` permission can use `bots.php` to create bots, revoke tokens, and rotate tokens. The token is shown only once after creation or rotation. Bot names and token values are encrypted in the bot registry; bot message history stores an opaque bot ID and resolves its display name from the encrypted registry when messages are read. Bots authenticate each request with `Authorization: Bearer <token>`. See `api/index.php` for the JSON API guide. Bots can read and post only in rooms open to guests; room reads are limited to once every 10 seconds, and sends to five messages per rolling 10 seconds. Use HTTPS and do not put tokens in URLs.
+
 Members can optionally add an email address in their profile. The address must be verified before it can be used for email login, password reset, or email two-factor authentication, and it is encrypted before it is stored in the database. Configure SMTP and database credentials in the configuration section at the bottom of `chat.php`. Use TLS or SSL for SMTP and protect the script because it contains credentials. When both PGP and email are configured for two-factor authentication, PGP is used for password logins; passwordless login and password reset let the member choose either configured method. Backup files include decrypted email addresses and must be kept secure.
 
 Database note encryption, staff-log encryption, and optional message encryption require `libsodium`. New encrypted data uses XChaCha20-Poly1305 with a fresh random nonce per value; the updater migrates legacy AES-GCM data while retaining read compatibility for old ciphertext. Set `ENCRYPTKEY_PASS` to a unique, high-entropy secret before relying on database encryption, and preserve that secret in a secure backup. Encryption protects database contents at rest, not data from a compromised application server.
@@ -63,7 +65,7 @@ Messages support safe inline BBCode (`[b]`, `[i]`, `[u]`, `[s]`, `[quote]`, `[co
 Installation Instructions:
 --------------------------
 
-You'll need to have php with `gettext`, `pdo`, `pcre`, `mbstring`, `date` and `sodium` extensions, and a web-server installed. The `sodium` extension is required for encrypted staff logs.
+You'll need to have php with `gettext`, `pdo`, `pcre`, `mbstring`, `date` and `sodium` extensions, and a web-server installed. The `sodium` extension is required for encrypted staff logs, bot names, and bot tokens.
 You will also need the `pdo_sqlite`, `pdo_mysql` or `pdo_pgsql` extension, depending on which database you choose.
 Optionally, you can install:
 - the `gd` extension for the captcha feature
