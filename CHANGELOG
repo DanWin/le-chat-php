@@ -1,5 +1,16 @@
-Version 2.0.4 by [Nix Hartogh](nixie.online) - Nov. 18, 2026
+Version 2.0.6 by [Nix Hartogh](nixie.online)
+Encrypt stored account nicknames and identity references with keyed lookup indexes; encrypt PGP public keys
+Use Argon2id for account passwords and rehash existing passwords after successful login
+Encrypt exported backups while retaining support for older plaintext backup imports
+Clean up bot API authentication handling
+
+Version 2.0.5 by [Nix Hartogh](nixie.online) - Nov. 18, 2026
+Add encrypted Dead Man's Switch configuration, check-in page, scheduled trigger, and opt-in database destruction
 Removed changing SA password through the code - redundant now thanks to PGP and Email SSPR
+Made minimum PHP version 8.3
+Removed deprecated functions and cleaned up code.
+
+Version 2.0.4 by [Nix Hartogh](nixie.online) - Nov. 18, 2026
 Add a token-authenticated JSON bot API with encrypted bot registry data, management UI, and per-bot rate limits
 
 Version 2.0.3 by [Nix Hartogh](nixie.online) - Nov. 18, 2026

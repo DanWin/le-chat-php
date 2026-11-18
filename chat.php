@@ -64,6 +64,7 @@ const LANGUAGES = [
 	'zh-Hans' => ['name' => '简体中文', 'locale' => 'zh_CN', 'dir' => 'ltr'],
 	'zh-Hant' => ['name' => '正體中文', 'locale' => 'zh_TW', 'dir' => 'ltr'],
 ];
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'identity.php';
 if(!defined('LE_CHAT_LIBRARY_ONLY')){
 	load_config();
 	$U=[];// This user data
@@ -536,8 +537,8 @@ function send_manage_roles(string $notice=''): void
 	}
 	echo '<h2>'._('Assign a role').'</h2>'.form('roles', 'assign');
 	echo '<label>'._('Member').': <select name="nickname">';
-	$result=$db->query('SELECT nickname FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
-	while($member=$result->fetch(PDO::FETCH_ASSOC)){
+	$result=$db->query('SELECT nickname FROM ' . PREFIX . 'members;');
+	foreach(identity_sorted_rows($result, 'nickname') as $member){
 		echo '<option value="'.htmlspecialchars($member['nickname'], ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($member['nickname']).'</option>';
 	}
 	echo '</select></label> <label>'._('Role').': <select name="role_id">';
@@ -547,8 +548,8 @@ function send_manage_roles(string $notice=''): void
 	}
 	echo '</select></label> '.submit(_('Assign')).'</form>';
 	echo form('roles', 'remove').'<label>'._('Member').': <select name="nickname">';
-	$result=$db->query('SELECT nickname FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
-	while($member=$result->fetch(PDO::FETCH_ASSOC)){
+	$result=$db->query('SELECT nickname FROM ' . PREFIX . 'members;');
+	foreach(identity_sorted_rows($result, 'nickname') as $member){
 		echo '<option value="'.htmlspecialchars($member['nickname'], ENT_QUOTES, 'UTF-8').'">'.htmlspecialchars($member['nickname']).'</option>';
 	}
 	echo '</select></label> <label>'._('Role').': <select name="role_id">';
@@ -558,8 +559,8 @@ function send_manage_roles(string $notice=''): void
 	}
 	echo '</select></label> '.submit(_('Remove role')).'</form>';
 	echo '<h2>'._('Current role assignments').'</h2><table><tr><th>'._('Member').'</th><th>'._('Role').'</th></tr>';
-	$result=$db->query('SELECT mr.nickname, r.name FROM ' . PREFIX . 'member_roles mr INNER JOIN ' . PREFIX . 'roles r ON r.id=mr.role_id ORDER BY LOWER(mr.nickname), r.name;');
-	while($assignment=$result->fetch(PDO::FETCH_ASSOC)){
+	$result=$db->query('SELECT mr.nickname, r.name FROM ' . PREFIX . 'member_roles mr INNER JOIN ' . PREFIX . 'roles r ON r.id=mr.role_id;');
+	foreach(identity_sorted_rows($result, 'nickname', 'name') as $assignment){
 		echo '<tr><td>'.htmlspecialchars($assignment['nickname']).'</td><td>'.htmlspecialchars($assignment['name']).'</td></tr>';
 	}
 	echo '</table>';
@@ -1022,7 +1023,6 @@ function send_captcha(): void
 		$im = imagerotate($im, $deg, $bg);
 		$im = imagecrop($im, array('x'=>0, 'y'=>0, 'width'=>120, 'height'=>80));
 		imagecopy($background, $im, 0, 0, 0, 0, 110, 80);
-		imagedestroy($im);
 		$im = $background;
 
 		for($i=0;$i<1000;++$i){
@@ -1030,7 +1030,7 @@ function send_captcha(): void
 			$dots=imagecolorallocate($im, $c, $c, $c);
 			imagesetpixel($im, mt_rand(0, 120), mt_rand(0, 80), $dots);
 		}
-		imagedestroy($char);
+		unset($char);
 	}elseif($difficulty===4){ // extreme
 		$CAPTCHAWIDTH = 300;
 		$CAPTCHAHEIGHT = 300;
@@ -1234,7 +1234,7 @@ function send_captcha(): void
 	echo '<img alt="CAPTCHA" width="' . $CAPTCHAWIDTH . '" height="' . $CAPTCHAHEIGHT . '" src="data:image/png;base64,';
 	ob_start();
 	imagepng($im);
-	imagedestroy($im);
+	unset($im);
 	echo base64_encode(ob_get_clean()).'">';}
 	echo '</td></tr><tr><td>'.hidden('challenge', $randid).'<input type="text" name="captcha" size="15" autocomplete="off" required></td></tr>';
 }
@@ -1484,7 +1484,18 @@ function restore_backup(array $C): void
 	if(!extension_loaded('json')){
 		return;
 	}
-	$code=json_decode($_POST['restore'], true);
+	$backup=(string) ($_POST['restore'] ?? '');
+	if(strpos($backup, 'LCENC2:')===0){
+		try {
+			$backup=decrypt_database_value($backup);
+		} catch(Throwable $e){
+			send_error($e->getMessage());
+		}
+	}
+	$code=json_decode($backup, true);
+	if(!is_array($code)){
+		send_error(_('The backup is invalid or could not be decrypted.'));
+	}
 	if(isset($_POST['settings'])){
 		foreach($C['settings'] as $setting){
 			if(isset($code['settings'][$setting])){
@@ -1636,8 +1647,8 @@ function send_backup(array $C): void
 			while($role=$result->fetch(PDO::FETCH_ASSOC)){
 				$code['roles'][]=$role;
 			}
-			$result=$db->query('SELECT mr.nickname, r.name AS role FROM ' . PREFIX . 'member_roles mr INNER JOIN ' . PREFIX . 'roles r ON r.id=mr.role_id ORDER BY mr.nickname, r.name;');
-			while($assignment=$result->fetch(PDO::FETCH_ASSOC)){
+			$result=$db->query('SELECT mr.nickname, r.name AS role FROM ' . PREFIX . 'member_roles mr INNER JOIN ' . PREFIX . 'roles r ON r.id=mr.role_id;');
+			foreach(identity_sorted_rows($result, 'nickname', 'role') as $assignment){
 				$code['member_roles'][]=$assignment;
 			}
 		}
@@ -1652,6 +1663,11 @@ function send_backup(array $C): void
 				$code['notes'][]=$note;
 			}
 		}
+	}
+	try {
+		$backup=encrypt_database_value(json_encode($code, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR));
+	} catch(Throwable $e){
+		send_error($e->getMessage());
 	}
 	if(isset($_POST['settings'])){
 		$chksettings=' checked';
@@ -1689,7 +1705,7 @@ function send_backup(array $C): void
 		thr();
 		echo '<tr><td>'.form('setup', 'restore');
 		echo '<table id="restore">';
-		echo '<tr><td colspan="2"><textarea name="restore" rows="4" cols="60">'.htmlspecialchars(json_encode($code)).'</textarea></td></tr>';
+		echo '<tr><td colspan="2"><textarea name="restore" rows="4" cols="60">'.htmlspecialchars($backup).'</textarea></td></tr>';
 		echo '<tr><td id=\"restorecheck\"><label><input type="checkbox" name="settings" id="restoresettings" value="1"'.$chksettings.'>'._('Settings').'</label>';
 		echo '<label><input type="checkbox" name="filter" id="restorefilter" value="1"'.$chkfilters.'>'._('Filter').'</label>';
 		echo '<label><input type="checkbox" name="members" id="restoremembers" value="1"'.$chkmembers.'>'._('Members').'</label>';
@@ -1771,7 +1787,7 @@ function send_sa_password_reset(): void
 		$stmt = $db->query('SELECT nickname FROM ' . PREFIX . 'members WHERE status = 8 LIMIT 1;');
 		if($user = $stmt->fetch(PDO::FETCH_ASSOC)){
 			$mem_update = $db->prepare('UPDATE ' . PREFIX . 'members SET passhash = ? WHERE nickname = ?;');
-			$mem_update->execute([password_hash(RESET_SUPERADMIN_PASSWORD, PASSWORD_DEFAULT), $user['nickname']]);
+			$mem_update->execute([hash_account_password(RESET_SUPERADMIN_PASSWORD), $user['nickname']]);
 			$sess_delete = $db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname = ?;');
 			$sess_delete->execute([$user['nickname']]);
 			printf('<p>'._('Successfully reset password for username %s. Please remove the password reset define from the script again.').'</p>', $user['nickname']);
@@ -1796,9 +1812,9 @@ function send_admin(string $arg): void
 	$chlist='<select name="name[]" size="5" multiple><option value="">'._('(choose)').'</option>';
 	$chlist.='<option value="s &#42;">'._('All guests').'</option>';
 	$users=[];
-	$stmt=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 ORDER BY LOWER(nickname);');
-	while($user=$stmt->fetch(PDO::FETCH_NUM)){
-		$users[]=[htmlspecialchars($user[0]), $user[1], $user[2]];
+	$stmt=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0;');
+	foreach(identity_sorted_rows($stmt, 'nickname') as $user){
+		$users[]=[htmlspecialchars($user['nickname']), $user['style'], $user['status']];
 	}
 	foreach($users as $user){
 		if($user[2]<$U['status']){
@@ -1896,9 +1912,9 @@ function send_admin(string $arg): void
 		echo form('admin', 'status');
 		echo '<table><tr><td><select name="name" size="1"><option value="">'._('(choose)').'</option>';
 		$members=[];
-		$result=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'members ORDER BY LOWER(nickname);');
-		while($temp=$result->fetch(PDO::FETCH_NUM)){
-			$members[]=[htmlspecialchars($temp[0]), $temp[1], $temp[2]];
+		$result=$db->query('SELECT nickname, style, status FROM ' . PREFIX . 'members;');
+		foreach(identity_sorted_rows($result, 'nickname') as $temp){
+			$members[]=[htmlspecialchars($temp['nickname']), $temp['style'], $temp['status']];
 		}
 		foreach($members as $member){
 			echo "<option value=\"$member[0]\" style=\"$member[1]\">$member[0]";
@@ -1965,7 +1981,7 @@ function send_sessions(): void
 	global $U, $db;
 	$stmt=$db->prepare('SELECT nickname, style, lastpost, status, useragent, ip FROM ' . PREFIX . 'sessions WHERE entry!=0 AND (incognito=0 OR status<? OR nickname=?) ORDER BY status DESC, lastpost DESC;');
 	$stmt->execute([$U['status'], $U['nickname']]);
-	if(!$lines=$stmt->fetchAll(PDO::FETCH_ASSOC)){
+	if(!$lines=identity_decode_result($stmt->fetchAll(PDO::FETCH_ASSOC))){
 		$lines=[];
 	}
 	print_start('sessions');
@@ -2419,6 +2435,9 @@ function send_messages(): void
 		if($U['status']>=7){
 			echo '<a href="'.htmlspecialchars($_SERVER['SCRIPT_NAME']).'?action=roles&amp;session='.rawurlencode($U['session']).'">'._('Manage roles').'</a>';
 		}
+		if((int) $U['status']===8){
+			echo ' <a href="admin/dms/checkin.php?session='.rawurlencode($U['session']).'">'._('Dead man\'s switch').'</a>';
+		}
 		echo '</nav>';
 	}
 	if(!$U['sortupdown']){
@@ -2643,6 +2662,26 @@ function encrypt_database_value(string $plaintext): string
 	return 'LCENC2:'.base64_encode($nonce.$cipher);
 }
 
+function account_password_options(): array
+{
+	if(!defined('PASSWORD_ARGON2ID') || !in_array('argon2id', password_algos(), true)){
+		throw new RuntimeException(_('Argon2id support is required for account passwords.'));
+	}
+	return ['memory_cost'=>1000, 'time_cost'=>20, 'threads'=>10];
+}
+
+function hash_account_password(string $password): string
+{
+	$options=account_password_options();
+	return password_hash($password, PASSWORD_ARGON2ID, $options);
+}
+
+function account_password_needs_rehash(string $hash): bool
+{
+	$options=account_password_options();
+	return password_needs_rehash($hash, PASSWORD_ARGON2ID, $options);
+}
+
 function decrypt_database_value(string $payload): string
 {
 	if(!extension_loaded('sodium')){
@@ -2858,7 +2897,7 @@ function send_approve_waiting(): void
 	print_start('approve_waiting');
 	echo '<h2>'._('Waiting room').'</h2>';
 	$result=$db->query('SELECT * FROM ' . PREFIX . 'sessions WHERE entry=0 AND status=1 ORDER BY id LIMIT 100;');
-	if($tmp=$result->fetchAll(PDO::FETCH_ASSOC)){
+	if($tmp=identity_decode_result($result->fetchAll(PDO::FETCH_ASSOC))){
 		echo form('admin', 'approve');
 		echo '<table>';
 		echo '<tr><th>'._('Nickname').'</th><th>'._('User-Agent').'</th></tr>';
@@ -3022,9 +3061,9 @@ function send_post(string $rejected=''): void
 	$disablepm=(bool) get_setting('disablepm');
 	if(!$disablepm && !($U['status']==1 && get_setting('noguestpm'))){
 		$users=[];
-		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, exiting, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 0, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?) ORDER BY LOWER(nickname);');
+		$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, exiting, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 0, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?);');
 		$stmt->execute([$U['status'], $U['nickname'], $U['nickname']]);
-		while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+		foreach(identity_sorted_rows($stmt, 'nickname') as $tmp){
 			if($tmp['offline']){
 				$users[]=["$tmp[nickname] "._('(offline)'), $tmp['style'], $tmp['nickname']];
 			}elseif($tmp['exiting']){
@@ -3096,9 +3135,9 @@ function send_pm_post(string $rejected=''): void
 		echo '<p class="replyref">'.sprintf(_('Replying to message #%d'), $reply_to).'</p>';
 	}
 	echo '<label>'._('To').': <select name="sendto" required><option value="">'.htmlspecialchars(_('Choose a recipient')).'</option>';
-	$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, exiting, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 0, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM ' . PREFIX . 'ignored WHERE ign=?) ORDER BY LOWER(nickname);');
+	$stmt=$db->prepare('SELECT * FROM (SELECT nickname, style, exiting, 0 AS offline FROM ' . PREFIX . 'sessions WHERE entry!=0 AND status>0 AND incognito=0 UNION SELECT nickname, style, 0, 1 AS offline FROM ' . PREFIX . 'members WHERE eninbox!=0 AND eninbox<=? AND nickname NOT IN (SELECT nickname FROM ' . PREFIX . 'sessions WHERE incognito=0)) AS t WHERE nickname NOT IN (SELECT ign FROM '. PREFIX . 'ignored WHERE ignby=? UNION SELECT ignby FROM '. PREFIX . 'ignored WHERE ign=?);');
 	$stmt->execute([$U['status'], $U['nickname'], $U['nickname']]);
-	while($recipient=$stmt->fetch(PDO::FETCH_ASSOC)){
+	foreach(identity_sorted_rows($stmt, 'nickname') as $recipient){
 		if($recipient['nickname']===$U['nickname']){
 			continue;
 		}
@@ -3185,9 +3224,9 @@ function send_profile(string $arg=''): void
 	echo form('profile', 'save').'<h2>'._('Your Profile')."</h2><i>$arg</i><table>";
 	thr();
 	$ignored=[];
-	$stmt=$db->prepare('SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=? ORDER BY LOWER(ign);');
+	$stmt=$db->prepare('SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?;');
 	$stmt->execute([$U['nickname']]);
-	while($tmp=$stmt->fetch(PDO::FETCH_ASSOC)){
+	foreach(identity_sorted_rows($stmt, 'ign') as $tmp){
 		$ignored[]=htmlspecialchars($tmp['ign']);
 	}
 	$pgpkey='';
@@ -3222,10 +3261,10 @@ function send_profile(string $arg=''): void
 	}
 	echo '<tr><td><table id="ignore"><tr><th>'._('Ignore').'</th><td>';
 	echo '<select name="ignore" size="1"><option value="">'._('(choose)').'</option>';
-	$stmt=$db->prepare('SELECT DISTINCT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' . PREFIX . 'messages.poster=t.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?) ORDER BY LOWER(poster);');
+	$stmt=$db->prepare('SELECT DISTINCT poster, style FROM ' . PREFIX . 'messages INNER JOIN (SELECT nickname, style FROM ' . PREFIX . 'sessions UNION SELECT nickname, style FROM ' . PREFIX . 'members) AS t ON (' . PREFIX . 'messages.poster=t.nickname) WHERE poster!=? AND poster NOT IN (SELECT ign FROM ' . PREFIX . 'ignored WHERE ignby=?);');
 	$stmt->execute([$U['nickname'], $U['nickname']]);
-	while($nick=$stmt->fetch(PDO::FETCH_NUM)){
-		echo '<option value="'.htmlspecialchars($nick[0])."\" style=\"$nick[1]\">".htmlspecialchars($nick[0]).'</option>';
+	foreach(identity_sorted_rows($stmt, 'poster') as $nick){
+		echo '<option value="'.htmlspecialchars($nick['poster'])."\" style=\"".$nick['style']."\">".htmlspecialchars($nick['poster']).'</option>';
 	}
 	echo '</select></td></tr></table></td></tr>';
 	thr();
@@ -4244,7 +4283,7 @@ function send_password_reset(): void
 			$notice=sprintf(_('Invalid password (At least %1$d characters and has to match the regular expression "%2$s")'), get_setting('minpass'), get_setting('passregex'));
 		}else{
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=?, loginfails=0 WHERE nickname=?;');
-			$stmt->execute([password_hash($pass, PASSWORD_DEFAULT), '', 0, '', '', 0, '', $nickname]);
+			$stmt->execute([hash_account_password($pass), '', 0, '', '', 0, '', $nickname]);
 			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 			$stmt->execute([$nickname]);
 			$notice=_('Password reset successfully. You can now sign in with your new password.');
@@ -4270,7 +4309,7 @@ function send_password_reset(): void
 			$notice=sprintf(_('Invalid password (At least %1$d characters and has to match the regular expression "%2$s")'), get_setting('minpass'), get_setting('passregex'));
 		}else{
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=?, loginfails=0 WHERE nickname=?;');
-			$stmt->execute([password_hash($pass, PASSWORD_DEFAULT), '', 0, '', '', 0, '', $nickname]);
+			$stmt->execute([hash_account_password($pass), '', 0, '', '', 0, '', $nickname]);
 			$stmt=$db->prepare('DELETE FROM ' . PREFIX . 'sessions WHERE nickname=?;');
 			$stmt->execute([$nickname]);
 			$notice=_('Password reset successfully. You can now sign in with your new password.');
@@ -4367,7 +4406,13 @@ function write_new_session(string $password, bool $authenticated=false): void
 	$stmt->execute([$U['nickname']]);
 	if($temp=$stmt->fetch(PDO::FETCH_ASSOC)){
 		// check whether alrady logged in
-		if(($authenticated && hash_equals($U['passhash'], $temp['passhash'])) || password_verify($password, $temp['passhash'])){
+		$passwordMatches=($authenticated && hash_equals($U['passhash'], $temp['passhash'])) || password_verify($password, $temp['passhash']);
+		if($passwordMatches){
+			if(!$authenticated && account_password_needs_rehash($temp['passhash'])){
+				$temp['passhash']=hash_account_password($password);
+				$update=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE id=?;');
+				$update->execute([$temp['passhash'], $temp['id']]);
+			}
 			$U=$temp;
 			check_kicked();
 			set_secure_cookie(COOKIENAME, $U['session']);
@@ -4677,11 +4722,16 @@ function check_member(string $password) : bool {
 		}
 		if($temp['passhash']===md5(sha1(md5($U['nickname'].$password)))){
 			// old hashing method, update on the fly
-			$temp['passhash']=password_hash($password, PASSWORD_DEFAULT);
+			$temp['passhash']=hash_account_password($password);
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
 			$stmt->execute([$temp['passhash'], $U['nickname']]);
 		}
 		if(password_verify($password, $temp['passhash'])){
+			if(account_password_needs_rehash($temp['passhash'])){
+				$temp['passhash']=hash_account_password($password);
+				$upgrade=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=? WHERE nickname=?;');
+				$upgrade->execute([$temp['passhash'], $temp['nickname']]);
+			}
 			$U=$temp;
 			$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET lastlogin=? WHERE nickname=?;');
 			$stmt->execute([time(), $U['nickname']]);
@@ -4764,7 +4814,7 @@ function register_new(string $nick, string $pass) : string {
 	}
 	$reg=[
 		'nickname'	=>$nick,
-		'passhash'	=>password_hash($pass, PASSWORD_DEFAULT),
+		'passhash'	=>hash_account_password($pass),
 		'status'	=>3,
 		'refresh'	=>get_setting('defaultrefresh'),
 		'bgcolour'	=>get_setting('colbg'),
@@ -4832,7 +4882,7 @@ function passreset(string $nick, string $pass) : string {
 	$stmt=$db->prepare('SELECT null FROM ' . PREFIX . 'members WHERE nickname=? AND status<?;');
 	$stmt->execute([$nick, $U['status']]);
 	if($stmt->fetch(PDO::FETCH_ASSOC)){
-		$passhash=password_hash($pass, PASSWORD_DEFAULT);
+		$passhash=hash_account_password($pass);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'members SET passhash=?, pgpchallengehash=?, pgpchallengeexpires=?, pgpchallengepurpose=?, emailchallengehash=?, emailchallengeexpires=?, emailchallengepurpose=? WHERE nickname=?;');
 		$stmt->execute([$passhash, '', 0, '', '', 0, '', $nick]);
 		$stmt=$db->prepare('UPDATE ' . PREFIX . 'sessions SET passhash=? WHERE nickname=?;');
@@ -4959,7 +5009,7 @@ function save_profile() : string {
 		if($_POST['newpass']!==$_POST['confirmpass']){
 			return _('Password confirmation does not match!');
 		}else{
-			$U['newhash']=password_hash($_POST['newpass'], PASSWORD_DEFAULT);
+			$U['newhash']=hash_account_password($_POST['newpass']);
 		}
 		if(!password_verify($_POST['oldpass'], $U['passhash'])){
 			return _('Wrong Password!');
@@ -5116,7 +5166,7 @@ function add_user_defaults(string $password): void
 	$U['eninbox']=0;
 	$U['sortupdown']=get_setting('sortupdown');
 	$U['hidechatters']=get_setting('hidechatters');
-	$U['passhash']=password_hash($password, PASSWORD_DEFAULT);
+	$U['passhash']=hash_account_password($password);
 	$U['entry']=$U['lastpost']=time();
 	$U['exiting']=0;
 }
@@ -5644,7 +5694,7 @@ function write_message(array $message): void
 function clean_room(): void
 {
 	global $U, $db;
-	$messages=$db->query('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages ORDER BY id;')->fetchAll(PDO::FETCH_ASSOC);
+	$messages=identity_decode_result($db->query('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages ORDER BY id;')->fetchAll(PDO::FETCH_ASSOC));
 	foreach($messages as &$message){
 		$message=prepare_deleted_message_for_log($message);
 	}
@@ -5730,7 +5780,7 @@ function del_all_messages(string $nick, int $entry, bool $log_deletions=false): 
 	$deleted_count=0;
 	if($globally && $U['status'] > 4){
 		if($log_deletions){
-			$messages=$db->query('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages ORDER BY id;')->fetchAll(PDO::FETCH_ASSOC);
+			$messages=identity_decode_result($db->query('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages ORDER BY id;')->fetchAll(PDO::FETCH_ASSOC));
 			foreach($messages as &$message){
 				$message=prepare_deleted_message_for_log($message);
 			}
@@ -5746,7 +5796,7 @@ function del_all_messages(string $nick, int $entry, bool $log_deletions=false): 
 		if($log_deletions){
 			$lookup=$db->prepare('SELECT id, poster, postdate, text FROM ' . PREFIX . 'messages WHERE poster=? AND postdate>=? ORDER BY id;');
 			$lookup->execute([$nick, $entry]);
-			$messages=$lookup->fetchAll(PDO::FETCH_ASSOC);
+			$messages=identity_decode_result($lookup->fetchAll(PDO::FETCH_ASSOC));
 			foreach($messages as &$message){
 				$message=prepare_deleted_message_for_log($message);
 			}
@@ -6646,6 +6696,8 @@ function destroy_chat(array $C): void
 	$db->exec('DROP TABLE ' . PREFIX . 'settings;');
 	$db->exec('DROP TABLE ' . PREFIX . 'staff_log;');
 	$db->exec('DROP TABLE ' . PREFIX . 'bots;');
+	$db->exec('DROP TABLE ' . PREFIX . 'dms;');
+	$db->exec('DROP TABLE ' . identity_table_name() . ';');
 	if(MEMCACHED){
 		$memcached->delete(DBNAME . '-' . PREFIX . 'filter');
 		$memcached->delete(DBNAME . '-' . PREFIX . 'linkfilter');
@@ -6732,6 +6784,8 @@ function init_chat(): void
 		$db->exec('CREATE INDEX ' . PREFIX . 'staff_log_created ON ' . PREFIX . 'staff_log(created_at);');
 		$db->exec('CREATE TABLE ' . PREFIX . "bots (id $primary, name text NOT NULL, token_cipher text NOT NULL, token_hash char(64) NOT NULL UNIQUE, created_by text NOT NULL, created_at integer NOT NULL, revoked_at integer NOT NULL DEFAULT 0, last_read_at integer NOT NULL DEFAULT 0, send1_at integer NOT NULL DEFAULT 0, send2_at integer NOT NULL DEFAULT 0, send3_at integer NOT NULL DEFAULT 0, send4_at integer NOT NULL DEFAULT 0, send5_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'bots_created ON ' . PREFIX . 'bots(created_at);');
+		$db->exec('CREATE TABLE ' . PREFIX . "dms (id integer PRIMARY KEY, key_cipher text NOT NULL, salt char(32) NOT NULL, config_cipher $longtext NOT NULL, updated_at integer NOT NULL, failed_attempts integer NOT NULL DEFAULT 0, lock_until integer NOT NULL DEFAULT 0)$diskengine$charset;");
+		identity_create_schema();
 		$db->exec('CREATE TABLE ' . PREFIX . "notes (id $primary, type smallint NOT NULL, lastedited integer NOT NULL, editedby varchar(50) NOT NULL, text $longtext NOT NULL)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_type ON ' . PREFIX . 'notes(type);');
 		$db->exec('CREATE INDEX ' . PREFIX . 'notes_editedby ON ' . PREFIX . 'notes(editedby);');
@@ -6840,7 +6894,7 @@ function init_chat(): void
 		}
 		$reg=[
 			'nickname'	=>$_POST['sunick'],
-			'passhash'	=>password_hash($_POST['supass'], PASSWORD_DEFAULT),
+			'passhash'	=>hash_account_password($_POST['supass']),
 			'status'	=>8,
 			'refresh'	=>20,
 			'bgcolour'	=>'000000',
@@ -6857,6 +6911,9 @@ function init_chat(): void
 		];
 		$stmt=$db->prepare('INSERT INTO ' . PREFIX . 'members (nickname, passhash, status, refresh, bgcolour, timestamps, style, embed, incognito, nocache, tz, eninbox, sortupdown, hidechatters, nocache_old) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);');
 		$stmt->execute([$reg['nickname'], $reg['passhash'], $reg['status'], $reg['refresh'], $reg['bgcolour'], $reg['timestamps'], $reg['style'], $reg['embed'], $reg['incognito'], $reg['nocache'], $reg['tz'], $reg['eninbox'], $reg['sortupdown'], $reg['hidechatters'], $reg['nocache_old']]);
+		if(!migrate_identity_storage()){
+			return;
+		}
 		$suwrite=_('Successfully registered!');
 	}
 	print_start('init');
@@ -7281,6 +7338,15 @@ function update_db(): void
 		$db->exec('CREATE TABLE ' . PREFIX . "bots (id $primary, name text NOT NULL, token_cipher text NOT NULL, token_hash char(64) NOT NULL UNIQUE, created_by text NOT NULL, created_at integer NOT NULL, revoked_at integer NOT NULL DEFAULT 0, last_read_at integer NOT NULL DEFAULT 0, send1_at integer NOT NULL DEFAULT 0, send2_at integer NOT NULL DEFAULT 0, send3_at integer NOT NULL DEFAULT 0, send4_at integer NOT NULL DEFAULT 0, send5_at integer NOT NULL DEFAULT 0)$diskengine$charset;");
 		$db->exec('CREATE INDEX ' . PREFIX . 'bots_created ON ' . PREFIX . 'bots(created_at);');
 	}
+	if($dbversion<59){
+		$db->exec('CREATE TABLE ' . PREFIX . "dms (id integer PRIMARY KEY, key_cipher text NOT NULL, salt char(32) NOT NULL, config_cipher $longtext NOT NULL, updated_at integer NOT NULL, failed_attempts integer NOT NULL DEFAULT 0, lock_until integer NOT NULL DEFAULT 0)$diskengine$charset;");
+	}
+	if($dbversion<60){
+		identity_create_schema();
+		if(!migrate_identity_storage()){
+			return;
+		}
+	}
 	update_setting('dbversion', DBVERSION);
 	if((int) get_setting('dataencryptionversion')<2 && !migrate_encryption_format($msgencrypted)){
 		return;
@@ -7331,34 +7397,34 @@ function check_db(): void
 			if(!extension_loaded('pdo_mysql')){
 				send_fatal_error(sprintf(_('The %s extension of PHP is required for the selected database driver. Please install it first.'), 'pdo_mysql'));
 			}
-			$db=new PDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME . ';charset=utf8mb4', DBUSER, DBPASS, $options);
+			$db=new IdentityPDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME . ';charset=utf8mb4', DBUSER, DBPASS, $options);
 		}elseif(DBDRIVER===1){
 			if(!extension_loaded('pdo_pgsql')){
 				send_fatal_error(sprintf(_('The %s extension of PHP is required for the selected database driver. Please install it first.'), 'pdo_pgsql'));
 			}
-			$db=new PDO('pgsql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
+			$db=new IdentityPDO('pgsql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
 		}else{
 			if(!extension_loaded('pdo_sqlite')){
 				send_fatal_error(sprintf(_('The %s extension of PHP is required for the selected database driver. Please install it first.'), 'pdo_sqlite'));
 			}
-			$db=new PDO('sqlite:' . SQLITEDBFILE, NULL, NULL, $options);
+			$db=new IdentityPDO('sqlite:' . SQLITEDBFILE, NULL, NULL, $options);
 			$db->exec('PRAGMA foreign_keys = ON;');
 		}
 	}catch(PDOException $e){
 		try{
 			//Attempt to create database
 			if(DBDRIVER===0){
-				$db=new PDO('mysql:host=' . DBHOST, DBUSER, DBPASS, $options);
+				$db=new IdentityPDO('mysql:host=' . DBHOST, DBUSER, DBPASS, $options);
 				if(false!==$db->exec('CREATE DATABASE ' . DBNAME)){
-					$db=new PDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME . ';charset=utf8mb4', DBUSER, DBPASS, $options);
+					$db=new IdentityPDO('mysql:host=' . DBHOST . ';dbname=' . DBNAME . ';charset=utf8mb4', DBUSER, DBPASS, $options);
 				}else{
 					send_fatal_error(_('No connection to database, please create a database and edit the script to use the correct database with given username and password!'));
 				}
 
 			}elseif(DBDRIVER===1){
-				$db=new PDO('pgsql:host=' . DBHOST, DBUSER, DBPASS, $options);
+				$db=new IdentityPDO('pgsql:host=' . DBHOST, DBUSER, DBPASS, $options);
 				if(false!==$db->exec('CREATE DATABASE ' . DBNAME)){
-					$db=new PDO('pgsql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
+					$db=new IdentityPDO('pgsql:host=' . DBHOST . ';dbname=' . DBNAME, DBUSER, DBPASS, $options);
 				}else{
 					send_fatal_error(_('No connection to database, please create a database and edit the script to use the correct database with given username and password!'));
 				}
@@ -7383,6 +7449,17 @@ function check_db(): void
 		}
 		$memcached=new Memcached();
 		$memcached->addServer(MEMCACHEDHOST, MEMCACHEDPORT);
+	}
+	$dbversion=0;
+	try {
+		$versionStatement=$db->query('SELECT value FROM ' . PREFIX . "settings WHERE setting='dbversion';");
+		$dbversion=(int) $versionStatement->fetchColumn();
+	} catch(PDOException $e){
+		$dbversion=0;
+	}
+	identity_storage_set_enabled($dbversion>=DBVERSION);
+	if($dbversion<DBVERSION && isset($_REQUEST['action']) && $_REQUEST['action']!=='setup' && $_REQUEST['action']!=='init' && $_REQUEST['action']!=='bot_api' && check_init()){
+		send_fatal_error(_('Visit the Setup page to upgrade the database before continuing.'));
 	}
 	if(!isset($_REQUEST['action']) || $_REQUEST['action']==='setup'){
 		if(!check_init()){
@@ -7454,8 +7531,8 @@ function load_lang(): void
 
 function load_config(): void
 {
-	define('VERSION', '2.0.2'); // Script version
-	define('DBVERSION', 58); // Database layout version
+	define('VERSION', '2.0.6'); // Script version
+	define('DBVERSION', 60); // Database layout version
 	define('MSGENCRYPTED', true); // (ENABLED BY DEFAULT) Store messages encrypted in the database to prevent other database users from reading them - true/false - visit the setup page after editing!
 	define('ENCRYPTKEY_PASS', 'MY_SECRET_KEY'); // Preserve this value to keep existing encrypted data readable
 	define('AES_IV_PASS', '012345678912'); // Legacy AES IV used only to decrypt existing data
@@ -7485,10 +7562,10 @@ function load_config(): void
 	define('COOKIENAME', PREFIX . 'chat_session'); // Cookie name storing the session information
 	define('LANG', 'en'); // Default language
 	if (MSGENCRYPTED){
-		if (version_compare(PHP_VERSION, '8.0.0') < 0) {
-			die("Le-Chat-PHP v2 requires PHP 8.0 or higher to run. Please upgrade your PHP version.");
+		if (version_compare(PHP_VERSION, '8.3.0') < 0) {
+			die("Le-Chat-PHP v2 requires PHP 8.3 or higher to run. Please upgrade your PHP version.");
 		}
 		define_encryption_constants();
 	}
-	//define('RESET_SUPERADMIN_PASSWORD', 'changeme'); //Use this to reset your superadmin password in case you forgot it
+
 }

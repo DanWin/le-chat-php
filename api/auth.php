@@ -3,7 +3,7 @@
 if(!defined('LE_CHAT_LIBRARY_ONLY')){
 	define('LE_CHAT_LIBRARY_ONLY', true);
 }
-if(!defined('LE_CHAT_HTML_MODE')){
+if(!defined('LE_CHAT_JSON_MODE')){
 	define('LE_CHAT_JSON_MODE', true);
 }
 require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'chat.php';
@@ -41,7 +41,13 @@ function api_json_response(array $payload, int $status=200): void
 	header('Content-Type: application/json; charset=UTF-8');
 	header('Cache-Control: no-store');
 	header('X-Content-Type-Options: nosniff');
-	echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+	try {
+		echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR);
+	} catch(JsonException $e){
+		error_log('Bot API response encoding failed: '.$e->getMessage());
+		http_response_code(500);
+		echo '{"error":"Internal server error."}';
+	}
 	exit;
 }
 
@@ -54,7 +60,6 @@ if(defined('LE_CHAT_JSON_MODE')){
 
 function api_require_ready(): void
 {
-	global $db;
 	if(!check_init()){
 		api_json_response(['error'=>'Chat database is not initialized.'], 503);
 	}
@@ -75,15 +80,18 @@ function api_authenticate(): array
 {
 	global $db;
 	$authorization=$_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+	if(!is_string($authorization)){
+		$authorization='';
+	}
 	if($authorization==='' && function_exists('getallheaders')){
-		foreach(getallheaders() as $name=>$value){
+		foreach((array) getallheaders() as $name=>$value){
 			if(strcasecmp($name, 'Authorization')===0){
-				$authorization=$value;
+				$authorization=is_string($value) ? $value : '';
 				break;
 			}
 		}
 	}
-	if(!is_string($authorization) || !preg_match('/^Bearer\s+([a-f0-9]{64})$/i', trim($authorization), $matches)){
+	if(!preg_match('/^Bearer\s+([a-f0-9]{64})$/i', trim($authorization), $matches)){
 		api_json_response(['error'=>'A valid Bearer token is required.'], 401);
 	}
 	$token=strtolower($matches[1]);
