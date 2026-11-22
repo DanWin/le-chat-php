@@ -1,0 +1,49 @@
+name: Create release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Create release archive
+        run: |
+          tar -czf lechatphp.tar.gz \
+            admin/ \
+            api/ \
+            cron/ \
+            includes/ \
+            locale/ \
+            sounds/ \
+            bots.php \
+            chat.php \
+            chatters_list_on_right_example.css \
+            README.md \
+            robots.txt \
+            update-translation.sh
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          tag="commit-${GITHUB_SHA}"
+          title="v2 - Continuous Build ${GITHUB_SHA}"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" lechatphp.tar.gz --clobber
+          else
+            gh release create "$tag" lechatphp.tar.gz \
+              --target "$GITHUB_SHA" \
+              --title "$title" \
+              --notes "Automated release for commit ${GITHUB_SHA}."
+          fi
