@@ -37,7 +37,7 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: |
           tag="commit-${GITHUB_SHA}"
-          title="v2 - Continuous Build ${GITHUB_SHA}"
+          title="v2 - Continuous Build (${GITHUB_SHA})"
 
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" lechatphp.tar.gz --clobber

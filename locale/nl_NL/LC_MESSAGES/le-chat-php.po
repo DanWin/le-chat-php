@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-29 17:02+0100\n"
+"POT-Creation-Date: 2026-11-23 15:29+1100\n"
 "PO-Revision-Date: 2023-08-31 16:27+0000\n"
 "Last-Translator: Johan Gerards <vpwbpyzaba@rocketestate724.com>\n"
 "Language-Team: Dutch <https://weblate.danwin1210.de/projects/DanWin/le-chat-"
@@ -1368,7 +1368,7 @@ msgid "Password confirmation does not match!"
 msgstr "Wachtwoordbevestiging komt niet overeen!"
 
 #: index.php:2854 chat.php:2854
-#, fuzzy
+
 #| msgid "Kickmessage:"
 msgid "no kick message"
 msgstr "Kickbericht:"
@@ -1644,19 +1644,19 @@ msgid "%s is now a registered applicant."
 msgstr "%s is nu een geregistreerde aanvrager."
 
 #: index.php:4272 chat.php:4272
-#, fuzzy, php-format
+#, php-format
 #| msgid "%s has been kicked."
 msgid "%1$s has been kicked: %2$s"
 msgstr "%s is gekickt."
 
 #: index.php:4273 chat.php:4273
-#, fuzzy, php-format
+#, php-format
 #| msgid "%s have been kicked."
 msgid "%1$s have been kicked: %2$s"
 msgstr "%s zijn gekickt."
 
 #: index.php:4274 chat.php:4274
-#, fuzzy, php-format
+#, php-format
 #| msgid "All guests have been kicked."
 msgid "All guests have been kicked: %1$s"
 msgstr "Alle gasten zijn gekickt."
@@ -1726,3 +1726,831 @@ msgid ""
 msgstr ""
 "De memcached-extensie van PHP is vereist voor de caching-functie. Installeer "
 "deze eerst of stel de memcached-instelling weer in op false."
+
+#: chat.php:3582
+msgid "- OR -"
+msgstr ""
+
+#: chat.php:445
+msgid "A role with that name already exists."
+msgstr ""
+
+#: chat.php:367
+msgid "A room with that name already exists."
+msgstr ""
+
+#: chat.php:4144
+msgid "A two-factor authentication code has been sent to your verified email address."
+msgstr ""
+
+#: chat.php:3394
+msgid "A verified email can also be used for passwordless login and password reset."
+msgstr ""
+
+#: chat.php:1369
+msgid "Accessible"
+msgstr ""
+
+#: chat.php:6323
+msgid "Action"
+msgstr ""
+
+#: chat.php:2668
+msgid "Argon2id support is required for account passwords."
+msgstr ""
+
+#: chat.php:549
+msgid "Assign"
+msgstr ""
+
+#: chat.php:538
+msgid "Assign a role"
+msgstr ""
+
+#: chat.php:4343
+msgid "Back to login"
+msgstr ""
+
+#: chat.php:6212
+msgid "Bot tokens cannot be kicked. Revoke the bot token from the bot management page."
+msgstr ""
+
+#: chat.php:2416
+msgid "Chatroom"
+msgstr ""
+
+#: chat.php:3137
+msgid "Choose a recipient"
+msgstr ""
+
+#: chat.php:479
+msgid "Choose an existing member and role."
+msgstr ""
+
+#: chat.php:4334
+msgid "Confirm new password"
+msgstr ""
+
+#: chat.php:2614
+msgid "Confirm password"
+msgstr ""
+
+#: chat.php:2720
+msgid "Could not authenticate encrypted database content."
+msgstr ""
+
+#: chat.php:3818
+msgid "Could not create a temporary directory for PGP two-factor authentication."
+msgstr ""
+
+#: chat.php:2770
+msgid "Could not encrypt staff logs: %s"
+msgstr ""
+
+#: chat.php:3843
+msgid "Could not encrypt the PGP two-factor authentication challenge."
+msgstr ""
+
+#: chat.php:5034
+msgid "Could not load your account email settings."
+msgstr ""
+
+#: chat.php:2809
+msgid "Could not migrate database encryption: %s"
+msgstr ""
+
+#: chat.php:2838
+msgid "Could not migrate message encryption: %s"
+msgstr ""
+
+#: chat.php:521
+msgid "Create a role"
+msgstr ""
+
+#: chat.php:400
+msgid "Create a room"
+msgstr ""
+
+#: chat.php:513
+msgid "Create restricted chatrooms"
+msgstr ""
+
+#: chat.php:526
+msgid "Create role"
+msgstr ""
+
+#: chat.php:408
+msgid "Create room"
+msgstr ""
+
+#: chat.php:561
+msgid "Current role assignments"
+msgstr ""
+
+#: chat.php:417
+msgid "Custom roles"
+msgstr ""
+
+#: chat.php:2439
+msgid "Dead man's switch"
+msgstr ""
+
+#: chat.php:4248
+msgid "Decrypt the challenge with your PGP key, then enter the code and your new password below."
+msgstr ""
+
+#: chat.php:3538
+msgid "Decrypt this message with your PGP private key, then enter the verification code."
+msgstr ""
+
+#: chat.php:6323
+msgid "Details"
+msgstr ""
+
+#: chat.php:588
+msgid "Disable Guests private messages"
+msgstr ""
+
+#: chat.php:6273
+msgid "Dismiss report"
+msgstr ""
+
+#: chat.php:3383
+msgid "Email account options"
+msgstr ""
+
+#: chat.php:3386
+msgid "Email address not verified."
+msgstr ""
+
+#: chat.php:3386
+msgid "Email address verified."
+msgstr ""
+
+#: chat.php:5097
+msgid "Email address verified. You can now enable email two-factor authentication in your profile."
+msgstr ""
+
+#: chat.php:4096
+msgid "Email authentication"
+msgstr ""
+
+#: chat.php:4135
+msgid "Email two-factor authentication requires a verified email address."
+msgstr ""
+
+#: chat.php:4339
+msgid "Email verification code"
+msgstr ""
+
+#: chat.php:3409
+msgid "Email verification code:"
+msgstr ""
+
+#: chat.php:3390
+msgid "Enable email two-factor authentication when no PGP key is configured"
+msgstr ""
+
+#: chat.php:4330
+msgid "Encrypted PGP challenge"
+msgstr ""
+
+#: chat.php:3923
+msgid "Enter a nickname to log in with PGP."
+msgstr ""
+
+#: chat.php:2605
+msgid "Enter your note password to view or edit encrypted personal notes."
+msgstr ""
+
+#: chat.php:527
+msgid "Existing roles"
+msgstr ""
+
+#: chat.php:409
+msgid "Existing rooms"
+msgstr ""
+
+#: chat.php:655
+msgid "File name or path and file name for optional GD font for captcha"
+msgstr ""
+
+#: chat.php:656
+msgid "Font name or path and filename for TrueType font used in some captchas"
+msgstr ""
+
+#: chat.php:3584
+msgid "Forgot password? Reset with PGP or email"
+msgstr ""
+
+#: chat.php:402
+msgid "Guest"
+msgstr ""
+
+#: chat.php:4128
+msgid "If an account with a verified email address exists, a login code has been sent."
+msgstr ""
+
+#: chat.php:4263
+msgid "If an account with a verified email address exists, a password reset code has been sent."
+msgstr ""
+
+#: chat.php:4237
+msgid "If this account has PGP authentication configured, a reset challenge can be requested."
+msgstr ""
+
+#: chat.php:4963
+msgid "Invalid email address."
+msgstr ""
+
+#: chat.php:2694
+msgid "Invalid encrypted database content."
+msgstr ""
+
+#: chat.php:4169
+msgid "Invalid or expired email authentication code."
+msgstr ""
+
+#: chat.php:4305
+msgid "Invalid or expired email password reset code."
+msgstr ""
+
+#: chat.php:5093
+msgid "Invalid or expired email verification code."
+msgstr ""
+
+#: chat.php:4279
+msgid "Invalid or expired PGP password reset challenge."
+msgstr ""
+
+#: chat.php:4206
+msgid "Invalid or expired PGP two-factor authentication code."
+msgstr ""
+
+#: chat.php:3828
+msgid "Invalid PGP public key."
+msgstr ""
+
+#: chat.php:4197
+msgid "Invalid PGP two-factor authentication challenge."
+msgstr ""
+
+#: chat.php:438
+msgid "Invalid role name or permissions."
+msgstr ""
+
+#: chat.php:362
+msgid "Invalid room name or access level."
+msgstr ""
+
+#: chat.php:6276
+msgid "Kick/ban %s for %d minutes"
+msgstr ""
+
+#: chat.php:6214
+msgid "Kicked %s for %d minutes."
+msgstr ""
+
+#: chat.php:6213
+msgid "Kicked from staff inbox after report #%d by %s"
+msgstr ""
+
+#: chat.php:3583
+msgid "Log in with email"
+msgstr ""
+
+#: chat.php:3582
+msgid "Log in with PGP"
+msgstr ""
+
+#: chat.php:6279
+msgid "Manage bot tokens"
+msgstr ""
+
+#: chat.php:514
+msgid "Manage bots"
+msgstr ""
+
+#: chat.php:396
+msgid "Manage chatrooms"
+msgstr ""
+
+#: chat.php:517
+msgid "Manage custom roles"
+msgstr ""
+
+#: chat.php:2436
+msgid "Manage roles"
+msgstr ""
+
+#: chat.php:2430
+msgid "Manage rooms"
+msgstr ""
+
+#: chat.php:402
+msgid "Member"
+msgstr ""
+
+#: chat.php:3152
+msgid "Message"
+msgstr ""
+
+#: chat.php:402
+msgid "Minimum built-in role"
+msgstr ""
+
+#: chat.php:402
+msgid "Moderator"
+msgstr ""
+
+#: chat.php:4333
+msgid "New password"
+msgstr ""
+
+#: chat.php:403
+msgid "No additional restriction"
+msgstr ""
+
+#: chat.php:2387
+msgid "No private messages yet."
+msgstr ""
+
+#: chat.php:2613
+msgid "Note password"
+msgstr ""
+
+#: chat.php:5085
+msgid "Only registered members can verify an email address."
+msgstr ""
+
+#: chat.php:2420
+msgid "Open room"
+msgstr ""
+
+#: chat.php:3384
+msgid "Optional email address:"
+msgstr ""
+
+#: chat.php:4289
+msgid "Password reset successfully. You can now sign in with your new password."
+msgstr ""
+
+#: chat.php:3379
+msgid "Paste your PGP public key here to require PGP 2FA at login."
+msgstr ""
+
+#: chat.php:522
+msgid "Permissions"
+msgstr ""
+
+#: chat.php:3537
+msgid "PGP authentication"
+msgstr ""
+
+#: chat.php:3392
+msgid "PGP is always used for two-factor authentication when a PGP key is configured."
+msgstr ""
+
+#: chat.php:3378
+msgid "PGP two-factor authentication"
+msgstr ""
+
+#: chat.php:4332
+msgid "PGP verification code"
+msgstr ""
+
+#: chat.php:2539
+msgid "Please enter a note password."
+msgstr ""
+
+#: chat.php:2350
+msgid "Private messages"
+msgstr ""
+
+#: chat.php:3123
+msgid "Private messages are disabled for your account."
+msgstr ""
+
+#: chat.php:3467
+msgid "Private messages window"
+msgstr ""
+
+#: chat.php:6274
+msgid "Remove message"
+msgstr ""
+
+#: chat.php:3380
+msgid "Remove PGP two-factor authentication"
+msgstr ""
+
+#: chat.php:560
+msgid "Remove role"
+msgstr ""
+
+#: chat.php:5942
+msgid "Reply"
+msgstr ""
+
+#: chat.php:3019
+msgid "Replying to message #%d"
+msgstr ""
+
+#: chat.php:6270
+msgid "Report"
+msgstr ""
+
+#: chat.php:5934
+msgid "Report message"
+msgstr ""
+
+#: chat.php:6271
+msgid "Reported by %1$s · Posted by %2$s · %3$s"
+msgstr ""
+
+#: chat.php:6262
+msgid "Reported messages are visible only to staff with report-review access. Kicking a user applies the configured kick penalty."
+msgstr ""
+
+#: chat.php:4327
+msgid "Request PGP challenge"
+msgstr ""
+
+#: chat.php:4337
+msgid "Reset password with email"
+msgstr ""
+
+#: chat.php:403
+msgid "Restrict to custom role"
+msgstr ""
+
+#: chat.php:421
+msgid "Return to chat"
+msgstr ""
+
+#: chat.php:511
+msgid "Review reported messages"
+msgstr ""
+
+#: chat.php:544
+msgid "Role"
+msgstr ""
+
+#: chat.php:499
+msgid "Role assigned."
+msgstr ""
+
+#: chat.php:450
+msgid "Role created."
+msgstr ""
+
+#: chat.php:522
+msgid "Role name"
+msgstr ""
+
+#: chat.php:499
+msgid "Role removed."
+msgstr ""
+
+#: chat.php:470
+msgid "Role updated."
+msgstr ""
+
+#: chat.php:386
+msgid "Room created."
+msgstr ""
+
+#: chat.php:401
+msgid "Room name"
+msgstr ""
+
+#: chat.php:536
+msgid "Save role"
+msgstr ""
+
+#: chat.php:2352
+msgid "Send a private message"
+msgstr ""
+
+#: chat.php:4328
+msgid "Send email reset code"
+msgstr ""
+
+#: chat.php:3153
+msgid "Send private message"
+msgstr ""
+
+#: chat.php:3388
+msgid "Send verification code"
+msgstr ""
+
+#: chat.php:2424
+msgid "Staff inbox"
+msgstr ""
+
+#: chat.php:2427
+msgid "Staff log"
+msgstr ""
+
+#: chat.php:6323
+msgid "Staff member"
+msgstr ""
+
+#: chat.php:6290
+msgid "System"
+msgstr ""
+
+#: chat.php:6323
+msgid "Target"
+msgstr ""
+
+#: chat.php:2846
+msgid "The %s extension of PHP is required for encrypted personal notes. Please install it first."
+msgstr ""
+
+#: chat.php:86
+msgid "The %s extension of PHP is required, please install it first."
+msgstr ""
+
+#: chat.php:1497
+msgid "The backup is invalid or could not be decrypted."
+msgstr ""
+
+#: chat.php:5069
+msgid "The email address was removed."
+msgstr ""
+
+#: chat.php:5064
+msgid "The email address was saved, but the verification code could not be sent. Check the SMTP configuration and try again."
+msgstr ""
+
+#: chat.php:5066
+msgid "The email address was saved. A verification code has been sent."
+msgstr ""
+
+#: chat.php:5075
+msgid "The email address was saved. Verify it before using email account options."
+msgstr ""
+
+#: chat.php:3862
+msgid "The gpg command or the gnupg extension is required for PGP two-factor authentication."
+msgstr ""
+
+#: chat.php:3813
+msgid "The PHP exec function or the gnupg extension is required for PGP two-factor authentication."
+msgstr ""
+
+#: chat.php:373
+msgid "The selected role does not exist."
+msgstr ""
+
+#: chat.php:2818
+msgid "The sodium extension is required for message encryption."
+msgstr ""
+
+#: chat.php:2688
+msgid "The sodium extension is required to decrypt database content."
+msgstr ""
+
+#: chat.php:2657
+msgid "The sodium extension is required to encrypt database content."
+msgstr ""
+
+#: chat.php:2749
+msgid "The sodium extension is required to encrypt staff logs."
+msgstr ""
+
+#: chat.php:2779
+msgid "The sodium extension is required to encrypt stored notes."
+msgstr ""
+
+#: chat.php:3929
+msgid "This account does not have PGP authentication configured."
+msgstr ""
+
+#: chat.php:5072
+msgid "This email address is already verified."
+msgstr ""
+
+#: chat.php:2716
+msgid "This PHP installation cannot decrypt legacy AES-GCM data."
+msgstr ""
+
+#: chat.php:6216
+msgid "This user could not be kicked. They may be offline or have equal or higher status."
+msgstr ""
+
+#: chat.php:6323
+msgid "Time"
+msgstr ""
+
+#: chat.php:3137
+msgid "To"
+msgstr ""
+
+#: chat.php:1414
+msgid "TrueType on plaid background"
+msgstr ""
+
+#: chat.php:1419
+msgid "TrueType on plaid background with spurious characters"
+msgstr ""
+
+#: chat.php:1399
+msgid "TrueType with hollow shapes"
+msgstr ""
+
+#: chat.php:1394
+msgid "TrueType with solid shapes"
+msgstr ""
+
+#: chat.php:1404
+msgid "TrueType with spurious characters"
+msgstr ""
+
+#: chat.php:1409
+msgid "TrueType with spurious characters, monochrome"
+msgstr ""
+
+#: chat.php:957
+msgid "Type "
+msgstr ""
+
+#: chat.php:953
+msgid "Type the characters connected by dotted lines:"
+msgstr ""
+
+#: chat.php:958
+msgid "Type the characters in the image:"
+msgstr ""
+
+#: chat.php:955
+msgid "Type the five largest characters:"
+msgstr ""
+
+#: chat.php:4142
+msgid "Unable to send the email authentication code. Please try again later."
+msgstr ""
+
+#: chat.php:5986
+msgid "Unknown bot"
+msgstr ""
+
+#: chat.php:3543
+msgid "Verification code:"
+msgstr ""
+
+#: chat.php:3397
+msgid "Verify an email address before using email login, password reset, or email two-factor authentication."
+msgstr ""
+
+#: chat.php:3409
+msgid "Verify email address"
+msgstr ""
+
+#: chat.php:2615
+msgid "View notes"
+msgstr ""
+
+#: chat.php:512
+msgid "View the staff log"
+msgstr ""
+
+#: chat.php:7462
+msgid "Visit the Setup page to upgrade the database before continuing."
+msgstr ""
+
+#: chat.php:2599
+msgid "Wrong note password."
+msgstr ""
+
+#: chat.php:4245
+msgid "Your password reset code for %s is: %s"
+msgstr ""
+
+#: chat.php:3936
+msgid "Your PGP login code for %s is: %s"
+msgstr ""
+
+#: chat.php:3901
+msgid "Your verification code for %s is: %s"
+msgstr ""
+
+#: bots.php:67
+msgid "A bot with that name already exists."
+msgstr ""
+
+#: bots.php:61
+msgid "A user or bot already has that name."
+msgstr ""
+
+#: bots.php:188
+msgid "Active"
+msgstr ""
+
+#: bots.php:164
+msgid "Bot API guide"
+msgstr ""
+
+#: bots.php:80
+msgid "Bot created. Copy the token now; it will not be shown again."
+msgstr ""
+
+#: bots.php:175
+msgid "Bot name"
+msgstr ""
+
+#: bots.php:124
+msgid "Bot token revoked."
+msgstr ""
+
+#: bots.php:7
+msgid "Chat database is not initialized. Visit the Setup page first."
+msgstr ""
+
+#: bots.php:169
+msgid "Copy this token now. It cannot be recovered; rotate it if you lose it."
+msgstr ""
+
+#: bots.php:173
+msgid "Create a bot"
+msgstr ""
+
+#: bots.php:176
+msgid "Create bot"
+msgstr ""
+
+#: bots.php:163
+msgid "Create bots for the API, or revoke and rotate their tokens. A token is only displayed once after creation or rotation."
+msgstr ""
+
+#: bots.php:182
+msgid "Created"
+msgstr ""
+
+#: bots.php:182
+msgid "Created by"
+msgstr ""
+
+#: bots.php:87
+msgid "Invalid bot identifier."
+msgstr ""
+
+#: bots.php:47
+msgid "Invalid bot operation."
+msgstr ""
+
+#: bots.php:43
+msgid "Invalid form security token. Please reload the page and try again."
+msgstr ""
+
+#: bots.php:182
+msgid "Name"
+msgstr ""
+
+#: bots.php:169
+msgid "New bot token"
+msgstr ""
+
+#: bots.php:180
+msgid "No bots have been created."
+msgstr ""
+
+#: bots.php:178
+msgid "Registered bots"
+msgstr ""
+
+#: bots.php:191
+msgid "Revoke"
+msgstr ""
+
+#: bots.php:188
+msgid "Revoked"
+msgstr ""
+
+#: bots.php:190
+msgid "Rotate token"
+msgstr ""
+
+#: bots.php:182
+msgid "Status"
+msgstr ""
+
+#: bots.php:101
+msgid "The bot token changed concurrently. Reload the page and try again."
+msgstr ""
+
+#: bots.php:117
+msgid "The selected bot does not exist or has already been revoked."
+msgstr ""
+
+#: bots.php:93
+msgid "The selected bot does not exist or has been revoked."
+msgstr ""
+
+#: bots.php:104
+msgid "Token rotated. Copy the new token now; the old token no longer works."
+msgstr ""
+
+#: bots.php:10
+msgid "Visit the Setup page to apply database updates before managing bots."
+msgstr ""
