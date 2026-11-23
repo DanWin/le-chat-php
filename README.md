@@ -74,6 +74,11 @@ To configure the application, edit the database, encryption, and SMTP constants 
 
 Messages support safe inline BBCode (`[b]`, `[i]`, `[u]`, `[s]`, `[quote]`, `[code]`, and `[url]`) and common Markdown emphasis, links, headings, quotes, lists, and code. Open a separate JavaScript-free PM window at `chat.php?window=pm` while logged in.
 
+Releases:
+---------
+
+Each push to the `main` branch creates a GitHub release named `v2 - Continuous Build <commit SHA>` and tagged with the commit SHA. The release includes `lechatphp.tar.gz`, containing the application directories and files needed for deployment.
+
 Installation Instructions:
 --------------------------
 
